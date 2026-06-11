@@ -422,7 +422,7 @@ function addSucursal(){
   var id=sucCnt;
   var div=document.createElement('div');
   div.id='suc'+id;
-  div.style.cssText='border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px';
+  div.style.cssText='border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px';
   div.innerHTML='<div style="font-weight:600;margin-bottom:8px;font-size:13px">Sucursal '+id+'</div>'+
     '<div class="f-group"><label class="f-lbl">Nombre / Descripción</label><input class="f-in" id="snom'+id+'" placeholder="Ej: Sucursal Angol"></div>'+
     '<div class="f-group"><label class="f-lbl">Dirección completa</label><input class="f-in" id="sdir'+id+'" placeholder="Calle, número, ciudad"></div>'+
@@ -509,7 +509,7 @@ function getSEREMI(region) {
   if(t.indexOf('coquimbo')>=0) return 'SEREMI Salud Coquimbo: 51 2 539 700';
   if(t.indexOf('valparaiso')>=0) return 'SEREMI Salud Valparaíso: 32 2 646 600';
   if(t.indexOf('metropolitana')>=0||t.indexOf('metro')>=0) return 'SEREMI Salud RM: 2 2 575 3000';
-  if(t.indexOf('higgins')>=0||t.indexOf('ohiggins')>=0) return 'SEREMI Salud O'Higgins: 72 2 328 400';
+  if(t.indexOf('higgins')>=0||t.indexOf('ohiggins')>=0) return 'SEREMI Salud O\'Higgins: 72 2 328 400';
   if(t.indexOf('maule')>=0) return 'SEREMI Salud Maule: 71 2 241 700';
   if(t.indexOf('nuble')>=0) return 'SEREMI Salud Ñuble: 42 2 440 600';
   if(t.indexOf('biobio')>=0||t.indexOf('bio')>=0) return 'SEREMI Salud Biobío: 41 2 742 900';
@@ -714,11 +714,7 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     'CAP.VIII PROHIBICIONES: mínimo 12 prohibiciones concretas para '+e.rubro+'/'+e.subrubro+'. Incluir: alcohol/drogas, celular en zonas riesgo, desactivar dispositivos seguridad, EPP en tareas alto riesgo.\n\n'+
     'CAP.IX DERECHO A SABER (DS 44/2024 Art.14-15): tabla por cargo real. Columnas: cargo|tarea|peligro específico|agente|vía exposición|consecuencia|medida control|EPP|normativa. Mínimo 8 registros con datos reales de '+e.rubro+'.\n\n'+
     'CAP.X EPP OBLIGATORIO: tabla por cargo: cargo|EPP|norma NCh|certificación ISP|cuándo usarlo. Basado en cargos reales: '+e.cargos+'. Sustancias: '+e.sustancias+'. Trabajos especiales: altura='+e.trab_altura+', caliente='+e.trab_caliente+', confinado='+e.trab_confinado+', vehículos='+e.trab_vehiculos+'.\n\n'+
-    'CAP.XI ACCIDENTES Y ENFERMEDADES PROFESIONALES (Ley 16.744):
-- ACCIDENTE DEL TRABAJO (Art.5 inc.1): toda lesión que sufra el trabajador durante el ejercicio de labores. Procedimiento: primeros auxilios → SAMU 131 → DIAT ante mutualidad dentro de 24 horas hábiles (Ley 16.744 Art.76) → investigación OAL con enfoque género.
-- ACCIDENTE DE TRAYECTO (Art.5 inc.2): ocurrido directamente entre habitación y lugar de trabajo. El trabajador presenta personalmente el DIAT ante la mutualidad; el empleador debe facilitar y documentar la gestión.
-- ENFERMEDAD PROFESIONAL (Art.7): causada de manera directa por el ejercicio de la profesión. Denuncia de Enfermedad Profesional (DEP) ante la mutualidad.
-- PRESTACIONES Ley 16.744: médicas, económicas (subsidio, pensión), rehabilitación. Investigación OAL, libro de novedades.\n\n'+
+    'CAP.XI ACCIDENTES Y ENFERMEDADES PROFESIONALES (Ley 16.744):\n- ACCIDENTE DEL TRABAJO (Art.5 inc.1): toda lesión que sufra el trabajador durante el ejercicio de labores. Procedimiento: primeros auxilios → SAMU 131 → DIAT ante mutualidad dentro de 24 horas hábiles (Ley 16.744 Art.76) → investigación OAL con enfoque género.\n- ACCIDENTE DE TRAYECTO (Art.5 inc.2): ocurrido directamente entre habitación y lugar de trabajo. El trabajador presenta personalmente el DIAT ante la mutualidad; el empleador debe facilitar y documentar la gestión.\n- ENFERMEDAD PROFESIONAL (Art.7): causada de manera directa por el ejercicio de la profesión. Denuncia de Enfermedad Profesional (DEP) ante la mutualidad.\n- PRESTACIONES Ley 16.744: médicas, económicas (subsidio, pensión), rehabilitación. Investigación OAL, libro de novedades.\n\n'+
     'CAP.XII RIESGOS PSICOSOCIALES Y LEY KARIN (Ley 21.643 vigente agosto 2024):\n'+
     '- Definiciones legales precisas: acoso laboral, acoso sexual, violencia en el trabajo, violencia por razón de género.\n'+
     '- PROTOCOLO COMPLETO: canal denuncia interno (2 días hábiles acuse recibo), medidas cautelares dentro de 5 días, investigación máx. 30 días hábiles, protección denunciante, prohibición represalias, canal externo DT.\n'+
@@ -737,8 +733,7 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '- Infracciones leves, graves y gravísimas con ejemplos específicos de '+e.rubro+'.\n'+
     '- Escala: amonestación verbal → escrita → multa (máx. 25% remuneración diaria) → término contrato Art.160 N°1 CT.\n'+
     '- Procedimiento sancionatorio completo: constatación → comunicación 3 días hábiles → descargos → resolución 10 días → notificación.\n'+
-    '- Registro centralizado de sanciones.
-- INFRACCIÓN ESPECÍFICA LEY 21.561: exigir trabajo sobre 42 hrs semanales sin pacto escrito de horas extraordinarias (CT Art.32) o sin resolución de jornada excepcional autorizada por DT constituye infracción grave sancionada con multa según CT Art.506.\n\n'+
+    '- Registro centralizado de sanciones.\n- INFRACCIÓN ESPECÍFICA LEY 21.561: exigir trabajo sobre 42 hrs semanales sin pacto escrito de horas extraordinarias (CT Art.32) o sin resolución de jornada excepcional autorizada por DT constituye infracción grave sancionada con multa según CT Art.506.\n\n'+
     'CAP.XIX DENUNCIAS Y RECLAMOS: canal interno superior jerárquico, RRHH, correo corporativo. Canal externo: DT (dt.gob.cl, tel. 600 4500 247, oficina Región de '+e.region+'), SUSESO, SEREMI Salud. Plazos: acuse 5 días, resolución 30 días. Protección contra represalias.\n\n'+
     'CAP.XX PROTOCOLO LEY KARIN COMPLETO (Ley 21.643 + DS 2/2024):\n- Art.1 Ámbito: aplica a toda relación laboral, con clientes, proveedores, público.\n- Art.2 Definiciones: acoso laboral (conducta REITERADA hostigamiento), acoso sexual (requerimiento sexual NO CONSENTIDO), violencia en el trabajo, violencia por razón de género.\n- Art.3 Medidas preventivas: capacitación anual, evaluación clima laboral, protocolo difusión.\n- Art.4 Canal denuncia interno: responsable designado, formulario, acuse recibo 2 días hábiles.\n- Art.5 Medidas cautelares DENTRO DE 5 DÍAS HÁBILES desde denuncia: separación física obligatoria.\n- Art.6 Investigación: investigador imparcial designado en 3 días, informe DENTRO DE 30 DÍAS HÁBILES.\n- Art.7 Sanciones al infractor: escala amonestación → multa → término contrato Art.160 N°1 CT.\n- Art.8 Protección denunciante: confidencialidad, prohibición represalias, no despido sin autorización DT.\n- Art.9 Canal externo DT: dt.gob.cl, plazo 90 días CORRIDOS desde hecho.\n- Art.10 Registro: libro denuncias reservado, estadísticas anuales.\n\n'+
     'CAP.XXI DISPOSICIONES FINALES: revisión anual, distribución gratuita, ingreso web DT, comunicación 30 días antes a trabajadores.\n\n'+
@@ -901,7 +896,7 @@ async function startGen(){
   var acts=document.getElementById('gp3-acts');
   gTexto='';btn.disabled=true;acts.style.display='none';
   out.innerHTML='<div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div>Analizando normativa chilena 2025...</div>';
-  lbl.textContent='Claude . Generando '+TIPO_N[gTipo]+'...';
+  lbl.textContent='Claude · Generando '+TIPO_N[gTipo]+'...';
   document.getElementById('ai-pulse').classList.add('live');
   var s=0;clearInterval(tmrInt);
   tmrInt=setInterval(function(){s++;document.getElementById('ai-tmr').textContent=pad(Math.floor(s/60))+':'+pad(s%60);},1000);
@@ -913,13 +908,13 @@ async function startGen(){
     if(gTipo==='riohs'){
       lbl.textContent='Claude · Parte 1/4 — Caps. I-VI...';
       var p1=await callClaude(buildPrompt(e,'riohs_p1',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps I-V listos. Generando VI-X...</div>';
+      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps I-VI completos. Generando VII-XII...</div>';
       lbl.textContent='Claude · Parte 2/4 — Caps. VII-XII...';
       var p2=await callClaude(buildPrompt(e,'riohs_p2',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps VI-X listos. Generando XI-XV...</div>';
+      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps VII-XII completos. Generando XIII-XVII...</div>';
       lbl.textContent='Claude · Parte 3/4 — Caps. XIII-XVII...';
       var p3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps XI-XV listos. Generando XVI-XX...</div>';
+      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps XIII-XVII completos. Generando XVIII-XXII...</div>';
       lbl.textContent='Claude · Parte 4/4 — Caps. XVIII-XXII + Ley Karin...';
       var p4=await callClaude(buildPrompt(e,'riohs_p4',normas,rStr,fecha));
       texto=p1.replace('===P1FIN===','').trim()+'\n\n'+p2.replace('===P2FIN===','').trim()+'\n\n'+p3.replace('===P3FIN===','').trim()+'\n\n'+p4;
