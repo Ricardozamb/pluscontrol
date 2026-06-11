@@ -89,7 +89,7 @@ app.post('/api/claude', async (req, res) => {
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-5',
-    max_tokens: 8000,
+    max_tokens: 16000,
     system: SYSTEM,
     messages: [{ role: 'user', content: prompt }]
   });
@@ -113,6 +113,7 @@ app.post('/api/claude', async (req, res) => {
         r.on('data', c => d += c);
         r.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { reject(new Error('JSON inválido: ' + d.substring(0,200))); } });
       });
+      req2.setTimeout(120000, function(){ req2.destroy(); reject(new Error('Timeout: la API tardó más de 120 segundos')); });
       req2.on('error', reject);
       req2.write(payload);
       req2.end();
