@@ -88,7 +88,7 @@ app.post('/api/claude', async (req, res) => {
   if (!prompt) return res.status(400).json({ error: 'Prompt vacío' });
 
   const payload = JSON.stringify({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5',
     max_tokens: 8000,
     system: SYSTEM,
     messages: [{ role: 'user', content: prompt }]
