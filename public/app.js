@@ -117,7 +117,7 @@ var NORM = {
   'Construccion':['DS 44/2024 MINTRAB (vigente 01-feb-2025)','Ley 16.744','DS 594/1999 MINSAL','DS 44/2024 MINTRAB Arts.20-21 (coordinacion empleadores, reemplaza DS 78/2010)','Ley 20.123','NCh 433 Of.2009','NCh 349 (andamios)','Protocolo TMERT Res.327/2024','Protocolo PREXOR','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Protocolo CEAL-SM-SUSESO (evaluacion riesgos psicosociales)'],
   'Mineria':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 132/2002 MINMIN','DS 72/1985 MINMIN','Protocolo PREXOR','Protocolo ERA','NCh 2190 explosivos','Convenio OIT 176 ratif.2024','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Industria manufacturera':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Ley 20.123','Protocolo PREXOR','Protocolo TMERT Res.327/2024','DS 148/2003 MINSAL','NCh 382 Of.2004','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
-  'Agricultura y ganaderia':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 594 Art.103-107 plaguicidas','DS 157/2005 MINSAL','Protocolo ERA (biologicos y quimicos)','Protocolo TMERT Res.327/2024','Protocolo PREXOR (maquinaria agricola)','Circular SUSESO Olas de Calor 2024','CT Arts.93-105 (trabajadores agricolas)','CT Arts.303-313 (trabajadores agricolas temporada)','DS 4/2013 CONAF (incendios forestales — si hay extraccion maderas)','NCh 382 Of.2004','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023 (sala cuna — solo si hay mujeres)'],
+  'Agricultura y ganaderia':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 594 Art.103-107 plaguicidas','DS 157/2005 MINSAL','Protocolo ERA (biologicos y quimicos)','Protocolo TMERT Res.327/2024','Protocolo PREXOR (maquinaria agricola)','Circular SUSESO Olas de Calor 2024','CT Arts.93-105 (trabajadores agricolas)','CT Arts.303-313 (trabajadores agricolas temporada)','DS 4/2013 CONAF (incendios forestales — si hay extraccion maderas)','NCh 382 Of.2004','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023'],
   'Pesca y acuicultura':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DFL 292/1953 Ley Navegacion','Protocolo ERA','Protocolo TMERT Res.327/2024','Convenio OIT 188 pesca','NCh 382 Of.2004','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Servicios de salud':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 6/1985 MINSAL','DS 57/2013 MINSAL','Res.283/2007 MINSAL residuos hospitalarios','DS 148/2003 MINSAL','Protocolo ERA biologicos','Protocolo TMERT Res.327/2024','Ley 21.644/2023 violencia en salud','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Transporte y logistica':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Ley 18.290/1984 Transito','DS 212/1992 MINTRANS','NCh 382 Of.2004 mat.peligrosos','DS 298/1994 carga','DS 72/2019 MINTRANS tacografo','Protocolo TMERT Res.327/2024','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
@@ -860,22 +860,33 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '8. DIRECTORIO DE EMERGENCIAS (Bomberos 132 | SAMU 131 | Carabineros 133 | SENAPRED 1424): '+
     (e.sucursales_txt?'Generar tabla DIFERENCIADA por sede con hospital específico de cada una. '+e.sucursales_txt:' Hospital: '+(e.hospital||'más cercano'))+
     ' | '+getTelMutualidad(e.mutualidad)+' | '+getSEREMI(e.region)+'.'+'\n'+
-    '9. SIMULACROS: mínimo 2 anuales (DS 44/2024 Art.19), registro y evaluación.\n'+
+    '9. SIMULACROS: mínimo 1 anual obligatorio (DS 44/2024 Art.19), se recomienda 2 anuales; registrar participantes, fecha, evaluación y acciones de mejora.\n'+
     '10. Normativa: DS 594/1999 Art.44-54, NCh 934 Of.2008, DS 44/2024 Art.19.\n'+
     '11. Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
 }
 
 async function callClaude(prompt){
-  var res=await fetch('/api/claude',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt:prompt})
-  });
-  var txt=await res.text();
-  var data;
-  try{ data=JSON.parse(txt); }
-  catch(e){ throw new Error('Respuesta invalida: '+txt.substring(0,100)); }
-  if(data.texto)return data.texto;
-  throw new Error(data.error||'Sin respuesta. Status: '+res.status);
+  var ctrl=new AbortController();
+  var tmt=setTimeout(function(){ctrl.abort();},300000); // 5 min cliente
+  try{
+    var res=await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt:prompt}),
+      signal:ctrl.signal
+    });
+    clearTimeout(tmt);
+    var txt=await res.text();
+    var data;
+    try{ data=JSON.parse(txt); }
+    catch(e){ throw new Error('Respuesta inválida del servidor: '+txt.substring(0,100)); }
+    if(data.texto) return data.texto;
+    throw new Error(data.error||'Sin respuesta del servidor. Status: '+res.status);
+  } catch(err){
+    clearTimeout(tmt);
+    if(err.name==='AbortError') throw new Error('Tiempo de espera agotado. Intente nuevamente.');
+    throw err;
+  }
 }
 
 async function startGen(){
@@ -886,7 +897,7 @@ async function startGen(){
   var btn=document.getElementById('btn-gp3');
   var acts=document.getElementById('gp3-acts');
   gTexto='';btn.disabled=true;acts.style.display='none';
-  out.innerHTML='<div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div>Analizando normativa chilena 2025...</div>';
+  out.innerHTML='<div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div>Analizando normativa chilena vigente...</div>';
   lbl.textContent='Claude · Generando '+TIPO_N[gTipo]+'...';
   document.getElementById('ai-pulse').classList.add('live');
   var s=0;clearInterval(tmrInt);
@@ -986,17 +997,42 @@ function generarPDF(){
   var normasList=(gEmp.normativa||NORM['default']).join(' . ');
   var firmado=docs.find(function(d){return d.empresa_id===gEmp.id&&d.tipo===gTipo&&d.estado==='firmado';});
 
-  // Parsear markdown a HTML elegante
-  var cuerpo=(gTexto||'')
-    .replace(/^#### (.+)$/gm,'<h4 class="h4">$1</h4>')
-    .replace(/^### (.+)$/gm,'<h3 class="h3">$1</h3>')
-    .replace(/^## (.+)$/gm,'<h2 class="h2">$1</h2>')
-    .replace(/^# (.+)$/gm,'<h1 class="h1">$1</h1>')
-    .replace(/^\* (.+)$/gm,'<li>$1</li>')
-    .replace(/^- (.+)$/gm,'<li>$1</li>')
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\n{2,}/g,'</p><p class="p">')
-    .replace(/\n/g,'<br>');
+  // ── Parser markdown → HTML con soporte completo de tablas ──
+  function parseMd(txt){
+    if(!txt)return '';
+    var lines=txt.split('\n'),out=[],i=0;
+    while(i<lines.length){
+      var line=lines[i];
+      // Tabla markdown: |col|col| seguido de |---|---|
+      if(/^\|.+\|/.test(line)&&i+1<lines.length&&/^\|[\s\-:|]+\|/.test(lines[i+1])){
+        var headers=line.split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
+        i+=2;
+        var th='<table class="tbl"><thead><tr>';
+        headers.forEach(function(h){th+='<th class="th">'+h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</th>';});
+        th+='</tr></thead><tbody>';
+        while(i<lines.length&&/^\|.+\|/.test(lines[i])){
+          var cells=lines[i].split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
+          th+='<tr>';
+          cells.forEach(function(c){th+='<td class="td">'+c.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</td>';});
+          th+='</tr>';
+          i++;
+        }
+        th+='</tbody></table>';
+        out.push(th);
+        continue;
+      }
+      if(/^#### /.test(line)){out.push('<h4 class="h4">'+line.slice(5)+'</h4>');i++;continue;}
+      if(/^### /.test(line)){out.push('<h3 class="h3">'+line.slice(4)+'</h3>');i++;continue;}
+      if(/^## /.test(line)){out.push('<h2 class="h2">'+line.slice(3)+'</h2>');i++;continue;}
+      if(/^# /.test(line)){out.push('<h1 class="h1">'+line.slice(2)+'</h1>');i++;continue;}
+      if(/^[\*\-] /.test(line)){out.push('<li>'+line.slice(2).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</li>');i++;continue;}
+      if(line.trim()===''){out.push('<br>');i++;continue;}
+      out.push('<p class="p">'+line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</p>');
+      i++;
+    }
+    return out.join('\n');
+  }
+  var cuerpo=parseMd(gTexto||'');
 
   var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Firmado digitalmente el '+firmado.fecha+'</div>':'';
 
@@ -1065,7 +1101,13 @@ function generarPDF(){
     // Nota legal
     '.nota{background:#f8f8f6;border:1pt solid #ddd;border-left:3pt solid #3d7a35;padding:12pt 16pt;font-family:Arial,sans-serif;font-size:8.5pt;color:#555;line-height:1.6;margin-top:18pt;}'+
     '.nota strong{color:#1a1a1a;}'+
-    '.ffooter{margin-top:16pt;padding-top:8pt;border-top:.5pt solid #e0e0e0;display:flex;justify-content:space-between;font-family:Arial,sans-serif;font-size:7.5pt;color:#aaa;}';
+    '.ffooter{margin-top:16pt;padding-top:8pt;border-top:.5pt solid #e0e0e0;display:flex;justify-content:space-between;font-family:Arial,sans-serif;font-size:7.5pt;color:#aaa;}'+
+    // Tablas
+    '.tbl{width:100%;border-collapse:collapse;margin:10pt 0 14pt;font-family:Arial,sans-serif;font-size:8.5pt;page-break-inside:avoid;}'+
+    '.th{background:#0d0d10;color:#fff;font-weight:700;padding:5pt 7pt;text-align:left;border:1pt solid #333;font-size:8pt;letter-spacing:.02em;}'+
+    '.td{padding:4pt 7pt;border:1pt solid #ddd;color:#1a1a1a;vertical-align:top;line-height:1.4;}'+
+    'tr:nth-child(even) .td{background:#f8f8f6;}'+
+    'tr:hover .td{background:#f0f7ef;}';
 
   var portada=
     '<div class="portada">'+
@@ -1125,8 +1167,8 @@ function generarPDF(){
     '<div class="swrap"><div class="sello"><div class="stop">Plus</div><div class="smain">C<span>+</span></div><div class="sbot">Osorno . Chile</div></div></div>'+
     '<div class="nota">'+
     '<strong>Nota Legal:</strong> Elaborado conforme al <strong>Decreto Supremo N° 44/2024 MINTRAB</strong> (vigente desde 01-feb-2025, reemplaza DS 40/1969 y DS 54/1969), <strong>Ley N° 16.744</strong>, <strong>DS 594/1999 MINSAL</strong>, <strong>Ley 21.643 Ley Karin</strong> (vigente agosto 2024) y normativa especifica del rubro <strong>'+gEmp.rubro+'</strong>. '+
-    'Debe ser entregado gratuitamente a cada trabajador, exhibido en lugares visibles del establecimiento y comunicado a la Direccion del Trabajo conforme al art. 156 del Codigo del Trabajo. '+
-    'La entidad empleadora <strong>'+gEmp.razon+'</strong> es responsable de su implementacion y cumplimiento.<br><br>'+
+    'Debe ser entregado gratuitamente a cada trabajador, exhibido en lugares visibles del establecimiento y comunicado a la Dirección del Trabajo conforme al art. 156 del Código del Trabajo. '+
+    'La entidad empleadora <strong>'+gEmp.razon+'</strong> es responsable de su implementación y cumplimiento.<br><br>'+
     '<strong>Normativa de referencia:</strong> '+normasList+
     '</div>'+
     '<div class="ffooter"><span>Plus Control SpA &nbsp;.&nbsp; Prevención Integral de Riesgos &nbsp;.&nbsp; Osorno, Los Lagos, Chile</span><span>Cod: '+docId+' &nbsp;.&nbsp; '+fecha+'</span></div>'+
@@ -1198,13 +1240,35 @@ document.getElementById('sheet-overlay').addEventListener('click',closeSheet);
 
 // ── UTILS ──
 function pad(n){return String(n).padStart(2,'0');}
-function md2html(t){
-  return (t||'')
-    .replace(/^# (.+)$/gm,'<strong style="font-size:14px;display:block;margin:8px 0 4px">$1</strong>')
-    .replace(/^## (.+)$/gm,'<strong style="font-size:12px;color:var(--v3);display:block;margin:8px 0 4px">$1</strong>')
-    .replace(/^### (.+)$/gm,'<strong style="font-size:11px;display:block;margin:6px 0 2px">$1</strong>')
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\n/g,'<br>');
+function md2html(txt){
+  if(!txt)return '';
+  var lines=txt.split('\n'),out=[],i=0;
+  while(i<lines.length){
+    var line=lines[i];
+    if(/^\|.+\|/.test(line)&&i+1<lines.length&&/^\|[\s\-:|]+\|/.test(lines[i+1])){
+      var headers=line.split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
+      i+=2;
+      var th='<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:11px"><thead><tr>';
+      headers.forEach(function(h){th+='<th style="background:#0d0d10;color:#fff;padding:4px 6px;text-align:left;border:1px solid #333;font-size:10px">'+h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</th>';});
+      th+='</tr></thead><tbody>';
+      while(i<lines.length&&/^\|.+\|/.test(lines[i])){
+        var cells=lines[i].split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
+        th+='<tr>';
+        cells.forEach(function(c){th+='<td style="padding:3px 6px;border:1px solid #ddd;font-size:10px">'+c.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</td>';});
+        th+='</tr>';
+        i++;
+      }
+      th+='</tbody></table>';
+      out.push(th); continue;
+    }
+    if(/^# /.test(line)){out.push('<strong style="font-size:14px;display:block;margin:8px 0 4px">'+line.slice(2)+'</strong>');i++;continue;}
+    if(/^## /.test(line)){out.push('<strong style="font-size:12px;color:var(--v3);display:block;margin:8px 0 4px">'+line.slice(3)+'</strong>');i++;continue;}
+    if(/^### /.test(line)){out.push('<strong style="font-size:11px;display:block;margin:6px 0 2px">'+line.slice(4)+'</strong>');i++;continue;}
+    if(/^[\*\-] /.test(line)){out.push('<span style="display:block;padding-left:12px;margin:2px 0">▸ '+line.slice(2).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</span>');i++;continue;}
+    out.push(line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'<br>');
+    i++;
+  }
+  return out.join('');
 }
 var ICONS={Construccion:'🏗️',Mineria:'⛏️','Agricultura y ganaderia':'🌾','Pesca y acuicultura':'🐟','Servicios de salud':'🏥','Transporte y logistica':'🚛','Comercio al por menor':'🛒','Gastronomia y restaurantes':'🍽️','Saneamiento ambiental':'🧪','Proteccion contra incendios':'🧯','Silvicultura y forestal':'🌲',Educacion:'📚','Servicios de seguridad':'🛡️','Hoteleria y turismo':'🏨','Tecnologia y comunicaciones':'💻'};
 function rubroIco(r){return ICONS[r]||'🏢';}
