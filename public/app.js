@@ -114,35 +114,37 @@ function doLogout() {
 
 // ── NORMATIVA POR RUBRO (actualizada 2025) ──
 var NORM = {
-  'Construccion':['DS 44/2024 MINTRAB (vigente 01-feb-2025)','Ley 16.744','DS 594/1999 MINSAL','DS 78/2010 MINTRAB','DS 76/2007 MINTRAB','Ley 20.123','NCh 433 Of.2009','NCh 349 (andamios)','Protocolo TMERT Res.327/2024','Protocolo PREXOR','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Circular SUSESO 3825'],
-  'Mineria':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 132/2002 MINMIN','DS 72/1985 MINMIN','Protocolo PREXOR','Protocolo ERA','NCh 2190 explosivos','Convenio OIT 176 ratif.2024','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','DS 76/2007 MINTRAB'],
-  'Industria manufacturera':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 76/2007','Ley 20.123','Protocolo PREXOR','Protocolo TMERT Res.327/2024','DS 148/2003 MINSAL','NCh 382 Of.2004','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
-  'Agricultura y ganaderia':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 594 Art.103-107 plaguicidas','DS 157/2005 MINSAL','Protocolo ERA','Protocolo TMERT Res.327/2024','Circular SUSESO Olas de Calor 2024','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023'],
+  'Construccion':['DS 44/2024 MINTRAB (vigente 01-feb-2025)','Ley 16.744','DS 594/1999 MINSAL','DS 44/2024 MINTRAB Arts.20-21 (coordinacion empleadores, reemplaza DS 78/2010)','Ley 20.123','NCh 433 Of.2009','NCh 349 (andamios)','Protocolo TMERT Res.327/2024','Protocolo PREXOR','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Protocolo CEAL-SM-SUSESO (evaluacion riesgos psicosociales)'],
+  'Mineria':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 132/2002 MINMIN','DS 72/1985 MINMIN','Protocolo PREXOR','Protocolo ERA','NCh 2190 explosivos','Convenio OIT 176 ratif.2024','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'Industria manufacturera':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Ley 20.123','Protocolo PREXOR','Protocolo TMERT Res.327/2024','DS 148/2003 MINSAL','NCh 382 Of.2004','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'Agricultura y ganaderia':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 594 Art.103-107 plaguicidas','DS 157/2005 MINSAL','Protocolo ERA (biologicos y quimicos)','Protocolo TMERT Res.327/2024','Protocolo PREXOR (maquinaria agricola)','Circular SUSESO Olas de Calor 2024','CT Arts.93-105 (trabajadores agricolas)','CT Arts.303-313 (trabajadores agricolas temporada)','DS 4/2013 CONAF (incendios forestales — si hay extraccion maderas)','NCh 382 Of.2004','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023 (sala cuna — solo si hay mujeres)'],
   'Pesca y acuicultura':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DFL 292/1953 Ley Navegacion','Protocolo ERA','Protocolo TMERT Res.327/2024','Convenio OIT 188 pesca','NCh 382 Of.2004','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Servicios de salud':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 6/1985 MINSAL','DS 57/2013 MINSAL','Res.283/2007 MINSAL residuos hospitalarios','DS 148/2003 MINSAL','Protocolo ERA biologicos','Protocolo TMERT Res.327/2024','Ley 21.644/2023 violencia en salud','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Transporte y logistica':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Ley 18.290/1984 Transito','DS 212/1992 MINTRANS','NCh 382 Of.2004 mat.peligrosos','DS 298/1994 carga','DS 72/2019 MINTRANS tacografo','Protocolo TMERT Res.327/2024','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
-  'Comercio al por menor':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Ley 20.001 cargas manuales','DS 63/2005 MINTRAB','Protocolo TMERT Res.327/2024','DS 1/2009 MINVU accesibilidad','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023'],
-  'Comercio al por mayor':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Ley 20.001','DS 63/2005 MINTRAB','NCh 382 Of.2004','DS 148/2003 MINSAL','NCh 934 Of.2008','DS 76/2007','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
-  'Gastronomia y restaurantes':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 977/1996 MINSAL Reg.Sanitario Alimentos','DS 594 Art.55-60 cocinas','Ley 20.001','DS 63/2005 MINTRAB','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023'],
-  'Saneamiento ambiental':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 157/2005 MINSAL empresas plaguicidas','DS 594 Art.103-107 quimicos','Protocolo ERA','NCh 382 Of.2004','NCh 2245 Of.2003 fichas seguridad','DS 148/2003 MINSAL','Resolucion SEREMI habilitacion sanitaria','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','DS 76/2007'],
-  'Proteccion contra incendios':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','NCh 934 Of.2008 extintores','NCh 1433 Of.1977 redes agua','NCh 935 pruebas fuego','NCh 2095 sistemas fijos extincion','DS 594 Art.44-54 prevencion incendios','OGUC Art.4.3','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
-  'Silvicultura y forestal':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 4/2013 CONAF incendios forestales','DS 76/2007 MINTRAB','Ley 20.123','Protocolo ERA','Protocolo TMERT Res.327/2024','NCh 382 Of.2004','DS 148/2003 MINSAL','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'Comercio al por menor':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Ley 20.949/2016 (mod. Ley 20.001) cargas manuales','DS 63/2005 MINTRAB','Protocolo TMERT Res.327/2024','DS 1/2009 MINVU accesibilidad','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023'],
+  'Comercio al por mayor':['DS 44/2024 MINTRAB (incl. Arts.20-21 coordinacion empresa principal-contratista)','Ley 16.744','DS 594/1999 MINSAL','Ley 20.949/2016','DS 63/2005 MINTRAB','NCh 382 Of.2004','DS 148/2003 MINSAL','DS 157/2005 MINSAL (plaguicidas y agroquimicos)','DS 594 Art.103-107 (exposicion a plaguicidas)','DS 57/2024 MINSAL (SGA fichas seguridad)','Protocolo ERA (agentes quimicos)','DS 298/1995 MINTRANSP (transporte sustancias peligrosas)','Ley 18.290/1984 (Ley de Transito — licencias)','DS 212/1992 MINTRANS (transporte terrestre)','DS 72/2019 MINTRANS (tacografo)','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'Gastronomia y restaurantes':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 977/1996 MINSAL Reg.Sanitario Alimentos','DS 594 Art.55-60 cocinas','Ley 20.949/2016','DS 63/2005 MINTRAB','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023'],
+  'Saneamiento ambiental':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 157/2005 MINSAL empresas plaguicidas','DS 594 Art.103-107 quimicos','Protocolo ERA','NCh 382 Of.2004','NCh 2245 Of.2003 fichas seguridad','DS 57/2024 MINSAL (SGA — Sistema Globalmente Armonizado fichas seguridad)','DS 148/2003 MINSAL','Resolucion SEREMI habilitacion sanitaria','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'Proteccion contra incendios':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','NCh 934 Of.2008 extintores','NCh 1914 Of.2005 cilindros gases comprimidos','NCh 1433 Of.1977 redes agua','NCh 935 pruebas fuego','NCh 2095 sistemas fijos extincion','NCh 382 Of.2004 sustancias peligrosas','DS 594 Art.44-54 prevencion incendios','DS 298/1995 MINTRANSP transporte sustancias peligrosas','Ley 20.949/2016 cargas manuales','DS 63/2005 MINTRAB','Protocolo PREXOR ruido','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'Silvicultura y forestal':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 4/2013 CONAF incendios forestales','Ley 20.123','Protocolo ERA','Protocolo TMERT Res.327/2024','NCh 382 Of.2004','DS 148/2003 MINSAL','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Servicios de seguridad':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DFL 3607/1981 Vigilancia Privada','DS 93/1985 INTERIOR','DS 1773/1994 INTERIOR armas','Protocolo TMERT Res.327/2024','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Educacion':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 548/1988 MINEDUC establecimientos','DS 1/2009 MINVU accesibilidad','Protocolo TMERT Res.327/2024','Ley 21.643 Ley Karin 2024 esp.relevancia','DS 2/2024 MINTRAB','Ley 20.536 violencia escolar','NCh 934 Of.2008','Ley 21.645/2023'],
-  'Hoteleria y turismo':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 977/1996 MINSAL alimentos','DS 222/1980 MINSAL hoteles','Ley 20.001','DS 63/2005 MINTRAB','DS 1/2009 MINVU','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'Hoteleria y turismo':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 977/1996 MINSAL alimentos','DS 222/1980 MINSAL hoteles','Ley 20.949/2016','DS 63/2005 MINTRAB','DS 1/2009 MINVU','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
   'Tecnologia y comunicaciones':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','Protocolo TMERT Res.327/2024','DS 18/2020 MINTRAB teletrabajo','Ley 21.220/2020 trabajo distancia','DS 1/2009 MINVU','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 21.645/2023'],
-  'Energia y utilities':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','NCh Elec.4/2003 instalaciones electricas','DS 76/2007 MINTRAB','Ley 20.123','Protocolo PREXOR','Protocolo ERA','DS 148/2003 MINSAL','NCh 382 Of.2004','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
-  'default':['DS 44/2024 MINTRAB (vigente 01-feb-2025)','Ley 16.744','DS 594/1999 MINSAL','Codigo del Trabajo Art.153-157 y 184','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 20.123','DS 76/2007 MINTRAB','NCh 934 Of.2008','Circular SUSESO 3825']
+  'Energia y utilities':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','NCh Elec.4/2003 instalaciones electricas','Ley 20.123','Protocolo PREXOR','Protocolo ERA','DS 148/2003 MINSAL','NCh 382 Of.2004','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
+  'default':['DS 44/2024 MINTRAB (vigente 01-feb-2025)','Ley 16.744','DS 594/1999 MINSAL','Codigo del Trabajo Art.153-157 y 184','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Ley 20.123','NCh 934 Of.2008','Protocolo CEAL-SM-SUSESO (evaluacion riesgos psicosociales)','Circular SUSESO Olas de Calor 2024 (si hay trabajo exterior)']
 };
 
 var RIESGOS_B = {
   'Construccion':['Caida de altura','Golpes con herramientas','Aplastamiento','Exposicion a polvo de silice','Electrocucion','Derrumbe'],
   'Mineria':['Derrumbe de galerias','Exposicion a gases toxicos','Explosion','Caida de rocas','Ruido industrial'],
   'Industria manufacturera':['Atrapamiento en maquinaria','Ruido excesivo','Exposicion a quimicos','Incendio','Sobreesfuerzo fisico'],
-  'Agricultura y ganaderia':['Exposicion a plaguicidas','Golpe de calor','Mordeduras de animales','Caidas en terreno','Sobreesfuerzo'],
+  'Agricultura y ganaderia':['Aplastamiento o golpe por animal bovino (vacas, toros, novillos)','Accidente con tractor agricola o maquinaria de alto tonelaje','Exposicion a plaguicidas herbicidas y fungicidas','Zoonosis: brucelosis y leptospirosis en lecheros y ternereros','Fatiga y somnolencia en trabajo nocturno (turno lecheria)','Golpe de calor en verano o hipotermia en invierno (trabajo exterior)','Caidas en terreno irregular o pendiente en faenas forestales','Sobreesfuerzo por manipulacion de cargas pesadas (forraje, insumos)','Ruido de maquinaria agricola superior a 85 dB','Accidente en trabajo en solitario en fundo alejado'],
   'Pesca y acuicultura':['Caida al agua','Hipotermia','Aplastamiento por aparejos','Cortes','Sobreesfuerzo'],
   'Servicios de salud':['Exposicion agentes biologicos','Pinchazo con agujas','Sobreesfuerzo al movilizar pacientes','Estres laboral','Violencia de usuarios'],
   'Saneamiento ambiental':['Intoxicacion por plaguicidas','Exposicion a biocidas','Mordeduras y picaduras','Caidas en espacios confinados'],
+  'Proteccion contra incendios':['Explosion o sobrexpresurización cilindro a presión','Intoxicacion por CO2 en espacio reducido','Golpe o aplastamiento por cilindro caído','Sobreesfuerzo por manipulacion extintores','Caida desde escalera en instalacion','Accidente de transito con carga peligrosa','Exposicion a polvo quimico seco PQS','Cortes con herramientas de mantencion'],
+  'Comercio al por mayor':['Intoxicacion o exposicion a plaguicidas y agroquimicos','Accidente de transito con camion de alto tonelaje','Aplastamiento por carga en descarga','Sobreesfuerzo en manipulacion de sacos y bultos pesados','Exposicion a polvo quimico fertilizantes','Incendio por almacenamiento de sustancias inflamables','Caida al mismo nivel en bodega','Vibraciones cuerpo entero en conduccion vehiculos pesados'],
   'default':['Caidas al mismo nivel','Sobreesfuerzo fisico','Exposicion a ruido','Incendio','Cortes y heridas','Estres laboral']
 };
 
@@ -150,7 +152,11 @@ var TIPO_N = {
   riohs:'Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)',
   iper:'Matriz de Identificacion de Peligros y Evaluacion de Riesgos (IPER)',
   pts:'Procedimiento de Trabajo Seguro (PTS)',
-  emergencia:'Plan de Emergencia y Evacuacion'
+  emergencia:'Plan de Emergencia y Evacuacion',
+  fuf:'Formulario Unico de Fiscalizacion DS 44/2024',
+  karin:'Protocolo de Prevencion y Sancion de Violencia Laboral (Ley Karin)',
+  capacitacion:'Programa de Capacitacion Anual en Seguridad y Salud',
+  derechosaber:'Derecho a Saber — Informacion de Riesgos por Puesto (DS 44/2024 Art.14)'
 };
 
 // ── ESTADO ──
@@ -332,13 +338,17 @@ function delEmp(id){
 
 // ── FORM NUEVA EMPRESA ──
 var rCnt=0;
-var REQ=['n-razon','n-rut','n-dir','n-ciudad','n-region','n-rep','n-rep-rut','n-rubro','n-trab'];
+var REQ=['n-razon','n-rut','n-dir','n-ciudad','n-region','n-rep','n-rep-rut','n-rubro','n-sub','n-desc','n-trab','n-mut','n-horario','n-cargos'];
 function resetForm(){
   document.querySelectorAll('#pg-nueva .f-in, #pg-nueva .f-ta').forEach(function(el){el.value='';});
   document.querySelectorAll('#pg-nueva .f-sel').forEach(function(el){el.selectedIndex=0;});
+  var pisos=document.getElementById('n-pisos'); if(pisos) pisos.value='1';
   document.getElementById('riesgos-box').innerHTML='';
+  document.getElementById('sucursales-list').innerHTML='';
+  document.getElementById('n-tiene-sucursales').selectedIndex=0;
+  document.getElementById('sucursales-container').style.display='none';
   document.getElementById('normas-sec').style.display='none';
-  rCnt=0;calcProg();
+  sucCnt=0;rCnt=0;calcProg();
 }
 function calcProg(){
   var ok=REQ.filter(function(id){var el=document.getElementById(id);return el&&el.value.trim();}).length;
@@ -400,51 +410,126 @@ function getRiesgos(){
   }
   return result;
 }
+// ── SUCURSALES ──
+var sucCnt=0;
+function toggleSucursales(){
+  var val=document.getElementById('n-tiene-sucursales').value;
+  document.getElementById('sucursales-container').style.display=val==='Si'?'block':'none';
+  if(val==='Si'&&sucCnt===0) addSucursal();
+}
+function addSucursal(){
+  sucCnt++;
+  var id=sucCnt;
+  var div=document.createElement('div');
+  div.id='suc'+id;
+  div.style.cssText='border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px';
+  div.innerHTML='<div style="font-weight:600;margin-bottom:8px;font-size:13px">Sucursal '+id+'</div>'+
+    '<div class="f-group"><label class="f-lbl">Nombre / Descripción</label><input class="f-in" id="snom'+id+'" placeholder="Ej: Sucursal Angol"></div>'+
+    '<div class="f-group"><label class="f-lbl">Dirección completa</label><input class="f-in" id="sdir'+id+'" placeholder="Calle, número, ciudad"></div>'+
+    '<div class="f-grid">'+
+      '<div class="f-group"><label class="f-lbl">Superficie (m²)</label><input class="f-in" id="ssup'+id+'" type="number" placeholder="120"></div>'+
+      '<div class="f-group"><label class="f-lbl">N° trabajadores asignados</label><input class="f-in" id="strab'+id+'" type="number" placeholder="2"></div>'+
+    '</div>'+
+    '<div class="f-group"><label class="f-lbl">Hospital/clínica más cercano</label><input class="f-in" id="shosp'+id+'" placeholder="Nombre, dirección, distancia aprox."></div>';
+  document.getElementById('sucursales-list').appendChild(div);
+}
+function getSucursales(){
+  var result=[];
+  for(var i=1;i<=sucCnt;i++){
+    var nom=document.getElementById('snom'+i);
+    if(!nom) continue;
+    if(nom.value.trim()||document.getElementById('sdir'+i).value.trim()){
+      result.push({
+        nombre:nom.value.trim()||'Sucursal '+i,
+        direccion:document.getElementById('sdir'+i).value.trim()||'No especificada',
+        superficie:document.getElementById('ssup'+i).value.trim()||'',
+        trabajadores:document.getElementById('strab'+i).value.trim()||'',
+        hospital:document.getElementById('shosp'+i).value.trim()||'No especificado'
+      });
+    }
+  }
+  return result;
+}
+
 document.getElementById('btn-add-riesgo').addEventListener('click',function(){addRiesgo('');});
 document.getElementById('btn-cancelar').addEventListener('click',function(){goTab('dash');});
 document.getElementById('btn-guardar').addEventListener('click',function(){
   if(REQ.some(function(id){var el=document.getElementById(id);return !el||!el.value.trim();})){
-    alert('Completa los campos obligatorios marcados con *');return;
+    alert('Completa todos los campos obligatorios (*)');return;
   }
   var rub=document.getElementById('n-rubro').value;
+  function v(id,def){var el=document.getElementById(id);return el?(el.value.trim()||def||''):def||'';}
   emps.push({
     id:Date.now(),
-    razon:document.getElementById('n-razon').value.trim(),
-    rut:document.getElementById('n-rut').value.trim(),
-    direccion:document.getElementById('n-dir').value.trim(),
-    ciudad:document.getElementById('n-ciudad').value.trim(),
-    region:document.getElementById('n-region').value,
-    rubro:rub,
-    subrubro:document.getElementById('n-sub').value.trim(),
-    trabajadores:parseInt(document.getElementById('n-trab').value),
-    mutualidad:document.getElementById('n-mut').value,
-    rep_nombre:document.getElementById('n-rep').value.trim(),
-    rep_rut:document.getElementById('n-rep-rut').value.trim(),
-    rep_cargo:document.getElementById('n-cargo').value.trim(),
-    email:document.getElementById('n-email').value.trim(),
-    telefono:document.getElementById('n-tel').value.trim(),
-    descripcion:document.getElementById('n-desc').value.trim(),
-    riesgos:getRiesgos(),
-    normativa:NORM[rub]||NORM['default'],
-    horario:document.getElementById('n-horario').value.trim()||'Lunes a Viernes 08:00-18:00',
-    superficie:document.getElementById('n-superficie').value.trim()||'',
-    pisos:document.getElementById('n-pisos').value.trim()||'1',
-    maquinaria:document.getElementById('n-maquinaria').value.trim()||'',
-    sustancias:document.getElementById('n-sustancias').value.trim()||'Ninguna',
-    trab_altura:document.getElementById('n-altura').value||'No',
-    trab_caliente:document.getElementById('n-caliente').value||'No',
-    trab_confinado:document.getElementById('n-confinado').value||'No',
-    trab_vehiculos:document.getElementById('n-vehiculos').value||'No',
-    extintores:document.getElementById('n-extintores').value||'No',
-    alarma:document.getElementById('n-alarma').value||'No',
-    tiene_riohs:document.getElementById('n-tiene-riohs').value||'No',
-    tiene_iper:document.getElementById('n-tiene-iper').value||'No',
-    capacitaciones:document.getElementById('n-capacitaciones').value||'No',
-    registro_epp:document.getElementById('n-registro-epp').value||'No'
+    razon:v('n-razon'),rut:v('n-rut'),direccion:v('n-dir'),ciudad:v('n-ciudad'),region:v('n-region'),
+    rubro:rub,subrubro:v('n-sub'),descripcion:v('n-desc'),productos:v('n-productos','No especificado'),
+    lugar_trabajo:v('n-lugar-trabajo','Instalaciones propias'),
+    trabajadores:parseInt(v('n-trab','1')),mujeres:parseInt(v('n-mujeres','0'))||0,
+    mutualidad:v('n-mut'),rep_nombre:v('n-rep'),rep_rut:v('n-rep-rut'),rep_cargo:v('n-cargo','Representante Legal'),
+    rep2_nombre:v('n-rep2',''),rep2_rut:v('n-rep2-rut',''),
+    email:v('n-email'),telefono:v('n-tel'),
+    cargos:v('n-cargos','No especificado'),sindicato:v('n-sindicato','No'),
+    embarazo:v('n-embarazo','No'),menores:v('n-menores','No'),discapacidad:v('n-discapacidad','No'),
+    horario:v('n-horario','Lunes a Viernes 08:00-18:00'),horas_semanales:v('n-horas','42'),
+    jornada:v('n-jornada','Ordinaria'),horas_extra:v('n-horas-extra','No'),
+    superficie:v('n-superficie',''),pisos:v('n-pisos','1'),publico:v('n-publico','No'),
+    maquinaria:v('n-maquinaria','No especificado'),sustancias:v('n-sustancias','Ninguna'),
+    ruido:v('n-ruido','No se sabe'),polvo:v('n-polvo','No'),temperatura:v('n-temperatura','No'),
+    biologico:v('n-biologico','No'),vibracion:v('n-vibracion','No'),radiacion:v('n-radiacion','No'),
+    trab_altura:v('n-altura','No'),trab_caliente:v('n-caliente','No'),trab_confinado:v('n-confinado','No'),
+    trab_vehiculos:v('n-vehiculos','No'),trab_presion:v('n-presion','No'),trab_nocturno:v('n-nocturno','No'),
+    tareas_peligrosas:v('n-tareas-peligrosas','No especificado'),
+    extintores:v('n-extintores','No'),alarma:v('n-alarma','No'),
+    botiquin:v('n-botiquin','No'),primeros_auxilios:v('n-primeros-auxilios','No'),hospital:v('n-hospital','No especificado'),
+    tiene_riohs:v('n-tiene-riohs','No'),tiene_iper:v('n-tiene-iper','No'),
+    capacitaciones:v('n-capacitaciones','No'),registro_epp:v('n-registro-epp','No'),
+    accidentes:v('n-accidentes','Ninguno'),fiscalizacion:v('n-fiscalizacion','No'),
+    riesgos:getRiesgos(),normativa:NORM[rub]||NORM['default'],
+    sucursales:(typeof getSucursales==='function'?getSucursales():[]),
+    sucursales_txt:(function(){
+      var sucs=typeof getSucursales==='function'?getSucursales():[];
+      if(!sucs.length) return '';
+      return sucs.map(function(s){
+        return s.nombre+': '+s.direccion+(s.superficie?' ('+s.superficie+'m²)':'')+(s.hospital?', hospital: '+s.hospital:'');
+      }).join(' | ');
+    })()
   });
   saveData();goTab('dash');
   setTimeout(function(){alert('Empresa guardada exitosamente.');},200);
 });
+
+
+// ── SEREMI POR REGIÓN ──
+function getSEREMI(region) {
+  var t = (region||'').toLowerCase().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u');
+  if(t.indexOf('arica')>=0) return 'SEREMI Salud Arica: 58 2 254 000';
+  if(t.indexOf('tarapaca')>=0) return 'SEREMI Salud Tarapacá: 57 2 521 400';
+  if(t.indexOf('antofagasta')>=0) return 'SEREMI Salud Antofagasta: 55 2 496 400';
+  if(t.indexOf('atacama')>=0) return 'SEREMI Salud Atacama: 52 2 212 000';
+  if(t.indexOf('coquimbo')>=0) return 'SEREMI Salud Coquimbo: 51 2 539 700';
+  if(t.indexOf('valparaiso')>=0) return 'SEREMI Salud Valparaíso: 32 2 646 600';
+  if(t.indexOf('metropolitana')>=0||t.indexOf('metro')>=0) return 'SEREMI Salud RM: 2 2 575 3000';
+  if(t.indexOf('higgins')>=0||t.indexOf('ohiggins')>=0) return 'SEREMI Salud O'Higgins: 72 2 328 400';
+  if(t.indexOf('maule')>=0) return 'SEREMI Salud Maule: 71 2 241 700';
+  if(t.indexOf('nuble')>=0) return 'SEREMI Salud Ñuble: 42 2 440 600';
+  if(t.indexOf('biobio')>=0||t.indexOf('bio')>=0) return 'SEREMI Salud Biobío: 41 2 742 900';
+  if(t.indexOf('araucania')>=0) return 'SEREMI Salud La Araucanía: 45 2 297 200';
+  if(t.indexOf('rios')>=0||t.indexOf('rio')>=0) return 'SEREMI Salud Los Ríos: 63 2 247 100';
+  if(t.indexOf('lagos')>=0) return 'SEREMI Salud Los Lagos: 65 2 482 900';
+  if(t.indexOf('aysen')>=0) return 'SEREMI Salud Aysén: 67 2 234 900';
+  if(t.indexOf('magallanes')>=0) return 'SEREMI Salud Magallanes: 61 2 207 500';
+  return 'SEREMI Salud regional (consultar www.minsal.cl)';
+}
+
+// ── MUTUALIDAD TELÉFONOS ──
+function getTelMutualidad(mut) {
+  var m = (mut||'').toLowerCase();
+  if(m.indexOf('achs')>=0) return 'ACHS 600 600 2247 (urgencias: 600 600 2247)';
+  if(m.indexOf('ist')>=0) return 'IST 600 420 0000 (urgencias: 600 420 0000)';
+  if(m.indexOf('mutual')>=0) return 'Mutual de Seguridad CChC 600 4700 000 (urgencias: 600 200 0101)';
+  if(m.indexOf('ins')>=0||m.indexOf('normalizacion')>=0) return 'INS 600 5004 000';
+  return (mut||'mutualidad')+' (consultar número)';
+}
 
 // ── GENERADOR ──
 var gEmp=null,gTipo=null,gTexto='',tmrInt=null;
@@ -476,7 +561,7 @@ function onGEmpChange(){
 
 document.getElementById('btn-gp1').addEventListener('click',function(){goStep(2);});
 
-['riohs','iper','pts','emergencia','fuf'].forEach(function(t){
+['riohs','iper','pts','emergencia','fuf','karin','capacitacion','derechosaber'].forEach(function(t){
   document.getElementById('tc-'+t).addEventListener('click',function(){
     document.querySelectorAll('.tipo-card').forEach(function(c){c.classList.remove('sel');});
     this.classList.add('sel');gTipo=t;
@@ -499,33 +584,299 @@ function goStep(n){
   var sa=document.getElementById('scroll-area'); if(sa) sa.scrollTop=0;
 }
 
-// ── PROMPTS OPTIMIZADOS (respuesta < 24s) ──
+// ── PROMPTS v2 — Fiscalizador Extremo Senior ──
+function buildBase(e) {
+  var hombres = (e.trabajadores||1) - (e.mujeres||0);
+  return [
+    '═══════════════ DATOS MAESTROS EMPRESA CLIENTE ═══════════════',
+    'RAZÓN SOCIAL: '+e.razon,
+    'RUT: '+e.rut,
+    'DOMICILIO: '+(e.direccion||'')+', '+e.ciudad+', Región de '+e.region,
+    'REP. LEGAL: '+(e.rep_nombre||'No especificado')+' | RUT: '+(e.rep_rut||'---')+' | Cargo: '+(e.rep_cargo||'Representante Legal'),
+    (e.rep2_nombre?'REP. LEGAL 2: '+e.rep2_nombre+' | RUT: '+(e.rep2_rut||'---'):''),
+    'MUTUALIDAD: '+(e.mutualidad||'No especificado'),
+    'TELÉFONO: '+(e.telefono||'No especificado')+' | EMAIL: '+(e.email||'No especificado'),
+    '',
+    '═══════════════ ACTIVIDAD REAL ═══════════════',
+    'RUBRO: '+e.rubro+(e.subrubro?' — '+e.subrubro:''),
+    'ACTIVIDAD ESPECÍFICA: '+e.descripcion,
+    'PRODUCTOS/SERVICIOS: '+(e.productos||'No especificado'),
+    'LUGAR DE TRABAJO: '+(e.lugar_trabajo||'Instalaciones propias'),
+    '',
+    '═══════════════ DOTACIÓN DE PERSONAL ═══════════════',
+    'TOTAL TRABAJADORES: '+e.trabajadores+' ('+hombres+' hombres, '+(e.mujeres||0)+' mujeres)',
+    'CARGOS Y PUESTOS REALES: '+(e.cargos||'No especificado'),
+    'TRABAJADORAS EMBARAZADAS/LACTANCIA: '+(e.embarazo||'No'),
+    'TRABAJADORES MENORES DE 18: '+(e.menores||'No'),
+    'TRABAJADORES CON DISCAPACIDAD: '+(e.discapacidad||'No'),
+    'SINDICATO: '+(e.sindicato||'No'),
+    '',
+    '═══════════════ JORNADA LABORAL ═══════════════',
+    'HORARIO: '+e.horario+' | TIPO: '+(e.jornada||'Ordinaria')+' | HORAS SEMANALES: '+(e.horas_semanales||'42')+' (máx. legal: 42 hrs desde 26-abr-2026, Ley 21.561)',
+    'HORAS EXTRAORDINARIAS: '+(e.horas_extra||'No'),
+    '',
+    '═══════════════ INSTALACIONES ═══════════════',
+    'SUPERFICIE: '+(e.superficie?e.superficie+'m²':'No especificado')+' | PISOS: '+(e.pisos||'1')+' | ATIENDE PÚBLICO: '+(e.publico||'No'),
+    'MAQUINARIA Y EQUIPOS: '+(e.maquinaria||'No especificado'),
+    '',
+    '═══════════════ AGENTES DE RIESGO ═══════════════',
+    'SUSTANCIAS QUÍMICAS: '+(e.sustancias||'Ninguna'),
+    'EXPOSICIÓN RUIDO: '+(e.ruido||'No se sabe'),
+    'POLVO: '+(e.polvo||'No'),
+    'TEMPERATURA EXTREMA: '+(e.temperatura||'No'),
+    'AGENTES BIOLÓGICOS: '+(e.biologico||'No'),
+    'VIBRACIONES: '+(e.vibracion||'No'),
+    'RADIACIÓN: '+(e.radiacion||'No'),
+    '',
+    '═══════════════ TRABAJOS DE ALTO RIESGO ═══════════════',
+    'TRABAJO EN ALTURA: '+(e.trab_altura||'No'),
+    'TRABAJO EN CALIENTE: '+(e.trab_caliente||'No'),
+    'ESPACIOS CONFINADOS: '+(e.trab_confinado||'No'),
+    'CONDUCCIÓN VEHÍCULOS: '+(e.trab_vehiculos||'No'),
+    'EQUIPOS A PRESIÓN: '+(e.trab_presion||'No'),
+    'TRABAJO NOCTURNO/AISLADO: '+(e.trab_nocturno||'No'),
+    'OTRAS TAREAS PELIGROSAS: '+(e.tareas_peligrosas||'No especificado'),
+    '',
+    '═══════════════ RECURSOS DE EMERGENCIA ═══════════════',
+    'EXTINTORES: '+(e.extintores||'No')+' | ALARMA: '+(e.alarma||'No'),
+    'BOTIQUÍN: '+(e.botiquin||'No')+' | PRIMEROS AUXILIOS CAPACITADO: '+(e.primeros_auxilios||'No'),
+    'CENTRO ASISTENCIAL MÁS CERCANO: '+(e.hospital||'No especificado'),
+    '',
+    '═══════════════ ESTADO CUMPLIMIENTO ACTUAL ═══════════════',
+    'RIOHS VIGENTE: '+(e.tiene_riohs||'No')+' | IPER VIGENTE: '+(e.tiene_iper||'No'),
+    'CAPACITACIONES: '+(e.capacitaciones||'No')+' | REGISTRO EPP: '+(e.registro_epp||'No'),
+    'ACCIDENTES ÚLTIMOS 12 MESES: '+(e.accidentes||'Ninguno'),
+    'FISCALIZACIONES DT/SEREMI: '+(e.fiscalizacion||'No'),
+    (e.sucursales_txt?'\n═══════════════ SUCURSALES / SEDES ADICIONALES ═══════════════':''),
+    (e.sucursales_txt?e.sucursales_txt:''),
+    '═══════════════════════════════════════════════════════',
+  (veh_pesado?'⚠️ ALERTA TRANSPORTE PESADO: Ley 18.290 licencia A2/A3, DS 72/2019 tacógrafo, DS 158/1980 carga por eje':''),
+  (tiene_plaguicidas?'⚠️ ALERTA PLAGUICIDAS: DS 157/2005 MINSAL, DS 594 Art.103-107, Protocolo ERA, DS 57/2024 SGA, Autorización SAG':''),
+  (tiene_uv?'⚠️ ALERTA UV SOLAR: Circular SUSESO Olas de Calor 2024 — protocolo exposición solar obligatorio':'')
+  ].filter(Boolean).join('\n');
+}
+
 function buildPrompt(e,tipo,normas,rStr,fecha){
-  var base='EMPRESA: '+e.razon+' | RUT: '+(e.rut||'---')+' | RUBRO: '+e.rubro+' | TRABAJADORES: '+e.trabajadores+' | CIUDAD: '+e.ciudad+', Region de Los Lagos | REP.LEGAL: '+(e.rep_nombre||'---')+' RUT: '+(e.rep_rut||'---')+' | MUTUALIDAD: '+(e.mutualidad||'---')+' | RIESGOS CRITICOS: '+rStr+' | HORARIO: '+(e.horario||'Lun-Vie 08:00-18:00')+' | INSTALACIONES: Superficie '+(e.superficie||'no indicada')+'m2, '+(e.pisos||'1')+' piso(s) | MAQUINARIA: '+(e.maquinaria||'ver rubro')+' | SUSTANCIAS: '+(e.sustancias||'Ninguna')+' | TRABAJOS ESPECIALES: Altura='+(e.trab_altura||'No')+', Caliente='+(e.trab_caliente||'No')+', Confinado='+(e.trab_confinado||'No')+', Vehiculos='+(e.trab_vehiculos||'No')+' | RECURSOS EMERGENCIA: Extintores='+(e.extintores||'No')+', Alarma='+(e.alarma||'No')+' | DOCS EXISTENTES: RIOHS='+(e.tiene_riohs||'No')+', IPER='+(e.tiene_iper||'No')+', Capacitaciones='+(e.capacitaciones||'No')+', RegistroEPP='+(e.registro_epp||'No');
-  var ctrl='CODIGO: PC-'+tipo.toUpperCase()+'-'+new Date().getFullYear()+' | VERSION: 1.0 | FECHA: '+fecha+' | ELABORADO: Alan Bascur Montenegro, Ingeniero en Prevencion de Riesgos, Plus Control SpA | REVISADO: Rep. Legal '+( e.rep_nombre||'empresa');
-  var I='INSTRUCCIONES CRITICAS: 1)Cada articulo minimo 3 oraciones completas y concretas, sin espacios vacios. 2)Solo normativa chilena vigente real y verificable. 3)Sin placeholders [nombre][fecha][cargo] - usar datos reales de la empresa. 4)Lenguaje formal tecnico-legal espanol chileno. 5)Documentos listos para fiscalizacion DT, SEREMI Salud y Mutualidad sin correcciones.';
+  var base = buildBase(e);
+  var tipoBase=tipo.replace(/_p\d+$/,'').replace(/_/,'-').toUpperCase();
+  var prefCliente=(e.razon||'DOC').replace(/[^A-Za-z0-9]/g,'').substring(0,8).toUpperCase();
+  var ctrl = 'CÓDIGO: '+prefCliente+'-'+tipoBase+'-'+new Date().getFullYear()+' | VERSIÓN: 1.0 | FECHA: '+fecha+' | ELABORADO: Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos, Plus Control SpA';
+  var nt = e.trabajadores||1;
+  var cphs_txt = nt>=25
+    ? 'CPHS OBLIGATORIO (≥25 trabajadores DS 44/2024 Art.23): constituir 3 rep. empleador + 3 rep. trabajadores.'
+    : nt>=10
+      ? 'DELEGADO SST OBLIGATORIO (10-24 trabajadores DS 44/2024 Art.66): elegir por asamblea, acta, registrar DT.'
+      : 'EMPRESA PEQUEÑA (<10 trabajadores): sin CPHS ni Delegado SST. Empleador asume funciones. Participación directa mediante asambleas mensuales.';
 
-  if(tipo==='riohs_p1')return I+'\n\nElabora RIOHS 2025 PARTE 1 (Capitulos I al VI) para:\n'+base+'\nControl: '+ctrl+'\nNormativa base: DS 44/2024 MINTRAB (vigente 01-feb-2025), Ley 16.744, Ley 21.643 Ley Karin (ago-2024), CT Art.153-157 y 184, DS 594/1999, DS 2/2024.\n\nCAP.I PREAMBULO, VIGENCIA Y POLITICA SST:\nArt.1 Fundamento legal: CT Art.153-157, DS 44/2024, Ley 16.744.\nArt.2 Ambito de aplicacion: a quien aplica, instalaciones, horarios.\nArt.3 Vigencia: fecha inicio vigencia, plazo revision anual.\nArt.4 POLITICA DE SEGURIDAD Y SALUD EN EL TRABAJO (DS 44/2024 Art.22): declaracion compromiso empleador, objetivos SST, responsabilidades, mejora continua. Minimo 8 lineas desarrolladas. FIRMADA por rep.legal.\nArt.5 Difusion obligatoria: entrega gratuita, registro firma trabajadores, ingreso web DT.\n\nCAP.II DEFINICIONES (DS 44/2024 y Ley 21.643):\nArt.6 Definir completamente cada termino: entidad empleadora, persona trabajadora, lugar de trabajo, riesgo laboral, peligro, factor de riesgo, accidente del trabajo, accidente de trayecto, enfermedad profesional, incidente, CPHS, Delegado SST, OAL, EPP, MIPER, medidas preventivas, medidas correctivas, Derecho a Saber, gestion preventiva, violencia en el trabajo, acoso laboral (Ley 21.643: conducta reiterada constituye hostigamiento), acoso sexual (conducta de naturaleza sexual no consentida), violencia en el trabajo, perspectiva de genero.\nMinimo 20 definiciones con desarrollo legal preciso.\n\nCAP.III ADMISION Y CONTRATACION:\nArt.7 Examenes preocupacionales especificos para rubro '+e.rubro+': tipos, entidad realizadora, caracter obligatorio.\nArt.8 Proceso de induccion obligatoria: temas, duracion minima, evaluacion, registro firma.\nArt.9 Documentacion obligatoria: contrato de trabajo, entrega RIOHS firmado, ficha personal.\nArt.10 Restricciones especificas por tipo de puesto en '+e.rubro+'.\n\nCAP.IV JORNADA LABORAL, DESCANSOS Y TURNOS (CT Art.22 y ss):\nArt.11 Jornada ordinaria especifica para rubro '+e.rubro+': horas semanales, distribucion, registros.\nArt.12 Horas extraordinarias: autorizacion escrita, limite legal 2 horas/dia, recargo 50%, registro.\nArt.13 Descansos dentro de jornada y entre jornadas.\nArt.14 Turnos rotativos si aplica al rubro '+e.rubro+'.\nArt.15 Feriados legales, feriado progresivo, feriado proporcional.\nArt.16 Permisos especiales: medicos, maternidad/paternidad, tramites, duelo.\n\nCAP.V OBLIGACIONES DEL EMPLEADOR (DS 44/2024 Art.4-22):\nArt.17 Deber general de proteccion: Art.184 CT y Art.4 DS 44/2024.\nArt.18 SGSST: politica, estructura, diagnostico, evaluacion, mejora continua.\nArt.19 Elaboracion y actualizacion MIPER con enfoque de genero.\nArt.20 Programa de trabajo preventivo derivado de MIPER en 30 dias.\nArt.21 Provision EPP certificados ISP sin costo al trabajador.\nArt.22 Capacitacion obligatoria minimo 8 horas con enfoque genero.\nArt.23 Investigacion accidentes metodologia OAL con enfoque genero.\nArt.24 Registro documental gestion preventiva disponible para fiscalizadores.\nArt.25 Prevencion riesgos psicosociales: protocolo CEAL-SM-SUSESO o instrumento mutualidad.\n\nCAP.VI RIESGOS LABORALES Y MEDIDAS DE CONTROL - especificos rubro '+e.rubro+':\nArt.26 Identificacion de los principales peligros del rubro '+e.rubro+' (minimo 8 peligros reales).\nArt.27 Medidas de control por nivel de jerarquia: eliminacion, sustitucion, controles ingenieria, controles administrativos, EPP.\nArt.28 Riesgos psicosociales especificos del rubro '+e.rubro+': factores, sintomas, medidas.\nArt.29 Riesgos ergonomicos: posturas forzadas, manipulacion manual de carga (DS 63/2005), movimientos repetitivos.\nArt.30 Mapa de riesgos: descripcion de zonas de riesgo del establecimiento, señaletica, vias de evacuacion.\n\nAl terminar escribe exactamente: ===P1FIN===';
+  var veh_pesado = (e.trab_vehiculos||'').toLowerCase().indexOf('pesad') >= 0;
+  var tiene_forestal = (e.subrubro||'').toLowerCase().indexOf('madera')>=0||(e.subrubro||'').toLowerCase().indexOf('forestal')>=0||(e.descripcion||'').toLowerCase().indexOf('madera')>=0||(e.tareas_peligrosas||'').toLowerCase().indexOf('forestal')>=0;
+  var tiene_plaguicidas = (e.sustancias||'').toLowerCase().indexOf('plaguicida') >= 0 || (e.sustancias||'').toLowerCase().indexOf('herbicida') >= 0 || (e.sustancias||'').toLowerCase().indexOf('fungicida') >= 0 || (e.sustancias||'').toLowerCase().indexOf('agroquimico') >= 0;
+  var tiene_uv = (e.radiacion||'').toLowerCase().indexOf('uv') >= 0 || (e.radiacion||'').toLowerCase().indexOf('solar') >= 0;
+  var I = [
+    '⚠️ INSTRUCCIONES CRÍTICAS — LEE ANTES DE GENERAR:',
+    '1. USA EXACTAMENTE los datos del cliente proporcionados arriba. NUNCA uses otros datos.',
+    '2. Los riesgos, EPP y procedimientos deben corresponder a la actividad real: '+e.rubro+' / '+e.subrubro+'.',
+    (e.sucursales_txt?'2b. EMPRESA CON MÚLTIPLES SEDES: '+e.sucursales_txt+'. El RIOHS Art.2 debe mencionar TODOS los domicilios. Plan de Emergencia y directorio diferenciados por sede con hospital específico de cada una.':''),
+    '3. Cita solo artículos que existen en las normas mencionadas. NUNCA inventes artículos.',
+    '4. CERO placeholders. Si un dato falta escribe "No especificado".',
+    '5. Cada artículo mínimo 3 oraciones completas. NUNCA dejes artículos truncados.',
+    '6. '+cphs_txt,
+    (veh_pesado?'7. ⚠️ VEHÍCULOS PESADOS / MAQUINARIA AGRÍCOLA: CAMIONES en vía pública: Ley 18.290 (licencia A3 articulados, A2 rígidos), DS 72/2019 tacógrafo >3.500 kg, DS 298/1995 si lleva sustancias peligrosas. TRACTORES en predio: NO requieren licencia cuando operan DENTRO del fundo (Ley 18.290). Si sale a vía pública: licencia B mínima. PARA TODOS: DS 594 Art.79 protección PTO y partes móviles. Capacitación documentada operadores. PTS por tipo de maquinaria. Sin pasajeros en cabina no habilitada. Conductor itinerante: declarar en Art.2 RIOHS que vía pública e instalaciones de terceros son lugar de trabajo; CT Art.25 jornada choferes máx.10 hrs; DS 72/2019 tacógrafo; DS 44/2024 Arts.20-21 coordinación.':''),
+    (tiene_plaguicidas?'8. ⚠️ PLAGUICIDAS/AGROQUÍMICOS: DS 157/2005 MINSAL, DS 594 Arts.103-107, Protocolo ERA, fichas SGA DS 57/2024. EPP BODEGUERO: respirador OV/P100, guantes nitrilo/neopreno, delantal impermeable, careta facial. EPP VENDEDOR/A: guantes nitrilo desechables. ALMACENAMIENTO: bodega separada, ventilación DS 594 Art.39, piso impermeable, contención derrames, señalética, inventario. TRANSPORTE: DS 298/1995 documento sustancias peligrosas, etiqueta clase ONU, cartilla QAP en cabina, extintor ABC.':''),
+    (parseInt((e.hospital||'0').replace(/[^0-9]/g,''))||0)>=20 || (e.hospital||'').match(/\b(2[0-9]|3[0-9]|[4-9][0-9]|\d{3}) ?km/) ?
+      '9. ⚠️ HOSPITAL LEJANO (>20 km): botiquín nivel AVANZADO (vendaje hemostático, collar cervical, camilla rígida) en CADA sede. Persona capacitada primeros auxilios POR TURNO incluido nocturno. Vehículo designado evacuación con llaves disponibles. Coordinar con SAMU 131 protocolo rural.' : '',
+    (tiene_uv?'10. ⚠️ RADIACIÓN UV SOLAR: Circular SUSESO Olas de Calor 2024, protector solar FPS 50+, manga larga, evitar 11:00-15:00 en verano.':''),
+    (e.trab_nocturno&&e.trab_nocturno!=='No'?'11. ⚠️ TRABAJO NOCTURNO (CT Art.10, 21:00-06:00): CT Art.28 descanso mínimo 9 hrs CONTINUAS entre jornadas; iluminación DS 594 Art.103 mín.150 lux; evaluación psicosocial CEAL-SM-SUSESO jornada nocturna; prohibir maquinaria pesada con fatiga; primeros auxilios en turno nocturno.':''),
+    (e.sucursales_txt?'12. ⚠️ TRABAJO EN SOLITARIO (DS 594 Art.53): si alguna sede tiene 1 solo trabajador (independiente del género), incluir protocolo verificación telefónica mínimo cada 2 hrs, alerta ante no respuesta, contacto emergencia designado.':''),
+    (tiene_forestal?'13. ⚠️ EXTRACCIÓN DE MADERAS: DS 4/2013 CONAF (incendios forestales), NCh 2904 (trabajos forestales), EPP motosierra (casco forestal, pantalón anticorte, botas forestales, guantes anticorte), PTS específico de motosierra y apeo de árboles.':''),
+    ((e.biologico||'').toLowerCase().indexOf('animal')>=0?'14. ⚠️ MANEJO DE ANIMALES/ZOONOSIS: Protocolo ERA biológicos, riesgo brucelosis y leptospirosis para lecheros/ternereros. EPP: guantes nitrilo/goma, botas impermeables, ropa protectora. Nunca solo con toro adulto. Lavado de manos obligatorio.':''),
+    ''
+  ].filter(function(x){return x!=='';}).join('\n');
 
-  if(tipo==='riohs_p2')return I+'\n\nElabora RIOHS 2025 PARTE 2 (Capitulos VII al XII) para '+e.razon+', rubro '+e.rubro+'. Normativa: '+normas+'. Fecha: '+fecha+'.\n\nCAP.VII OBLIGACIONES DE LOS TRABAJADORES (DS 44/2024 Art.5):\nMinimo 15 articulos completamente desarrollados, especificos para rubro '+e.rubro+'. Incluir obligatorias: conocer y cumplir RIOHS, usar EPP correctamente, informar condiciones inseguras, participar capacitaciones, no presentarse bajo efectos alcohol o drogas, cooperar en investigacion accidentes, participar en simulacros, usar procedimientos de trabajo seguro, reportar accidentes e incidentes.\n\nCAP.VIII PROHIBICIONES ESPECIFICAS:\nMinimo 12 prohibiciones concretas para rubro '+e.rubro+'. Incluir: ingreso con alcohol/drogas, uso celular en areas de riesgo, anular dispositivos de seguridad, trabajar sin EPP en areas de riesgo, acceder a areas restringidas sin autorizacion, realizar trabajos para los que no esta capacitado.\n\nCAP.IX DERECHO A SABER (DS 44/2024 Art.14-15):\nArt. especifico: el empleador debe informar a cada trabajador antes de iniciar labores sobre: riesgos del puesto, medidas preventivas, procedimientos de trabajo seguro, uso EPP, emergencias. Registrar entrega con firma.\nTabla Derecho a Saber especifica para rubro '+e.rubro+': cargo | tarea | peligro | agente | via exposicion | consecuencia | medida control | EPP | normativa. Minimo 8 registros con datos reales del rubro.\n\nCAP.X ELEMENTOS DE PROTECCION PERSONAL:\nArt. lista EPP obligatorio por cargo en '+e.rubro+': cargo | EPP | norma NCh | frecuencia cambio | procedimiento uso | certificacion ISP.\nArt. procedimiento entrega, registro con firma, recambio y mantencio, capacitacion uso (min 1 hora DS 44/2024 Art.13).\n\nCAP.XI ACCIDENTES Y ENFERMEDADES PROFESIONALES (Ley 16.744):\nArt. definicion legal accidente trabajo, trayecto y enfermedad profesional.\nArt. procedimiento ante accidente: primeros auxilios, traslado, notificacion (DIAT dentro 24 horas), investigacion con metodologia '+( e.mutualidad||'OAL')+', medidas correctivas.\nArt. Circular SUSESO N 3825: investigacion con enfoque genero, factores de riesgo psicosocial.\nArt. registro obligatorio: libro de novedades, estadisticas mensuales, tasas accidentabilidad.\nArt. prestaciones Ley 16.744: medicas, economicas, rehabilitacion, derechos del trabajador accidentado.\n\nCAP.XII PREVENCION DE RIESGOS PSICOSOCIALES Y LEY KARIN:\nArt. definicion riesgos psicosociales segun SUSESO: demandas cognitivas, apoyo social, compensaciones, doble presencia.\nArt. instrumento de evaluacion: protocolo CEAL-SM-SUSESO o instrumento de '+( e.mutualidad||'mutualidad')+'.\nArt. ACOSO LABORAL (Ley 21.643 vigente agosto 2024): definicion legal (conducta reiterada que constituye agresion), modalidades, ambito de aplicacion.\nArt. ACOSO SEXUAL: definicion legal, requerimiento no deseado de naturaleza sexual, alcance.\nArt. VIOLENCIA EN EL TRABAJO: violencia externa, interna, por razon de genero.\nArt. protocolo de prevencion: medidas organizacionales, evaluacion periodica, capacitacion.\nArt. canales de denuncia internos: procedimiento, plazos (investigacion max 30 dias habiles), proteccion denunciante.\nArt. procedimiento investigacion: designacion investigador imparcial, etapas, plazos, informe, medidas.\nArt. sanciones para el infractor: amonestacion escrita, multa remuneracional, termino contrato Art.160 N°1 CT.\nArt. garantias: confidencialidad, prohibicion de represalias, proteccion denunciante.\n\nAl terminar escribe exactamente: ===P2FIN===';
+  if(tipo==='riohs_p1') return I+'\nElabora RIOHS 2025 PARTE 1 (Caps. I-VI) para el siguiente cliente:\n\n'+base+'\n\nControl: '+ctrl+'\nNormativa: DS 44/2024 MINTRAB, Ley 16.744, Ley 21.643 Ley Karin, CT Arts. 153-157 y 184, DS 594/1999.\n\n'+
+    'CAP.I PREÁMBULO, VIGENCIA Y POLÍTICA SST:\n'+
+    'Art.1 Fundamento legal: DS 44/2024, Ley 16.744, CT Art.153-157, Ley 21.643.\n'+
+    'Art.2 Ámbito de aplicación: todos los trabajadores de '+e.razon+'. DOMICILIO LEGAL: '+e.direccion+', '+e.ciudad+', Región de '+e.region+'. '+(e.sucursales_txt?'DOMICILIOS OPERACIONALES (lugar efectivo de trabajo): '+e.sucursales_txt+'. La fiscalización corresponde a la Inspección del Trabajo de cada jurisdicción donde operan los trabajadores.':'')+'Cargos: '+e.cargos+'. Horario: '+e.horario+'.\n'+
+    'Art.3 Vigencia: desde '+fecha+', revisión anual o ante cambios.\n'+
+    'Art.4 POLÍTICA DE SST firmada: compromiso específico del empleador '+e.rep_nombre+', objetivos medibles, responsabilidades. Mínimo 10 líneas. FIRMADA.\n'+
+    'Art.5 Difusión: entrega gratuita, acuse firma, ingreso web DT (Art.156 CT).\n\n'+
+    'CAP.II DEFINICIONES (DS 44/2024 + Ley 21.643): mínimo 20 definiciones completas incluyendo: acoso laboral (Ley 21.643: conducta reiterada de hostigamiento), acoso sexual, violencia en el trabajo, entidad empleadora, trabajador, lugar de trabajo, riesgo, peligro, accidente, incidente, EPP, MIPER, OAL, perspectiva de género.\n\n'+
+    'CAP.III ADMISIÓN: exámenes preocupacionales específicos para '+e.rubro+', inducción 8 horas, documentación obligatoria, Derecho a Saber firmado.\n\n'+
+    'CAP.IV JORNADA LABORAL (CT Art.22 inciso 1, Ley 21.561/2023 — máx. 42 hrs/semana desde 26-abr-2026): '+
+    'Jornada: '+e.jornada+'. Horario: '+e.horario+'. Horas semanales: '+e.horas_semanales+' hrs. '+
+    'OBLIGATORIO en este artículo: (1) especificar duración exacta de colación (mínimo 30 min CT Art.34, no se computa en jornada); (2) verificar que horas brutas menos colación no excedan 42 hrs; (3) si el horario da más de 42 hrs trabajadas, indicar el pacto de horas extras escrito o ajustar horario. '+(veh_pesado?'(4) ARTÍCULO ESPECÍFICO PARA CONDUCTOR (CT Art.25): jornada máxima 10 hrs diarias incluyendo esperas, descanso obligatorio de 2 horas cada 5 horas de conducción continua, registro en tacógrafo DS 72/2019, tiempo de conducción efectiva no puede exceder 5 hrs sin pausa. Este artículo debe redactarse SEPARADO del horario general de la empresa.':'')+' '+
+    'JORNADA MÁXIMA LEGAL VIGENTE: 42 hrs/semana desde 26-abr-2026 para TODAS las empresas (CT Art.22 inciso 1, Ley 21.561/2023). Reducción: hasta 25-abr-2026=44hrs, desde 26-abr-2026=42hrs (todas las empresas). Próxima: 40hrs en abr-2028. '+(parseInt(e.horas_semanales||42)>42?'ATENCIÓN LEGAL: las '+e.horas_semanales+' hrs/semana declaradas superan el límite máximo vigente de 42 hrs semanales (CT Art.22 inciso 1, Ley 21.561 — vigente desde 26-abr-2026 para TODAS las empresas). Indicar en este artículo: (a) que la jornada ordinaria es de 42 hrs semanales, (b) que las horas adicionales requieren pacto de horas extraordinarias escrito con recargo del 50% según CT Art.32, o (c) que la empresa cuenta con resolución de jornada excepcional autorizada por la DT. CITA LEGAL: CT Art.22 inciso 1, Ley 21.561/2023.':e.horas_semanales+' hrs/sem.')+' Horas extras, descansos, feriados, permisos maternidad/paternidad.\n\n'+
+    'CAP.V OBLIGACIONES DEL EMPLEADOR: DS 44/2024 Art.4 (deber protección, CT Art.184), Art.7 (MIPER), Art.8 (programa preventivo anual), Art.13 (EPP sin costo, certificado ISP), Art.14 (información riesgos), Art.15 (capacitación), Art.16 (formación enfoque género), Art.19 (plan emergencia). MIPER, programa preventivo, EPP sin costo, capacitación 8 hrs enfoque género, investigación accidentes OAL, riesgos psicosociales CEAL-SM-SUSESO.\n\n'+
+    'CAP.VI RIESGOS DEL RUBRO '+e.rubro.toUpperCase()+': mínimo 10 peligros REALES de '+e.subrubro+'. Jerarquía de controles. Mapa de riesgos. Riesgos ergonómicos (Ley 20.949/2016, DS 63/2005 MINTRAB). Riesgos psicosociales.\n\nAl terminar escribe exactamente: ===P1FIN===';
 
-  if(tipo==='riohs_p3')return I+'\n\nElabora RIOHS 2025 PARTE 3 (Capitulos XIII al XVII) para '+e.razon+', rubro '+e.rubro+'. Normativa: '+normas+'. Fecha: '+fecha+'.\n\nCAP.XIII COMITE PARITARIO DE HIGIENE Y SEGURIDAD (DS 44/2024 - solo si >= 25 trabajadores):\n'+(e.trabajadores>=25?'Constitucion CPHS obligatoria. Art. composicion: 3 representantes empleador + 3 representantes trabajadores + 3 alternos cada uno. Art. eleccion representantes trabajadores: convocatoria, asamblea, acta, registro DT dentro 15 dias habiles. Art. sesiones ordinarias mensuales y extraordinarias (accidente fatal/grave, RGI, peticion conjunta). Art. actas con materias tratadas, acuerdos, plazos. Art. funciones obligatorias DS 44/2024 Art.47: asesorar EPP, vigilar medidas preventivas, investigar accidentes, indicar medidas seguridad, promover capacitaciones, informar RGI.':'DELEGADO DE SEGURIDAD Y SALUD EN EL TRABAJO (DS 44/2024 Art.66 - empresas 10 a 25 trabajadores): Art. designacion: eleccion por asamblea cada 2 anios, acta. Art. funciones: participar en SGSST, implementar medidas preventivas, representar a trabajadores ante el empleador y OAL. Art. facilidades: tiempo para ejercer funciones sin desmedro remuneracion.')+'\n\nCAP.XIV DEPARTAMENTO PREVENCION RIESGOS (DS 44/2024 - solo si > 100 trabajadores):\n'+(e.trabajadores>100?'DPR obligatorio. Experto a cargo inscrito en registros SEREMI Salud. Funciones DS 44/2024 Art.52. Dedicacion minima segun numero trabajadores y cotizacion generica. Registros obligatorios: incidentes, accidentes, enfermedades, vigilancia salud, estadisticas con perspectiva genero.':'No aplica por tener '+e.trabajadores+' trabajadores (umbral legal es >100).')+'\n\nCAP.XV GESTION PREVENTIVA, PROGRAMA Y CAPACITACION:\nArt. MIPER: elaboracion, enfoque genero, revision anual o ante cambios/accidentes, disponibilidad para trabajadores y CPHS.\nArt. programa de trabajo preventivo: elaboracion en 30 dias desde MIPER, contenido minimo DS 44/2024 Art.8, aprobacion rep.legal, difusion.\nArt. capacitacion minimo 8 horas anuales, con enfoque genero, temas DS 44/2024 Art.16.\nArt. evaluacion anual del cumplimiento del programa preventivo.\nArt. prevencion alcohol y drogas en el lugar de trabajo: politica, procedimiento, consecuencias.\nArt. vigilancia ambiental y de la salud: programas OAL, autorizacion para examenes.\n\nCAP.XVI ORDEN, HIGIENE Y CONDICIONES SANITARIAS (DS 594/1999):\nArt. condiciones generales del lugar de trabajo especificas para '+e.rubro+'.\nArt. servicios higienicos: dotacion segun numero trabajadores y genero (DS 594 Art.25-28).\nArt. agua potable, comedores, vestuarios.\nArt. iluminacion, ventilacion, temperatura segun DS 594.\nArt. almacenamiento de materiales y sustancias especificos para '+e.rubro+'.\nArt. manejo manual de carga (Ley 20.949, DS 63/2005): limites por genero y edad, tecnicas correctas.\n\nCAP.XVII EMERGENCIAS Y EVACUACION:\nArt. plan de emergencia: escenarios especificos para '+e.rubro+', roles y responsabilidades.\nArt. simulacros: frecuencia minima semestral, registro, evaluacion y mejoras.\nArt. equipos contra incendio: extintores (NCh 1433, DS 594 Art.44-54), tipo por clase fuego, ubicacion, revision mensual, recarga anual.\nArt. primeros auxilios: botiquin dotacion minima, persona responsable, comunicaciones de emergencia.\nArt. directorio de emergencias: Bomberos 132, SAMU 131, Carabineros 133, '+( e.mutualidad||'Mutualidad')+', SEREMI Salud Region de Los Lagos.\n\nAl terminar escribe exactamente: ===P3FIN===';
+  if(tipo==='riohs_p2') return I+'\nElabora RIOHS 2025 PARTE 2 (Caps. VII-XII) para el siguiente cliente:\n\n'+base+'\n\nControl: '+ctrl+'\nFecha: '+fecha+'.\n\n'+
+    'CAP.VII OBLIGACIONES DE TRABAJADORES (DS 44/2024 Art.5): mínimo 15 artículos específicos para cargos reales: '+e.cargos+'. Incluir: RIOHS, EPP, condiciones inseguras, capacitaciones, alcohol/drogas, accidentes, simulacros, PTS.\n\n'+
+    'CAP.VIII PROHIBICIONES: mínimo 12 prohibiciones concretas para '+e.rubro+'/'+e.subrubro+'. Incluir: alcohol/drogas, celular en zonas riesgo, desactivar dispositivos seguridad, EPP en tareas alto riesgo.\n\n'+
+    'CAP.IX DERECHO A SABER (DS 44/2024 Art.14-15): tabla por cargo real. Columnas: cargo|tarea|peligro específico|agente|vía exposición|consecuencia|medida control|EPP|normativa. Mínimo 8 registros con datos reales de '+e.rubro+'.\n\n'+
+    'CAP.X EPP OBLIGATORIO: tabla por cargo: cargo|EPP|norma NCh|certificación ISP|cuándo usarlo. Basado en cargos reales: '+e.cargos+'. Sustancias: '+e.sustancias+'. Trabajos especiales: altura='+e.trab_altura+', caliente='+e.trab_caliente+', confinado='+e.trab_confinado+', vehículos='+e.trab_vehiculos+'.\n\n'+
+    'CAP.XI ACCIDENTES Y ENFERMEDADES PROFESIONALES (Ley 16.744):
+- ACCIDENTE DEL TRABAJO (Art.5 inc.1): toda lesión que sufra el trabajador durante el ejercicio de labores. Procedimiento: primeros auxilios → SAMU 131 → DIAT ante mutualidad dentro de 24 horas hábiles (Ley 16.744 Art.76) → investigación OAL con enfoque género.
+- ACCIDENTE DE TRAYECTO (Art.5 inc.2): ocurrido directamente entre habitación y lugar de trabajo. El trabajador presenta personalmente el DIAT ante la mutualidad; el empleador debe facilitar y documentar la gestión.
+- ENFERMEDAD PROFESIONAL (Art.7): causada de manera directa por el ejercicio de la profesión. Denuncia de Enfermedad Profesional (DEP) ante la mutualidad.
+- PRESTACIONES Ley 16.744: médicas, económicas (subsidio, pensión), rehabilitación. Investigación OAL, libro de novedades.\n\n'+
+    'CAP.XII RIESGOS PSICOSOCIALES Y LEY KARIN (Ley 21.643 vigente agosto 2024):\n'+
+    '- Definiciones legales precisas: acoso laboral, acoso sexual, violencia en el trabajo, violencia por razón de género.\n'+
+    '- PROTOCOLO COMPLETO: canal denuncia interno (2 días hábiles acuse recibo), medidas cautelares dentro de 5 días, investigación máx. 30 días hábiles, protección denunciante, prohibición represalias, canal externo DT.\n'+
+    '- CEAL-SM-SUSESO: dimensiones, evaluación, medidas.\n'+
+    '- PROTOCOLO ALCOHOL Y DROGAS (DS 44/2024 Art.9): prohibición expresa con fundamento legal. Indicios razonables (aliento, conducta alterada, coordinación deteriorada). Procedimiento test: aplicado por profesional de salud o institución acreditada; cadena de custodia; derecho del trabajador a solicitar segunda muestra; consecuencias de resultado positivo (suspensión inmediata, proceso disciplinario); consecuencias de negativa (se considera como positivo según criterio DT).\n\nAl terminar escribe exactamente: ===P2FIN===';
 
-  if(tipo==='riohs_p4')return I+'\n\nElabora RIOHS 2025 PARTE 4 (Capitulos XVIII al XXII + Control Documental) para '+e.razon+', rubro '+e.rubro+'. Normativa: '+normas+'. Fecha: '+fecha+'.\n\nCAP.XVIII INFRACCIONES, SANCIONES Y MULTAS (DS 44/2024 Art.68 y CT Art.154 N7):\nArt. clasificacion infracciones: leves, graves y gravisimas con ejemplos especificos.\nArt. escala de sanciones proporcional: amonestacion verbal, amonestacion escrita, multa (hasta 25% remuneracion diaria por infraccion), termino contrato por causa grave.\nArt. procedimiento sancionatorio: constatacion, comunicacion escrita, plazo descargos (3 dias habiles), resolucion, notificacion.\nArt. infracciones especialmente graves: presentarse bajo efectos alcohol/drogas, no usar EPP en trabajos de alto riesgo, anular dispositivos de seguridad.\nArt. registro de sanciones aplicadas.\n\nCAP.XIX PROCEDIMIENTOS DE DENUNCIA, RECLAMO Y CONSULTA:\nArt. canales internos de denuncia: superior jerarquico, RRHH, correo electronico de la empresa.\nArt. canal externo DT: dt.gob.cl, oficinas DT Osorno (o region correspondiente), fono 600 4500 247.\nArt. canal SUSESO: suseso.cl para materias de Ley 16.744 y Ley 21.643.\nArt. canal SEREMI Salud: materias de higiene y condiciones sanitarias.\nArt. plazos de respuesta interna: max 5 dias habiles para acusar recibo, max 30 dias para resolver.\nArt. proteccion: prohibicion de represalias contra quienes formulen denuncias de buena fe.\n\nCAP.XX VIOLENCIA EN EL TRABAJO Y LEY KARIN - PROTOCOLO COMPLETO (Ley 21.643 vigente agosto 2024):\nArt. AMBITO: aplica a toda la empresa, incluyendo relaciones entre trabajadores, con clientes, proveedores y publico.\nArt. DEFINICIONES LEGALES precisas segun Ley 21.643:\n- Acoso laboral: conducta que constituye agresion u hostigamiento reiterado.\n- Acoso sexual: requerimiento de caracter sexual no consentido que amenace o perjudique situacion laboral.\n- Violencia en el trabajo: actos de violencia fisica, sicologica o sexual ejercidos en el contexto laboral.\n- Violencia por razon de genero.\nArt. MEDIDAS DE PREVENCION: identificacion factores de riesgo, capacitacion anual, evaluacion periodica clima laboral.\nArt. PROTOCOLO DE DENUNCIA: formulario escrito o verbal ante superior jerarquico o directamente a la DT. Plazo: dentro de 90 dias habiles desde el hecho.\nArt. PROCEDIMIENTO INVESTIGACION INTERNA: designacion investigador imparcial dentro 3 dias, comunicacion a denunciado, recepcion descargos y pruebas, informe con conclusiones y medidas dentro 30 dias habiles.\nArt. MEDIDAS CAUTELARES durante investigacion: separacion espacios de trabajo, redistribucion horarios si es necesario.\nArt. SANCIONES AL INFRACTOR: amonestacion escrita, multa hasta 25% remuneracion diaria, termino contrato Art.160 N1 CT.\nArt. PROTECCION DENUNCIANTE: confidencialidad, prohibicion represalias, no puede ser despedido durante investigacion sin autorizacion DT.\nArt. DENUNCIA A DT: si investigacion interna no satisface o hay represalias, trabajador puede denunciar directamente a la Inspeccion del Trabajo.\n\nCAP.XXI DISPOSICIONES GENERALES Y FINALES:\nArt. revision anual del RIOHS con participacion CPHS/Delegado SST y organizaciones sindicales (DS 44/2024 Art.57).\nArt. distribucion obligatoria a cada trabajador de forma gratuita con registro de recepcion.\nArt. ingreso a pagina web Direccion del Trabajo (implica tambien ingreso a SEREMI Salud).\nArt. envio 30 dias antes de vigencia a trabajadores, CPHS, sindicatos para observaciones.\nArt. vigencia: desde '+fecha+' hasta proxima revision.\n\nCAP.XXII CONTROL DOCUMENTAL:\nCodigo: '+ctrl+'\nElaborado por: Alan Bascur Montenegro, Ingeniero en Prevencion de Riesgos Profesionales\nCargo: Profesional Externo de Prevencion de Riesgos - Plus Control SpA\nRegistro Profesional: Inscrito en registros SEREMI de Salud\nFirma y timbre: ___________________\n\nAprobado por: '+( e.rep_nombre||'Representante Legal')+'\nCargo: '+(e.rep_cargo||'Representante Legal')+'\nRUT: '+(e.rep_rut||'---')+'\nFirma: ___________________\n\nFecha de elaboracion: '+fecha+'\nProxima revision: (indicar fecha un anio despues)';
+  if(tipo==='riohs_p3') return I+'\nElabora RIOHS 2025 PARTE 3 (Caps. XIII-XVII) para el siguiente cliente:\n\n'+base+'\n\n'+cphs_txt+' Fecha: '+fecha+'.\n\n'+
+    'CAP.XIII REPRESENTACIÓN PREVENTIVA: '+cphs_txt+' Desarrollo completo según corresponda al tamaño de la empresa.\n\n'+
+    'CAP.XIV GESTIÓN PREVENTIVA: MIPER (metodología PxC 1-5, enfoque género, revisión anual), Programa Trabajo Preventivo (30 días desde MIPER), capacitación 8 hrs enfoque género DS 44/2024 Art.16, evaluación anual programa, vigilancia ambiental y salud.\n\n'+
+    'CAP.XV ORDEN, HIGIENE Y CONDICIONES SANITARIAS (DS 594/1999): condiciones específicas para '+e.rubro+'. Servicios higiénicos segun DS 594 Art.25-28 para '+e.trabajadores+' trabajadores ('+(e.mujeres||0)+' mujeres). Agua, comedor, vestuarios. Iluminación, ventilación, temperatura. Almacenamiento de: '+e.sustancias+'. Manipulación manual de carga (Ley 20.949/2016, DS 63/2005 MINTRAB — límites Ley 20.949/2016: 25 kg hombre adulto, 15 kg mujer adulta (en condiciones ideales de levantamiento — reducir ante postura, frecuencia o distancia)).\n\n'+
+    'CAP.XVI EMERGENCIAS Y EVACUACIÓN (DS 594 Art.44-54, DS 44/2024 Art.19): escenarios específicos para '+e.rubro+'/'+e.subrubro+'. Roles proporcionales a '+e.trabajadores+' trabajadores. Extintores: '+e.extintores+'. Alarma: '+e.alarma+'. Botiquín: '+e.botiquin+'. Simulacros semestrales. Directorio: Bomberos 132, SAMU 131, Carabineros 133, SENAPRED 1424, '+getTelMutualidad(e.mutualidad)+', '+getSEREMI(e.region)+', hospital: '+(e.hospital||'más cercano')+'.\n\n'+
+    'CAP.XVII INVESTIGACIÓN DE ACCIDENTES (DS 44/2024 y Ley 16.744 Art.76): metodología OAL enfoque género, plazos (DIAT ante la mutualidad dentro de 24 horas hábiles desde el accidente (Ley 16.744 Art.76)), informe accidente, medidas correctivas, comunicación trabajadores. Estadísticas: tasa accidentabilidad, frecuencia, gravedad, diferenciadas por género.\n\nAl terminar escribe exactamente: ===P3FIN===';
 
-  if(tipo==='iper_p1')return I+'\n\nElabora PARTE 1 MATRIZ IPER DS 44/2024 para:\n'+base+'\n\n1.ENCABEZADO FORMAL:\nEmpresa: '+e.razon+' | RUT: '+(e.rut||'---')+'\nRubro: '+e.rubro+' | Fecha elaboracion: '+fecha+'\nVersion: 1.0 | Codigo: PC-IPER-'+new Date().getFullYear()+'\nElaborado por: Alan Bascur Montenegro, IPR, Plus Control SpA\nMetodologia: Guia Tecnica ISP para IPER en Ambientes de Trabajo (DS 44/2024 Art.7)\n\n2.METODOLOGIA P*C CON ENFOQUE DE GENERO (DS 44/2024 Art.7 inc.2):\nEscala de Probabilidad (1-5): 1=Muy poco probable, 2=Poco probable, 3=Posible, 4=Probable, 5=Muy probable\nEscala de Consecuencia (1-5): 1=Insignificante, 2=Menor (primeros auxilios), 3=Moderado (tratamiento medico), 4=Mayor (incapacidad parcial permanente), 5=Catastrofico (muerte/incapacidad total)\nNiveles riesgo P*C: Trivial(1-4)=verde, Tolerable(5-8)=amarillo, Moderado(9-16)=naranjo, Importante(17-24)=rojo, Intolerable(25)=rojo oscuro\nEnfoque de genero: indicar si el riesgo afecta diferente segun sexo biologico o genero (embarazo, trabajadoras con lactancia, diferencias fisiologicas).\n\n3.PRIMERA MITAD DE AREAS DEL RUBRO '+e.rubro+':\nColumnas obligatorias: N|Area/Proceso|Puesto de Trabajo|Tarea especifica|Peligro real del rubro|Tipo de peligro (fisico/quimico/biologico/ergonomico/psicosocial/mecanico/electrico)|Causa raiz|Consecuencia potencial|N trabajadores expuestos|Genero expuesto|P|C|P*C|Nivel riesgo|Normativa aplicable|Medida control eliminacion|Medida control ingenieria|Medida control administrativo|EPP requerido con norma NCh.\nMinimo 15 registros con peligros REALES del rubro '+e.rubro+'.\n\nAl terminar escribe exactamente: ===IPER1FIN===';
+  if(tipo==='riohs_p4') return I+'\nElabora RIOHS 2025 PARTE 4 (Caps. XVIII-XXII + Control Documental) para el siguiente cliente:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAP.XVIII INFRACCIONES Y SANCIONES (DS 44/2024 Art.68, CT Art.154 N°7):\n'+
+    '- Infracciones leves, graves y gravísimas con ejemplos específicos de '+e.rubro+'.\n'+
+    '- Escala: amonestación verbal → escrita → multa (máx. 25% remuneración diaria) → término contrato Art.160 N°1 CT.\n'+
+    '- Procedimiento sancionatorio completo: constatación → comunicación 3 días hábiles → descargos → resolución 10 días → notificación.\n'+
+    '- Registro centralizado de sanciones.
+- INFRACCIÓN ESPECÍFICA LEY 21.561: exigir trabajo sobre 42 hrs semanales sin pacto escrito de horas extraordinarias (CT Art.32) o sin resolución de jornada excepcional autorizada por DT constituye infracción grave sancionada con multa según CT Art.506.\n\n'+
+    'CAP.XIX DENUNCIAS Y RECLAMOS: canal interno superior jerárquico, RRHH, correo corporativo. Canal externo: DT (dt.gob.cl, tel. 600 4500 247, oficina Región de '+e.region+'), SUSESO, SEREMI Salud. Plazos: acuse 5 días, resolución 30 días. Protección contra represalias.\n\n'+
+    'CAP.XX PROTOCOLO LEY KARIN COMPLETO (Ley 21.643 + DS 2/2024):\n- Art.1 Ámbito: aplica a toda relación laboral, con clientes, proveedores, público.\n- Art.2 Definiciones: acoso laboral (conducta REITERADA hostigamiento), acoso sexual (requerimiento sexual NO CONSENTIDO), violencia en el trabajo, violencia por razón de género.\n- Art.3 Medidas preventivas: capacitación anual, evaluación clima laboral, protocolo difusión.\n- Art.4 Canal denuncia interno: responsable designado, formulario, acuse recibo 2 días hábiles.\n- Art.5 Medidas cautelares DENTRO DE 5 DÍAS HÁBILES desde denuncia: separación física obligatoria.\n- Art.6 Investigación: investigador imparcial designado en 3 días, informe DENTRO DE 30 DÍAS HÁBILES.\n- Art.7 Sanciones al infractor: escala amonestación → multa → término contrato Art.160 N°1 CT.\n- Art.8 Protección denunciante: confidencialidad, prohibición represalias, no despido sin autorización DT.\n- Art.9 Canal externo DT: dt.gob.cl, plazo 90 días CORRIDOS desde hecho.\n- Art.10 Registro: libro denuncias reservado, estadísticas anuales.\n\n'+
+    'CAP.XXI DISPOSICIONES FINALES: revisión anual, distribución gratuita, ingreso web DT, comunicación 30 días antes a trabajadores.\n\n'+
+    'CAP.XXII CONTROL DOCUMENTAL:\n'+ctrl+'\n\nFIRMAS:\n\nFirma y timbre: '+e.rep_nombre+' ('+e.rep_cargo+') | RUT: '+e.rep_rut+'.'+
+    (e.rep2_nombre?'\n\nFirma y timbre: '+e.rep2_nombre+' (Representante Legal) | RUT: '+(e.rep2_rut||'---')+'.':'')+
+    '\n\nElaborado por: Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos | Plus Control SpA | Lastarrias 602, Osorno | Fecha: '+fecha+'.';
 
-  if(tipo==='iper_p2')return I+'\n\nElabora PARTE 2 MATRIZ IPER DS 44/2024 para '+e.razon+', rubro '+e.rubro+'. Fecha: '+fecha+'.\n\n1.SEGUNDA MITAD AREAS: continuar con las mismas columnas, minimo 15 registros adicionales, peligros REALES del rubro '+e.rubro+'. Incluir obligatoriamente: riesgos ergonomicos (MMC, posturas, movimientos repetitivos), riesgos psicosociales (carga de trabajo, relaciones, autonomia, violencia laboral), riesgos de emergencia.\n\n2.TABLA RIESGOS PSICOSOCIALES (DS 44/2024 Art.7 inc.2 - OBLIGATORIO):\nInstrumento CEAL-SM-SUSESO o instrumento de '+(e.mutualidad||'mutualidad')+': dimensiones evaluadas, nivel de riesgo, medidas control organizacionales.\n\n3.PLAN DE ACCION OBLIGATORIO para riesgos Importantes(17-24) e Intolerables(25):\nColumnas: N|Peligro|Nivel riesgo|Medida correctiva especifica|Responsable cargo real|Plazo dias habiles|Recurso necesario|Indicador de cumplimiento|Fecha seguimiento|Estado.\n\n4.PROGRAMA ACTIVIDADES PREVENTIVAS DS 44/2024 Art.8 (cronograma anual '+new Date().getFullYear()+'):\nMes|Actividad preventiva|Responsable|Participantes|Duracion|Indicador|Observaciones.\nIncluir: capacitaciones, inspecciones, simulacros, evaluaciones, mediciones higienicas si aplica.\n\n5.ESTADISTICAS Y CONTROL (Art.73-75 DS 44/2024):\nIndicadores: tasa accidentabilidad, tasa frecuencia mensual, tasa gravedad semestral. Diferenciados por genero.\n\n6.FIRMAS Y CONTROL DOCUMENTAL:\nAlaborado: Alan Bascur Montenegro, IPR, Plus Control SpA, '+fecha+' | Aprobado: '+(e.rep_nombre||'Rep.Legal')+', '+(e.rep_cargo||'Representante Legal')+' | Proxima revision: (anual o ante cambios).';
+  if(tipo==='iper_p1') return I+'\nElabora MATRIZ IPER DS 44/2024 PARTE 1 para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
+    'ENCABEZADO FORMAL completo con datos del cliente arriba.\n\n'+
+    'METODOLOGÍA P×C CON ENFOQUE DE GÉNERO (DS 44/2024 Art.7):\n'+
+    'Probabilidad 1-5: 1=Muy poco probable, 2=Poco probable, 3=Posible, 4=Probable, 5=Muy probable.\n'+
+    'Consecuencia 1-5: 1=Insignificante, 2=Menor, 3=Moderado (tratamiento médico), 4=Mayor (incapacidad parcial), 5=Catastrófico (muerte).\n'+
+    'Clasificación: Trivial(1-4), Tolerable(5-8), Moderado(9-16), Importante(17-24), Intolerable(25).\n\n'+
+    'TABLA MIPER — primera mitad de puestos/procesos de '+e.rubro+'/'+e.subrubro+':\n'+
+    'Columnas: N°|Área/Proceso|Puesto de Trabajo|Tarea específica|Peligro REAL del rubro|Tipo peligro|Causa raíz|Consecuencia potencial|N° trab. expuestos (máx. '+e.trabajadores+')|Género expuesto|P|C|P×C|Nivel riesgo|Normativa aplicable|Control eliminación|Control ingeniería|Control administrativo|EPP con norma NCh.\n'+
+    'Mínimo 15 registros con peligros REALES de: '+e.subrubro+'. '+
+    (e.mujeres>0?'PERSPECTIVA DE GÉNERO OBLIGATORIA: generar filas específicas para los '+e.mujeres+' cargos femeninos con análisis diferencial de: exposición a plaguicidas (límites menores), carga manual (15 kg máx.), riesgo violencia/acoso de clientes (Ley Karin), ergonomía de pie (TMERT). ':'')+
+    'Incluir: '+e.sustancias+', altura='+e.trab_altura+', caliente='+e.trab_caliente+', confinado='+e.trab_confinado+', presión='+e.trab_presion+'.\n\nAl terminar escribe exactamente: ===IPER1FIN===';
 
-  if(tipo==='pts')return I+'\n\nElabora PROCEDIMIENTO DE TRABAJO SEGURO (PTS) para:\n'+base+'\nControl: '+ctrl+'\n\n1.IDENTIFICACION DEL PROCEDIMIENTO:\nNombre: PTS - (indicar tarea principal del rubro '+e.rubro+')\nCodigo: PC-PTS-'+new Date().getFullYear()+' | Version: 1.0 | Fecha: '+fecha+'\n\n2.OBJETO Y ALCANCE ESPECIFICO para rubro '+e.rubro+'.\n\n3.NORMATIVA APLICABLE: '+normas+', DS 63/2005 (MMC), DS 594/1999, normas NCh aplicables.\n\n4.DEFINICIONES TECNICAS del rubro.\n\n5.RESPONSABILIDADES CONCRETAS:\n- Trabajador: cumplir cada paso del procedimiento, usar EPP, reportar condiciones inseguras.\n- Supervisor/Capataz: verificar cumplimiento antes y durante, autorizar inicio trabajo.\n- Empleador: proporcionar EPP, capacitar, actualizar procedimiento ante cambios.\n- CPHS/Delegado SST: revisar y aprobar PTS anualmente.\n\n6.PELIGROS Y RIESGOS ASOCIADOS A LA TAREA en rubro '+e.rubro+' (tabla: peligro|consecuencia|nivel riesgo|control).\n\n7.EPP OBLIGATORIO:\nCargo|EPP|Norma NCh|Certificacion ISP|Uso obligatorio en.\n\n8.PREPARACION ANTES DE INICIAR:\nMinimo 5 pasos: verificacion area, equipos, EPP, autorizaciones, informar a supervisor.\n\n9.PROCEDIMIENTO PASO A PASO (minimo 15 pasos numerados):\nN|Descripcion detallada accion|Peligro asociado al paso|Medida control especifica|Responsable|Punto critico SI/NO.\n\n10.RESTRICCIONES Y PROHIBICIONES ABSOLUTAS para esta tarea.\n\n11.MANEJO DE EMERGENCIAS durante la tarea:\n- Accidente con herido: primeros auxilios, llamar SAMU 131, notificar supervisor, no mover lesionado grave.\n- Incendio: evacuar, llamar Bomberos 132, usar extintor solo si capacitado.\n- Derrames/fugas si aplica al rubro '+e.rubro+'.\n\n12.PREVENCION ALCOHOL Y DROGAS (DS 44/2024 Art.8 inc.2): prohibicion absoluta presentarse bajo efectos, procedimiento ante sospecha.\n\n13.REGISTROS OBLIGATORIOS: acuse recibo firma trabajadores, registro capacitacion, checklist previo a tarea, registro incidentes.\n\n14.ACTUALIZACION: revision ante accidente relacionado, cambio proceso, nueva tecnologia, o anualmente.';
+  if(tipo==='iper_p2') return I+'\nElabora MATRIZ IPER DS 44/2024 PARTE 2 para el siguiente cliente:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'SEGUNDA MITAD: mismas columnas, mínimo 15 registros adicionales. OBLIGATORIO incluir: riesgos ergonómicos (MMC Ley 20.949/2016 + DS 63/2005, posturas forzadas, TMERT Res.327/2024), riesgos psicosociales (CEAL-SM-SUSESO), exposición a '+e.sustancias+', ruido='+e.ruido+', polvo='+e.polvo+', temperatura='+e.temperatura+', biológico='+e.biologico+'.\n\n'+
+    'TABLA RIESGOS PSICOSOCIALES: instrumento '+(e.mutualidad||'mutualidad')+' / CEAL-SM-SUSESO. Dimensiones, nivel riesgo, medidas organizacionales.\n\n'+
+    'PLAN DE ACCIÓN — riesgos Importantes e Intolerables:\n'+
+    'Columnas: N°|Peligro|Nivel|Medida correctiva específica|Responsable (cargo real)|Plazo días hábiles|Recurso|Indicador cumplimiento|Fecha seguimiento|Estado.\n\n'+
+    'PROGRAMA ANUAL PREVENTIVO '+new Date().getFullYear()+': mes|actividad|responsable|participantes|duración|indicador.\n\n'+
+    'FIRMAS: Alan Bascur Montenegro IPR Plus Control SpA | '+(e.rep_nombre||'Rep.Legal')+' '+e.rep_cargo+' | Fecha próxima revisión.';
+
+  if(tipo==='pts') return I+'\nElabora PROCEDIMIENTO DE TRABAJO SEGURO (PTS) para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+'⚠️ NOTA: Si el campo OTRAS TAREAS PELIGROSAS contiene múltiples tareas, elabora PTS para la PRIMERA tarea listada y al final incluye una sección "OTROS PTS REQUERIDOS" listando cada tarea adicional que requiere su propio PTS según DS 44/2024 Art.8.\n\n'+
+    'Identifica la tarea más crítica de '+e.rubro+'/'+e.subrubro+' considerando: '+e.tareas_peligrosas+', altura='+e.trab_altura+', caliente='+e.trab_caliente+', confinado='+e.trab_confinado+', presión='+e.trab_presion+', vehículos='+e.trab_vehiculos+'.\n\n'+
+    '1. IDENTIFICACIÓN: nombre del PTS, código, fecha.\n'+
+    '2. OBJETO Y ALCANCE: tarea específica, personal al que aplica (cargos: '+e.cargos+').\n'+
+    '3. NORMATIVA: '+normas+', DS 63/2005, DS 594/1999, normas NCh aplicables.\n'+
+    '4. DEFINICIONES técnicas específicas de la tarea.\n'+
+    '5. RESPONSABILIDADES: trabajador, supervisor, empleador.\n'+
+    '6. PELIGROS tabla: peligro|consecuencia|nivel riesgo PxC|control.\n'+
+    '7. EPP OBLIGATORIO tabla: cargo|EPP|norma NCh|certificación ISP|cuándo.\n'+
+    '8. PREPARACIÓN: mínimo 5 pasos verificación previa.\n'+
+    '9. PROCEDIMIENTO PASO A PASO — mínimo 15 pasos numerados:\n'+
+    '   N°|Descripción detallada|Peligro del paso|Medida control específica|Responsable|Punto crítico S/N.\n'+
+    '10. RESTRICCIONES Y STOP WORK: condiciones que detienen el trabajo.\n'+
+    '11. EMERGENCIAS: accidente con herido (primeros auxilios→SAMU 131), incendio (Bomberos 132), '+(e.trab_presion!=='No'?'fuga/explosión presión, ':'')+(e.sustancias!=='Ninguna'?'derrame '+e.sustancias+', ':'')+'.\n'+
+    '12. PROTOCOLO ALCOHOL Y DROGAS (DS 44/2024 Art.9): prohibición, procedimiento ante sospecha.\n'+
+    '13. REGISTROS: acuse recibo firma trabajadores, checklist previo, registro incidentes.\n'+
+    '14. ACTUALIZACIÓN: ante accidente, cambio proceso, o anualmente.';
 
   if(tipo==='fuf'){
-    var p1='Eres experto en fiscalizacion laboral chilena. Elabora el FORMULARIO UNICO DE FISCALIZACION (FUF) del DS N 44/2024 completamente diligenciado para:\n'+base+'\n\nINSTRUCCIONES CRITICAS:\n1) Para cada item marca CUMPLE, NO CUMPLE o NO APLICA segun la realidad del rubro '+e.rubro+' y '+e.trabajadores+' trabajadores.\n2) Justifica cada NO CUMPLE con la infraccion especifica y el articulo vulnerado.\n3) Para NO APLICA explica brevemente por que no aplica.\n4) Al final genera RESUMEN EJECUTIVO con: total items cumple/no cumple/no aplica, nivel de riesgo legal (ALTO/MEDIO/BAJO), multas estimadas en UTM, y PLAN DE ACCION PRIORITARIO con los 5 incumplimientos mas criticos a subsanar.\n\nSECCIONES A COMPLETAR (items 1-28):\n\nSECCION 1 SISTEMA GESTION SST (Art.22,64): Item 1 SGSST con politica, estructura, diagnostico, evaluacion, mejora continua.\nSECCION 2 IDENTIFICACION PELIGROS: Item 2 MIPER todos procesos Art.7. Item 3 MIPER incluye riesgos psicosociales/genero Art.7. Item 4 MIPER disponible e informada Art.7. Item 5 MIPER contiene peligros/evaluacion/nivel/controles Art.7. Item 6 MIPER con fecha y revision anual Art.7. Item 7 (<=25 trab) autoevaluacion OAL Art.64.\nSECCION 3 PROGRAMA PREVENTIVO: Item 8 Programa a partir MIPER en 30 dias Art.8. Item 9 Programa escrito y aprobado Art.8. Item 10 Programa contiene medidas/plazos/responsables/AyD/saludable/conduccion Art.8. Item 11 Programa difundido a trabajadores y CPHS Art.8. Item 12 Maquinas/equipos: informacion riesgos, manuales, PTS, capacitacion Art.10. Item 13 Prelacion medidas: colectiva antes EPP Art.12. Item 14 EPP sin costo Art.13. Item 15 EPP adecuado al riesgo Art.13. Item 16 EPP certificado ISP Art.13. Item 17 Procedimiento uso/mantencio/recambio EPP Art.13. Item 18 Capacitacion EPP min 1 hora Art.13. Item 19 Registro capacitacion EPP Art.13. Item 20 Evaluacion anual programa preventivo Art.14.\nSECCION 4 INFORMACION Y FORMACION: Item 21 Informacion riesgos oportuna Art.15. Item 22 Informacion incluye lugar trabajo, riesgos, PTS, sustancias, emergencias Art.15. Item 23 Capacitacion 8 horas con enfoque genero Art.16. Item 24 Capacitacion aborda todos los temas DS 44/2024 Art.16.\nSECCION 5 CONSULTA Y PARTICIPACION: Item 25 Participacion trabajadores gestion preventiva Art.17.\nSECCION 6 RIESGO GRAVE E INMINENTE: Item 26 Ante RGI informacion inmediata y suspension Art.18. Item 27 Plan emergencias Art.19. Item 28 Pruebas anuales plan emergencia Art.19.\n\nAl terminar escribe exactamente: ===FUF_P1FIN===';
-    var p2='Continua FUF DS 44/2024 PARTE 2 para '+e.razon+', rubro '+e.rubro+', '+e.trabajadores+' trabajadores. Fecha: '+fecha+'.\n\nSECCION 7 COORDINACION: Item 29 Coordinacion multiples empleadores mismo lugar Art.20.\nSECCION 8 CPHS/DELEGADO SST: Item 30 CPHS constituido si >25 trab Art.23. Item 31 Integrantes CPHS con curso prevencion primer semestre Art.32. Item 32 Acta CPHS registrada DT 15 dias habiles Art.36. Item 33 Facilidades funcionamiento CPHS Art.37. Item 34 Reuniones CPHS mensuales y extraordinarias Art.39. Item 35 Actas con materias/acuerdos/plazos Art.39-42. Item 36 Acuerdos CPHS comunicados por escrito Art.42. Item 37 Documentacion prevencion disponible para CPHS Art.46. Item 38 CPHS cumple funciones minimas Art.47. Item 39 (10-25 trab) Delegado SST elegido Art.66. Item 40 Delegado SST elegido cada 2 anios con acta Art.66.\nSECCION 9 DPR (>100 trab): Item 41 DPR si >100 trab con experto inscrito SEREMI Art.50. Item 42 DPR con medios necesarios Art.51. Item 43 DPR cumple funciones Art.52. Item 44 Categoria DPR segun trab y cotizacion Art.54. Item 45 DPR registra asistencia Art.55. Item 46 DPR mantiene registros con perspectiva genero Art.73-74. Item 47 (sin DPR) registra tasa accidentabilidad/accidentes/EP Art.75. Item 48 (<=100 trab) Encargado gestion riesgo capacitado OAL Art.65.\nSECCION 10 RIOHS: Item 49 RIOHS vigente entregado gratis e ingresado web DT Art.56-57. Item 50 RIOHS enviado 30 dias antes a trab/CPHS/sindicatos Art.57. Item 51 RIOHS revisado anualmente Art.57. Item 52 RIOHS contiene preambulo/disposiciones/obligaciones/prohibiciones/sanciones Art.58.\nSECCION 11 MAPAS RIESGOS: Item 53 Mapas riesgo visibles con esquema y principales riesgos Art.62.\nSECCION 12 VIGILANCIA AMBIENTE Y SALUD: Item 54 Vigilancia ambiental programa OAL Art.67. Item 55 Vigilancia salud trabajadores expuestos Art.67. Item 56 Autorizacion asistencia examenes OAL Art.68.\nSECCION 13 TRASLADO E INVESTIGACION: Item 57 Traslado trabajador con EP sin reduccion renta Art.69. Item 58 Implementa medidas fiscalizadores/OAL/DPR/CPHS Art.70. Item 59 Investigacion accidentes con enfoque genero Art.71.\nSECCION 14 REGISTRO: Item 60 Documentacion gestion riesgo disponible para fiscalizadores Art.72.\n\nRESUMEN EJECUTIVO FINAL:\n- CONTEO: items Cumple X / No Cumple X / No Aplica X\n- NIVEL RIESGO LEGAL: ALTO (>10 NC) / MEDIO (5-10 NC) / BAJO (<5 NC)\n- MULTAS ESTIMADAS en UTM segun DS 44/2024\n- TOP 5 INCUMPLIMIENTOS CRITICOS con plazo recomendado\n- PLAN ACCION INMEDIATA: acciones a tomar antes de proxima fiscalizacion\nElaborado: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+    var p1 = I+'\nElabora FUF DS 44/2024 PARTE 1 (ítems 1-28) para:\n\n'+base+'\n\n'+
+      'Para cada ítem marca CUMPLE / NO CUMPLE / NO APLICA según realidad real del cliente.\n'+
+      'Justifica cada NO CUMPLE con infracción y artículo vulnerado.\n'+
+      'NO APLICA con razón breve.\n'+
+      (nt<10?'EMPRESA <10 TRABAJADORES: CPHS y Delegado SST NO APLICAN. Indicar correctamente.':nt<25?'EMPRESA 10-24 TRABAJADORES: Delegado SST APLICA, CPHS NO APLICA.':'EMPRESA ≥25 TRABAJADORES: CPHS APLICA.')+'\n\n'+
+      'SECCIÓN 1 SGSST (Art.22,64): Ítem1 política SST con estructura y mejora continua.\n'+
+      'SECCIÓN 2 MIPER (Art.7): Ítems 2-7: MIPER todos procesos, riesgos psicosociales/género, disponibilidad, peligros/evaluación/controles, revisión anual, autoevaluación OAL.\n'+
+      'SECCIÓN 3 PROGRAMA (Art.8-19): Ítems 8-28: programa preventivo escrito y aprobado, medidas control, EPP (sin costo, certificado ISP, capacitación), información y formación (8 hrs género), participación, RGI, plan emergencia, pruebas anuales.\n\nAl terminar: ===FUF_P1FIN===';
+    var p2 = I+'\nFUF DS 44/2024 PARTE 2 (ítems 29-60 + Resumen Ejecutivo) para el siguiente cliente:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+      'SECCIÓN 7 COORDINACIÓN (DS 44/2024 Art.20): Ítem 29: Cuando '+e.razon+' trabaja en instalaciones de clientes, verificar si existe acuerdo de coordinación con la empresa principal y si se informaron los riesgos mutuamente.\n'+'SECCIÓN 8 CPHS/DELEGADO (Art.23-66): Ítems 30-40 según tamaño real: '+nt+' trabajadores. '+cphs_txt+'\n'+
+      'SECCIÓN 9 DPR (Art.50-65): Ítems 41-48: '+(nt>100?'DPR OBLIGATORIO':'No aplica por '+nt+' trabajadores.')+'\n'+
+      'SECCIÓN 10 RIOHS (Art.56-58): Ítems 49-52: vigente, distribuido, revisado, contenido completo.\n'+
+      'SECCIÓN 11 MAPAS RIESGO (Art.62): Ítem 53.\n'+
+      'SECCIONES 12-14 (DS 44/2024 Título V — vigilancia de la salud y ambiente, investigación accidentes): Ítems 54-60: vigilancia ambiental/salud, investigación accidentes con enfoque género, documentación disponible para fiscalizadores.\n\n'+
+      'RESUMEN EJECUTIVO:\n'+
+      '- CONTEO: Cumple X / No Cumple X / No Aplica X\n'+
+      '- NIVEL RIESGO LEGAL: ALTO(>10 NC) / MEDIO(5-10 NC) / BAJO(<5 NC)\n'+
+      '- MULTAS ESTIMADAS EN UTM según DS 44/2024\n'+
+      '- TOP 5 INCUMPLIMIENTOS CRÍTICOS con plazo recomendado\n'+
+      '- PLAN DE ACCIÓN INMEDIATA\n'+
+      'Elaborado: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
     return p1+'\n\n===FUF_INTERMEDIO===\n\n'+p2;
   }
 
-  return I+'\n\nElabora PLAN DE EMERGENCIA Y EVACUACION para:\n'+base+'\n\n1.Objetivo, alcance y vigencia. Control: '+ctrl+'\n2.Descripcion instalaciones: superficie, accesos, pisos, capacidad.\n3.Riesgos emergencia ESPECIFICOS del rubro '+e.rubro+' (NO solo incendio/sismo genericos).\n4.Organigrama emergencia proporcional a '+e.trabajadores+' trabajadores: roles reales posibles.\n5.Protocolos detallados: incendio|sismo|emergencia medica|accidente grave|evacuacion.\n6.Vias evacuacion y puntos encuentro: describir o indicar seccion Informacion Pendiente si no hay planos.\n7.Recursos: extintores tipo/clase/ubicacion, botiquin dotacion minima DS 594, senaletica NCh.\n8.Directorio: Bomberos 132, SAMU 131, Carabineros 133, SEREMI Salud region '+e.region+', '+(e.mutualidad||'mutualidad')+'.\n9.Simulacros: frecuencia semestral obligatoria, registro, evaluacion.\n10.Normativa: DS 594/1999 Art.44-54, NCh 934 Of.2008, NCh 1433, DS 44/2024 Art.19.\n11.Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+  if(tipo==='karin') return I+'\nElabora PROTOCOLO COMPLETO LEY KARIN (Ley 21.643 + DS 2/2024 MINTRAB) para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
+    '## PROTOCOLO DE PREVENCIÓN Y SANCIÓN DE VIOLENCIA LABORAL\n'+
+    '### Ley 21.643 vigente desde agosto 2024 + DS 2/2024 MINTRAB\n\n'+
+    'Art.1 ÁMBITO: aplica a toda relación laboral de '+e.razon+', entre trabajadores, con clientes, proveedores y público.\n'+
+    'Art.2 DEFINICIONES LEGALES PRECISAS: acoso laboral (conducta reiterada hostigamiento), acoso sexual (requerimiento sexual no consentido), violencia en el trabajo (física/psicológica/sexual), violencia por razón de género.\n'+
+    'Art.3 MEDIDAS PREVENTIVAS: identificación factores riesgo, capacitación anual (incluir en programa '+new Date().getFullYear()+'), evaluación clima laboral.\n'+
+    'Art.4 CANAL DENUNCIA INTERNO: el responsable NOMINADO para recibir denuncias es '+e.rep_nombre+', '+e.rep_cargo+' (este nombre debe aparecer textualmente en el documento, conforme Ley 21.643). Formulario escrito o verbal. Plazo acuse recibo: 2 días hábiles.\n'+
+    'Art.5 MEDIDAS CAUTELARES INMEDIATAS (máx. 5 días desde denuncia): separación física, redistribución horaria, otras medidas según caso.\n'+
+    'Art.6 PROCEDIMIENTO INVESTIGACIÓN: designación investigador imparcial (3 días). IMPORTANTE: En empresas con menos de 10 trabajadores, si no es posible garantizar imparcialidad interna, el empleador DEBE derivar la investigación directamente a la Inspección del Trabajo (Ley 21.643), evitando conflicto de interés. Comunicación a denunciado, descargos y pruebas, informe con conclusiones y medidas (máx. 30 días hábiles).\n'+
+    'Art.7 SANCIONES AL INFRACTOR: amonestación escrita → multa hasta 25% remuneración diaria → término contrato Art.160 N°1 CT.\n'+
+    'Art.8 PROTECCIÓN DENUNCIANTE: confidencialidad, prohibición absoluta de represalias, no puede ser despedido durante investigación sin autorización DT.\n'+
+    'Art.9 CANAL EXTERNO: Inspección del Trabajo (dt.gob.cl / 600 4500 247 / Oficina DT Región de '+e.region+'). Plazo denuncia: 90 días CORRIDOS (calendarios) desde ocurrencia del hecho.\n'+
+    'Art.10 REGISTRO: libro de denuncias reservado, estadísticas anuales, reporte a mutualidad.\n'+
+    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+
+  if(tipo==='capacitacion') return I+'\nElabora PROGRAMA DE CAPACITACIÓN ANUAL EN SST para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
+    'FUNDAMENTO LEGAL: DS 44/2024 Art.16 (mínimo 8 horas anuales, enfoque género obligatorio).\n\n'+
+    'DIAGNÓSTICO DE NECESIDADES: basado en riesgos identificados de '+e.rubro+'/'+e.subrubro+', accidentes: '+e.accidentes+', cumplimiento actual: capacitaciones='+e.capacitaciones+'.\n\n'+
+    'PROGRAMA ANUAL '+new Date().getFullYear()+' — tabla:\n'+
+    'N°|Módulo|Contenido específico del rubro|Horas|Mes|Responsable|Participantes (cargos)|Metodología|Indicador|Estado.\n\n'+
+    'MÓDULOS OBLIGATORIOS (mínimo 8):\n'+
+    '1. Inducción SST y RIOHS (obligatorio nuevos trabajadores).\n'+
+    '2. Riesgos específicos de '+e.subrubro+' y medidas control.\n'+
+    '3. Uso correcto de EPP específico del rubro.\n'+
+    '4. Primeros auxilios básicos y RCP (mínimo 4 hrs — DS 44/2024 Art.16).\n'+
+    '5. Manejo manual de cargas (Ley 20.949/2016, DS 63/2005 MINTRAB).\n'+
+    '6. Prevención de riesgos psicosociales y Ley Karin (Ley 21.643).\n'+
+    '7. Plan de emergencia y evacuación — simulacros.\n'+
+    '8. Perspectiva de género en SST (DS 44/2024 enfoque género).\n'+'9. Ley 21.561 — Nueva jornada laboral 42 hrs (vigente 26-abr-2026): derechos de los trabajadores, reducción progresiva hasta 40 hrs en 2028, pacto de horas extras, consecuencias de infracción (CT Art.22 y Art.506).\n'+
+    (e.trab_altura!=='No'?'10. Trabajo en altura seguro (DS 594/1999, NCh 1357).\n':'')+
+    (e.sustancias!=='Ninguna'?'11. Manejo seguro de '+e.sustancias+' (NCh 382, DS 57/2024 MINSAL SGA).\n':'')+
+    '\nREGISTROS: lista de asistencia firmada por capacitado, evaluación comprensión, certificado participación.\n'+
+    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+
+  if(tipo==='derechosaber') return I+'\nElabora DOCUMENTO DERECHO A SABER (DS 44/2024 Art.14-15) para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
+    'FUNDAMENTO: DS 44/2024 Art.14: el empleador debe informar a cada trabajador antes de iniciar labores sobre los riesgos específicos de su puesto.\n\n'+
+    'TABLA DERECHO A SABER — una fila por cargo real (cargos: '+e.cargos+'):\n'+
+    'Columnas: Cargo/Puesto|Tarea específica|Peligro real del rubro|Tipo peligro (físico/químico/biológico/ergonómico/psicosocial/mecánico)|Agente causal|Vía exposición|Consecuencia potencial|Probabilidad (1-5)|Consecuencia (1-5)|P×C|Nivel riesgo|Medida prevención|EPP obligatorio con norma NCh|Normativa aplicable.\n\n'+
+    'Mínimo 10 registros con datos REALES de '+e.subrubro+'.\n\n'+
+    'FORMULARIO DE ACUSE DE RECIBO (para firma de cada trabajador):\n'+
+    '- Nombre completo, RUT, cargo, fecha inicio labores.\n'+
+    '- Declaración de haber recibido información sobre riesgos de su puesto.\n'+
+    '- Declaración de haber recibido capacitación en uso de EPP.\n'+
+    '- Espacio para firma trabajador y firma empleador '+e.rep_nombre+'.\n\n'+
+    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+
+  // Plan de Emergencia
+  return I+'\nElabora PLAN DE EMERGENCIA Y EVACUACIÓN para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
+    '1. Objetivo, alcance, vigencia.\n'+
+    '2. Descripción instalaciones: '+e.superficie+'m², '+e.pisos+' piso(s), atiende público: '+e.publico+'.\n'+
+    '3. ESCENARIOS DE EMERGENCIA ESPECÍFICOS para '+e.rubro+'/'+e.subrubro+': NO solo incendio genérico. '+
+    (e.alarma==='No' && tiene_plaguicidas?'ATENCIÓN: sin sistema de alarma y con almacenamiento de sustancias inflamables/tóxicas, incluir MEDIDAS COMPENSATORIAS OBLIGATORIAS: (1) detector de humo autónomo en bodega de plaguicidas; (2) extintor ABC a máx. 15 m de bodega; (3) prohibición fumar y fuentes de ignición en radio 10 m; (4) revisión visual bodega al inicio y cierre de jornada; (5) cartilla emergencia química visible en bodega; (6) rondas inspección cada 2 hrs; (7) protocolo verificación telefónica para trabajadora sola en sucursal. ':'')+
+    'Incluir: '+
+      (e.trab_presion!=='No'?'explosión/fuga equipo a presión, ':'')+
+      (e.sustancias!=='Ninguna'?'derrame/intoxicación '+e.sustancias+', ':'')+
+      (e.trab_confinado!=='No'?'accidente en espacio confinado, ':'')+
+      (e.trab_vehiculos!=='No'?'accidente de tránsito con carga, ':'')+
+      'incendio, accidente grave, sismo.\n'+
+    '4. ORGANIGRAMA proporcional a '+e.trabajadores+' personas: cargos reales: '+e.cargos+'.\n'+
+    '5. PROTOCOLOS DETALLADOS: procedimiento paso a paso para cada escenario.\n'+
+    '6. VÍAS EVACUACIÓN y punto de encuentro.\n'+
+    '7. RECURSOS: extintores '+e.extintores+', alarma '+e.alarma+', botiquín '+e.botiquin+', persona primeros auxilios: '+e.primeros_auxilios+'.\n'+
+    '8. DIRECTORIO DE EMERGENCIAS (Bomberos 132 | SAMU 131 | Carabineros 133 | SENAPRED 1424): '+
+    (e.sucursales_txt?'Generar tabla DIFERENCIADA por sede con hospital específico de cada una. '+e.sucursales_txt:' Hospital: '+(e.hospital||'más cercano'))+
+    ' | '+getTelMutualidad(e.mutualidad)+' | '+getSEREMI(e.region)+'.'+'\n'+
+    '9. SIMULACROS: mínimo 2 anuales (DS 44/2024 Art.19), registro y evaluación.\n'+
+    '10. Normativa: DS 594/1999 Art.44-54, NCh 934 Of.2008, DS 44/2024 Art.19.\n'+
+    '11. Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
 }
 
 async function callClaude(prompt){
@@ -560,16 +911,16 @@ async function startGen(){
   try {
     var texto='';
     if(gTipo==='riohs'){
-      lbl.textContent='Claude · Parte 1/4 — Caps. I-V...';
+      lbl.textContent='Claude · Parte 1/4 — Caps. I-VI...';
       var p1=await callClaude(buildPrompt(e,'riohs_p1',normas,rStr,fecha));
       out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps I-V listos. Generando VI-X...</div>';
-      lbl.textContent='Claude · Parte 2/4 — Caps. VI-X...';
+      lbl.textContent='Claude · Parte 2/4 — Caps. VII-XII...';
       var p2=await callClaude(buildPrompt(e,'riohs_p2',normas,rStr,fecha));
       out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps VI-X listos. Generando XI-XV...</div>';
-      lbl.textContent='Claude · Parte 3/4 — Caps. XI-XV...';
+      lbl.textContent='Claude · Parte 3/4 — Caps. XIII-XVII...';
       var p3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha));
       out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps XI-XV listos. Generando XVI-XX...</div>';
-      lbl.textContent='Claude · Parte 4/4 — Caps. XVI-XX + Ley Karin...';
+      lbl.textContent='Claude · Parte 4/4 — Caps. XVIII-XXII + Ley Karin...';
       var p4=await callClaude(buildPrompt(e,'riohs_p4',normas,rStr,fecha));
       texto=p1.replace('===P1FIN===','').trim()+'\n\n'+p2.replace('===P2FIN===','').trim()+'\n\n'+p3.replace('===P3FIN===','').trim()+'\n\n'+p4;
     } else if(gTipo==='iper'){
@@ -588,6 +939,9 @@ async function startGen(){
       lbl.textContent='Claude · FUF Parte 2/2 — Items 29-60 + Resumen Ejecutivo...';
       var fp2=await callClaude(parts_fuf[1].trim());
       texto=fp1.replace('===FUF_P1FIN===','').trim()+'\n\n'+fp2;
+    } else if(gTipo==='karin'||gTipo==='capacitacion'||gTipo==='derechosaber'||gTipo==='pts'||gTipo==='emergencia'){
+      lbl.textContent='Claude · Generando '+TIPO_N[gTipo]+'...';
+      texto=await callClaude(buildPrompt(e,gTipo,normas,rStr,fecha));
     } else {
       texto=await callClaude(buildPrompt(e,gTipo,normas,rStr,fecha));
     }

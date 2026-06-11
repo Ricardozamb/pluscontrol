@@ -228,18 +228,22 @@ body{background:var(--bg);color:var(--paper);font-family:'Sora',sans-serif;heigh
     <!-- NUEVA EMPRESA -->
     <div class="page" id="pg-nueva">
       <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:0%"></div></div>
+
+      <!-- 1. IDENTIFICACIÓN -->
       <div class="f-sec">
-        <div class="f-sec-title">🏢 Identificacion</div>
-        <div class="f-group"><label class="f-lbl">Razon Social <span class="req">*</span></label><input class="f-in" id="n-razon" placeholder="Nombre legal completo"></div>
+        <div class="f-sec-title">🏢 Identificacion Legal</div>
+        <div class="f-group"><label class="f-lbl">Razon Social <span class="req">*</span></label><input class="f-in" id="n-razon" placeholder="Nombre legal completo de la empresa"></div>
         <div class="f-grid">
-          <div class="f-group"><label class="f-lbl">RUT <span class="req">*</span></label><input class="f-in" id="n-rut" placeholder="12.345.678-9"></div>
+          <div class="f-group"><label class="f-lbl">RUT Empresa <span class="req">*</span></label><input class="f-in" id="n-rut" placeholder="12.345.678-9"></div>
           <div class="f-group"><label class="f-lbl">Telefono</label><input class="f-in" id="n-tel" placeholder="+56 9..."></div>
         </div>
-        <div class="f-group"><label class="f-lbl">Email</label><input class="f-in" id="n-email" type="email" placeholder="contacto@empresa.cl"></div>
+        <div class="f-group"><label class="f-lbl">Email corporativo</label><input class="f-in" id="n-email" type="email" placeholder="contacto@empresa.cl"></div>
       </div>
+
+      <!-- 2. UBICACIÓN -->
       <div class="f-sec">
         <div class="f-sec-title">📍 Ubicacion</div>
-        <div class="f-group"><label class="f-lbl">Direccion <span class="req">*</span></label><input class="f-in" id="n-dir" placeholder="Calle y numero"></div>
+        <div class="f-group"><label class="f-lbl">Direccion <span class="req">*</span></label><input class="f-in" id="n-dir" placeholder="Calle, numero, comuna"></div>
         <div class="f-grid">
           <div class="f-group"><label class="f-lbl">Ciudad <span class="req">*</span></label><input class="f-in" id="n-ciudad" placeholder="Ej: Osorno"></div>
           <div class="f-group"><label class="f-lbl">Region <span class="req">*</span></label>
@@ -247,65 +251,159 @@ body{background:var(--bg);color:var(--paper);font-family:'Sora',sans-serif;heigh
           </div>
         </div>
       </div>
+
+      <!-- 3. REPRESENTANTE LEGAL -->
       <div class="f-sec">
         <div class="f-sec-title">👤 Representante Legal</div>
         <div class="f-grid">
-          <div class="f-group"><label class="f-lbl">Nombre <span class="req">*</span></label><input class="f-in" id="n-rep" placeholder="Nombre completo"></div>
-          <div class="f-group"><label class="f-lbl">RUT Rep. <span class="req">*</span></label><input class="f-in" id="n-rep-rut" placeholder="12.345.678-9"></div>
+          <div class="f-group"><label class="f-lbl">Nombre completo <span class="req">*</span></label><input class="f-in" id="n-rep" placeholder="Nombre y apellidos"></div>
+          <div class="f-group"><label class="f-lbl">RUT Rep. Legal <span class="req">*</span></label><input class="f-in" id="n-rep-rut" placeholder="12.345.678-9"></div>
         </div>
-        <div class="f-group"><label class="f-lbl">Cargo</label><input class="f-in" id="n-cargo" placeholder="Ej: Gerente General"></div>
+        <div class="f-group"><label class="f-lbl">Cargo del representante legal</label><input class="f-in" id="n-cargo" placeholder="Ej: Gerente General, Director, Socio Administrador"></div>
+        <div class="f-group"><label class="f-lbl">Segundo representante legal (si aplica)</label><input class="f-in" id="n-rep2" placeholder="Nombre completo — solo si hay dos firmantes del RIOHS"></div>
+        <div class="f-group"><label class="f-lbl">RUT segundo representante legal</label><input class="f-in" id="n-rep2-rut" placeholder="RUT — solo si hay segundo firmante"></div>
       </div>
+
+      <!-- 4. ACTIVIDAD ECONÓMICA -->
       <div class="f-sec">
-        <div class="f-sec-title">⚙ Actividad Economica</div>
-        <div class="f-group"><label class="f-lbl">Rubro <span class="req">*</span></label>
+        <div class="f-sec-title">⚙️ Actividad Economica</div>
+        <div class="f-group"><label class="f-lbl">Rubro principal <span class="req">*</span></label>
           <select class="f-sel" id="n-rubro">
-            <option value="">— Seleccionar —</option>
+            <option value="">— Seleccionar rubro —</option>
             <option>Construccion</option><option>Comercio al por menor</option><option>Comercio al por mayor</option><option>Transporte y logistica</option><option>Industria manufacturera</option><option>Mineria</option><option>Agricultura y ganaderia</option><option>Pesca y acuicultura</option><option>Silvicultura y forestal</option><option>Servicios de salud</option><option>Educacion</option><option>Hoteleria y turismo</option><option>Gastronomia y restaurantes</option><option>Saneamiento ambiental</option><option>Proteccion contra incendios</option><option>Servicios de seguridad</option><option>Tecnologia y comunicaciones</option><option>Energia y utilities</option><option>Otro</option>
           </select>
         </div>
-        <div class="f-grid">
-          <div class="f-group"><label class="f-lbl">Trabajadores <span class="req">*</span></label><input class="f-in" id="n-trab" type="number" min="1" placeholder="N"></div>
-          <div class="f-group"><label class="f-lbl">Mutualidad</label><select class="f-sel" id="n-mut"><option value="">—</option><option>ACHS</option><option>IST</option><option>Mutual de Seguridad</option><option>INS</option></select></div>
+        <div class="f-group"><label class="f-lbl">Actividad especifica / Sub-rubro <span class="req">*</span></label><input class="f-in" id="n-sub" placeholder="Ej: Mantención de extintores, Cosecha forestal, Faena de engorda..."></div>
+        <div class="f-group"><label class="f-lbl">Descripcion detallada de los procesos productivos <span class="req">*</span></label><textarea class="f-ta" id="n-desc" placeholder="Describa paso a paso qué hace la empresa: qué produce/vende/presta, cómo lo hace, qué equipos usa, dónde trabaja (instalaciones propias, terreno cliente, ambos)..." style="min-height:100px"></textarea></div>
+        <div class="f-group"><label class="f-lbl">Productos, materiales o servicios principales</label><textarea class="f-ta" id="n-productos" placeholder="Ej: Extintores PQS y CO2, arneses de seguridad, servicios de recarga a domicilio..."></textarea></div>
+        <div class="f-group"><label class="f-lbl">Tipo de clientes / donde se realizan los trabajos</label>
+          <select class="f-sel" id="n-lugar-trabajo">
+            <option value="Solo en instalaciones propias">Solo en instalaciones propias</option>
+            <option value="En instalaciones de clientes (terreno)">En instalaciones de clientes (terreno)</option>
+            <option value="Ambos: instalaciones propias y terreno cliente">Ambos: instalaciones propias y terreno cliente</option>
+            <option value="En espacios publicos o via publica">En espacios publicos o via publica</option>
+          </select>
         </div>
-        <div class="f-group"><label class="f-lbl">Sub-rubro</label><input class="f-in" id="n-sub" placeholder="Especialidad"></div>
-        <div class="f-group"><label class="f-lbl">Descripcion actividades</label><textarea class="f-ta" id="n-desc" placeholder="Procesos, equipos, actividades principales..."></textarea></div>
+        <div class="f-group"><label class="f-lbl">Mutualidad <span class="req">*</span></label><select class="f-sel" id="n-mut"><option value="">— Seleccionar —</option><option>ACHS</option><option>IST</option><option>Mutual de Seguridad CChC</option><option>INS (Instituto de Normalizacion Previsional)</option></select></div>
       </div>
+
+      <!-- 5. TRABAJADORES -->
       <div class="f-sec">
-        <div class="f-sec-title">🏭 Instalaciones y operacion</div>
-        <div class="f-group"><label class="f-lbl">Horario de trabajo</label><input class="f-in" id="n-horario" placeholder="Ej: Lunes a Viernes 08:00-18:00"></div>
-        <div class="f-group"><label class="f-lbl">Superficie del local (m²)</label><input class="f-in" id="n-superficie" type="number" placeholder="Ej: 120"></div>
-        <div class="f-group"><label class="f-lbl">Numero de pisos</label><input class="f-in" id="n-pisos" type="number" placeholder="Ej: 1" value="1"></div>
-        <div class="f-group"><label class="f-lbl">Maquinaria y equipos principales</label><input class="f-in" id="n-maquinaria" placeholder="Ej: Camion, soldadora, montacargas, extintores"></div>
-        <div class="f-group"><label class="f-lbl">Sustancias o productos quimicos</label><input class="f-in" id="n-sustancias" placeholder="Ej: Solventes, gases comprimidos, ninguno"></div>
+        <div class="f-sec-title">👥 Trabajadores <span style="font-size:9px;font-weight:400;color:var(--muted)">(DS 44/2024 exige MIPER por puesto y enfoque de género)</span></div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">N° total trabajadores <span class="req">*</span></label><input class="f-in" id="n-trab" type="number" min="1" placeholder="N total"></div>
+          <div class="f-group"><label class="f-lbl">N° mujeres</label><input class="f-in" id="n-mujeres" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajadoras embarazadas o en lactancia?</label><select class="f-sel" id="n-embarazo"><option value="No">No</option><option value="Si">Si</option><option value="No sabe">No se sabe actualmente</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajadores menores de 18 años?</label><select class="f-sel" id="n-menores"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajadores con discapacidad?</label><select class="f-sel" id="n-discapacidad"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Cargos y puestos de trabajo reales <span class="req">*</span></label><textarea class="f-ta" id="n-cargos" placeholder="Liste cada cargo con N° de personas. Ej:&#10;- Gerente General: 1 persona (hombre)&#10;- Técnico de terreno: 2 personas (2 hombres)&#10;- Administrativo: 1 persona (mujer)&#10;&#10;Esto es esencial para la MIPER y el RIOHS."></textarea></div>
+        <div class="f-group"><label class="f-lbl">¿Hay sindicato activo?</label><select class="f-sel" id="n-sindicato"><option value="No">No</option><option value="Si">Si</option></select></div>
       </div>
+
+      <!-- 6. JORNADA LABORAL -->
       <div class="f-sec">
-        <div class="f-sec-title">⚠️ Trabajos especiales</div>
-        <div class="f-group"><label class="f-lbl">¿Realizan trabajos en altura (mas de 1,8m)?</label><select class="f-in" id="n-altura"><option value="No">No</option><option value="Si">Si</option></select></div>
-        <div class="f-group"><label class="f-lbl">¿Realizan trabajos en caliente (soldadura, corte)?</label><select class="f-in" id="n-caliente"><option value="No">No</option><option value="Si">Si</option></select></div>
-        <div class="f-group"><label class="f-lbl">¿Hay espacios confinados?</label><select class="f-in" id="n-confinado"><option value="No">No</option><option value="Si">Si</option></select></div>
-        <div class="f-group"><label class="f-lbl">¿Realizan conduccion de vehiculos?</label><select class="f-in" id="n-vehiculos"><option value="No">No</option><option value="Si, vehiculos livianos">Si, vehiculos livianos</option><option value="Si, vehiculos pesados">Si, vehiculos pesados</option></select></div>
+        <div class="f-sec-title">🕐 Jornada Laboral <span style="font-size:9px;font-weight:400;color:var(--muted)">(CT Art.22)</span></div>
+        <div class="f-group"><label class="f-lbl">Horario de trabajo <span class="req">*</span></label><input class="f-in" id="n-horario" placeholder="Ej: Lunes a Viernes 08:00-18:00 con 1 hora colacion"></div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">Horas semanales</label><input class="f-in" id="n-horas" type="number" placeholder="Ej: 42 (máx. legal Ley 21.561)"></div>
+          <div class="f-group"><label class="f-lbl">Tipo de jornada</label>
+            <select class="f-sel" id="n-jornada">
+              <option value="Ordinaria (lunes a viernes)">Ordinaria (lunes a viernes)</option>
+              <option value="Con turno sabado">Con turno sabado</option>
+              <option value="Turnos rotativos">Turnos rotativos</option>
+              <option value="Turno nocturno">Turno nocturno</option>
+              <option value="Jornada excepcional">Jornada excepcional (DS 745)</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-group"><label class="f-lbl">¿Se realizan horas extraordinarias frecuentemente?</label><select class="f-sel" id="n-horas-extra"><option value="No">No</option><option value="Si, ocasionalmente">Si, ocasionalmente</option><option value="Si, regularmente">Si, regularmente</option></select></div>
       </div>
+
+      <!-- 7. INSTALACIONES -->
       <div class="f-sec">
-        <div class="f-sec-title">🧯 Recursos de emergencia</div>
-        <div class="f-group"><label class="f-lbl">¿Tiene extintores?</label><select class="f-in" id="n-extintores"><option value="Si, pero sin registro">Si, pero sin registro</option><option value="Si, con registro y revision anual">Si, con registro y revision anual</option><option value="No">No</option></select></div>
-        <div class="f-group"><label class="f-lbl">¿Tiene sistema de alarma o deteccion de incendio?</label><select class="f-in" id="n-alarma"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-sec-title">🏭 Instalaciones</div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">Superficie total (m²)</label><input class="f-in" id="n-superficie" type="number" placeholder="Ej: 120"></div>
+          <div class="f-group"><label class="f-lbl">Numero de pisos</label><input class="f-in" id="n-pisos" type="number" placeholder="1" value="1"></div>
+        </div>
+        <div class="f-group"><label class="f-lbl">¿Atienden publico o clientes en las instalaciones?</label><select class="f-sel" id="n-publico"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Maquinaria y equipos principales</label><textarea class="f-ta" id="n-maquinaria" placeholder="Liste los equipos que usan. Ej: Furgón Fiat Doblò, compresor de nitrógeno 300 bar, torno, soldadora MIG, montacargas 3 ton..." style="min-height:70px"></textarea></div>
       </div>
+
+      <!-- 8B. SUCURSALES ADICIONALES -->
+      <div class="f-sec" id="sec-sucursales">
+        <div class="f-sec-title">🏪 Sucursales / Dependencias adicionales <span style="font-size:9px;font-weight:400;color:var(--muted)">(si la empresa opera en más de un lugar)</span></div>
+        <div class="f-group"><label class="f-lbl">¿Tiene sucursales o dependencias adicionales?</label>
+          <select class="f-sel" id="n-tiene-sucursales" onchange="toggleSucursales()">
+            <option value="No">No, solo una sede</option>
+            <option value="Si">Si, tiene sucursales adicionales</option>
+          </select>
+        </div>
+        <div id="sucursales-container" style="display:none">
+          <div id="sucursales-list"></div>
+          <button class="btn btn-ghost" type="button" onclick="addSucursal()" style="margin-top:4px">+ Agregar sucursal</button>
+        </div>
+      </div>
+
+      <!-- 8. AGENTES DE RIESGO -->
       <div class="f-sec">
-        <div class="f-sec-title">📄 Documentos preventivos existentes</div>
-        <div class="f-group"><label class="f-lbl">¿Tiene RIOHS vigente?</label><select class="f-in" id="n-tiene-riohs"><option value="No">No</option><option value="Si">Si</option></select></div>
-        <div class="f-group"><label class="f-lbl">¿Tiene IPER / Matriz de Riesgos?</label><select class="f-in" id="n-tiene-iper"><option value="No">No</option><option value="Si">Si</option></select></div>
-        <div class="f-group"><label class="f-lbl">¿Realiza capacitaciones con registro?</label><select class="f-in" id="n-capacitaciones"><option value="No">No</option><option value="Si, ocasionalmente">Si, ocasionalmente</option><option value="Si, con programa anual">Si, con programa anual</option></select></div>
-        <div class="f-group"><label class="f-lbl">¿Tiene registro firmado de entrega de EPP?</label><select class="f-in" id="n-registro-epp"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-sec-title">☣️ Agentes de Riesgo <span style="font-size:9px;font-weight:400;color:var(--muted)">(DS 594/1999 — marque todos los que aplican)</span></div>
+        <div class="f-group"><label class="f-lbl">Sustancias quimicas que manejan</label><textarea class="f-ta" id="n-sustancias" placeholder="Ej: CO₂ líquido, polvo químico seco ABC, nitrógeno comprimido, solventes, cloro, pesticidas... o 'Ninguna'"></textarea></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a ruido sobre 85 dB?</label><select class="f-sel" id="n-ruido"><option value="No se sabe">No se sabe</option><option value="No">No</option><option value="Si, fuentes de ruido moderado">Si, fuentes de ruido moderado</option><option value="Si, maquinaria o equipos ruidosos">Si, maquinaria o equipos ruidosos (probable >85dB)</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay generacion de polvo (silice, madera, metal, otro)?</label><select class="f-sel" id="n-polvo"><option value="No">No</option><option value="Si, polvo de madera o vegetal">Si, polvo de madera o vegetal</option><option value="Si, polvo de silice (tierra, hormigon, ceramica)">Si, polvo de silice (tierra, hormigon, ceramica)</option><option value="Si, polvo metalico">Si, polvo metalico</option><option value="Si, polvo quimico">Si, polvo quimico</option><option value="Si, otro tipo de polvo">Si, otro tipo de polvo</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a temperaturas extremas?</label><select class="f-sel" id="n-temperatura"><option value="No">No, condiciones normales</option><option value="Si, trabajo en frio intenso">Si, trabajo en frio intenso (camaras, exterior invernal)</option><option value="Si, trabajo en calor intenso">Si, trabajo en calor intenso (hornos, exterior verano)</option><option value="Si, ambos segun temporada">Si, ambos segun temporada</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a agentes biologicos?</label><select class="f-sel" id="n-biologico"><option value="No">No</option><option value="Si, contacto con personas (atencion salud/publico)">Si, contacto con personas (atencion salud/publico)</option><option value="Si, contacto con animales">Si, contacto con animales</option><option value="Si, manejo de residuos organicos">Si, manejo de residuos organicos</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a vibraciones (herramientas, maquinas)?</label><select class="f-sel" id="n-vibracion"><option value="No">No</option><option value="Si, herramientas manuales vibrantes">Si, herramientas manuales vibrantes (taladro, amoladora)</option><option value="Si, maquinaria pesada o vehiculos">Si, maquinaria pesada o vehiculos todo terreno</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a radiacion?</label><select class="f-sel" id="n-radiacion"><option value="No">No</option><option value="Si, radiacion UV solar (trabajo exterior)">Si, radiacion UV solar (trabajo exterior)</option><option value="Si, soldadura (UV artificial)">Si, soldadura (UV artificial)</option><option value="Si, rayos X u otra radiacion ionizante">Si, rayos X u otra radiacion ionizante</option></select></div>
       </div>
+
+      <!-- 9. TRABAJOS ESPECIALES -->
+      <div class="f-sec">
+        <div class="f-sec-title">⚠️ Trabajos de Alto Riesgo</div>
+        <div class="f-group"><label class="f-lbl">¿Trabajan en altura (mas de 1,8 m)?</label><select class="f-sel" id="n-altura"><option value="No">No</option><option value="Si, hasta 3m (escaleras)">Si, hasta 3m (escaleras)</option><option value="Si, sobre 3m (andamios, cubierta)">Si, sobre 3m (andamios, cubierta)</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Realizan trabajos en caliente (soldadura, corte, llama)?</label><select class="f-sel" id="n-caliente"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay espacios confinados (tanques, pozos, ductos)?</label><select class="f-sel" id="n-confinado"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Conducen vehiculos de trabajo?</label><select class="f-sel" id="n-vehiculos"><option value="No">No</option><option value="Si, vehiculos livianos (auto, furgon)">Si, vehiculos livianos (auto, furgon)</option><option value="Si, vehiculos pesados (camion, maquinaria)">Si, vehiculos pesados (camion, maquinaria)</option><option value="Si, ambos tipos">Si, ambos tipos</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Manipulan equipos o recipientes a presion (cilindros, calderas)?</label><select class="f-sel" id="n-presion"><option value="No">No</option><option value="Si, cilindros de gas comprimido">Si, cilindros de gas comprimido</option><option value="Si, sistemas hidraulicos o neumaticos">Si, sistemas hidraulicos o neumaticos</option><option value="Si, calderas o autoclaves">Si, calderas o autoclaves</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajo nocturno o en aislamiento?</label><select class="f-sel" id="n-nocturno"><option value="No">No</option><option value="Si, trabajo nocturno">Si, trabajo nocturno</option><option value="Si, trabajo en lugares aislados">Si, trabajo en lugares aislados o sin supervision</option></select></div>
+        <div class="f-group"><label class="f-lbl">Otras tareas peligrosas especificas</label><textarea class="f-ta" id="n-tareas-peligrosas" placeholder="Describa otras tareas criticas que requieran PTS propio. Ej: recarga de extintores con N₂, instalacion de paneles electricos, poda de arboles en altura, fumigacion de recintos..."></textarea></div>
+      </div>
+
+      <!-- 10. EMERGENCIA -->
+      <div class="f-sec">
+        <div class="f-sec-title">🚨 Recursos de Emergencia</div>
+        <div class="f-group"><label class="f-lbl">¿Tienen extintores?</label><select class="f-sel" id="n-extintores"><option value="No">No</option><option value="Si, sin registro de revision">Si, sin registro de revision</option><option value="Si, con registro y revision anual">Si, con registro y revision anual (NCh 934)</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen sistema de alarma o deteccion de incendio?</label><select class="f-sel" id="n-alarma"><option value="No">No</option><option value="Si, detectores de humo">Si, detectores de humo</option><option value="Si, sistema central con alarma">Si, sistema central con alarma</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen botiquin de primeros auxilios?</label><select class="f-sel" id="n-botiquin"><option value="No">No</option><option value="Si, basico sin revision">Si, basico sin revision periodica</option><option value="Si, completo con revision periodica">Si, completo con revision periodica</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay alguna persona capacitada en primeros auxilios?</label><select class="f-sel" id="n-primeros-auxilios"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Centro asistencial mas cercano</label><input class="f-in" id="n-hospital" placeholder="Ej: Hospital Base de Osorno, 3 km aprox."></div>
+      </div>
+
+      <!-- 11. CUMPLIMIENTO ACTUAL -->
+      <div class="f-sec">
+        <div class="f-sec-title">📄 Estado de Cumplimiento Preventivo Actual</div>
+        <div class="f-group"><label class="f-lbl">¿Tienen RIOHS vigente?</label><select class="f-sel" id="n-tiene-riohs"><option value="No">No</option><option value="Si, desactualizado">Si, pero desactualizado</option><option value="Si, vigente">Si, vigente y actualizado</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen IPER / Matriz de Riesgos?</label><select class="f-sel" id="n-tiene-iper"><option value="No">No</option><option value="Si, desactualizada">Si, pero desactualizada</option><option value="Si, vigente">Si, vigente</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Realizan capacitaciones con registro?</label><select class="f-sel" id="n-capacitaciones"><option value="No">No</option><option value="Si, ocasionalmente sin programa">Si, ocasionalmente sin programa formal</option><option value="Si, con programa anual">Si, con programa anual documentado</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen registro firmado de entrega de EPP?</label><select class="f-sel" id="n-registro-epp"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Accidentes del trabajo en ultimos 12 meses</label><select class="f-sel" id="n-accidentes"><option value="Ninguno">Ninguno</option><option value="1 a 2 accidentes leves">1-2 accidentes leves</option><option value="3 o mas accidentes">3 o mas accidentes</option><option value="Algun accidente grave o fatal">Algun accidente grave o fatal</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Han tenido fiscalizaciones DT o SEREMI Salud?</label><select class="f-sel" id="n-fiscalizacion"><option value="No">No / No sabe</option><option value="Si, sin infracciones">Si, sin infracciones</option><option value="Si, con multas o infracciones">Si, con multas o infracciones</option></select></div>
+      </div>
+
+      <!-- 12. NORMATIVA DETECTADA -->
       <div class="f-sec" id="normas-sec" style="display:none">
         <div class="f-sec-title">📋 Normativa detectada (Chile 2025)</div>
         <div id="normas-pills"></div>
       </div>
+
+      <!-- 13. RIESGOS -->
       <div class="f-sec">
-        <div class="f-sec-title">Riesgos identificados</div>
+        <div class="f-sec-title">⚠️ Riesgos identificados <span style="font-size:9px;font-weight:400;color:var(--muted)">(metodologia P×C DS 44/2024)</span></div>
         <div id="riesgos-box"></div>
         <button class="btn btn-ghost" id="btn-add-riesgo" style="margin-top:4px">+ Agregar riesgo</button>
       </div>
+
       <div style="height:16px"></div>
       <button class="btn btn-primary" id="btn-guardar">Guardar empresa</button>
       <div style="height:8px"></div>
@@ -330,11 +428,13 @@ body{background:var(--bg);color:var(--paper);font-family:'Sora',sans-serif;heigh
       <div id="gp2" style="display:none">
         <div class="tipo-list">
           <div class="tipo-card" id="tc-riohs"><div class="tipo-ico">📋</div><div style="flex:1"><div class="tipo-name">Reglamento Interno (RIOHS)</div><div class="tipo-desc">Obligatorio · DS 44/2024 · Ley 16.744 · Ley Karin 2024</div></div><div class="tipo-check">✅</div></div>
-          <div class="tipo-card" id="tc-iper"><div class="tipo-ico">⚠️</div><div style="flex:1"><div class="tipo-name">Matriz IPER</div><div class="tipo-desc">Peligros y riesgos · ISO 45001 · DS 44/2024</div></div><div class="tipo-check">✅</div></div>
-          <div class="tipo-card" id="tc-pts"><div class="tipo-ico">📝</div><div style="flex:1"><div class="tipo-name">Procedimiento de Trabajo Seguro</div><div class="tipo-desc">Paso a paso con controles y EPP</div></div><div class="tipo-check">✅</div></div>
-          <div class="tipo-card" id="tc-emergencia"><div class="tipo-ico">🚨</div><div style="flex:1"><div class="tipo-name">Plan de Emergencia</div><div class="tipo-desc">Brigadas y evacuacion · DS 594 · NCh 934</div></div><div class="tipo-check">✅</div></div>
-        
-          <div class="tipo-card" id="tc-fuf"><div class="tipo-ico">📋</div><div style="flex:1"><div class="tipo-name">FUF DS 44/2024</div><div class="tipo-desc">Formulario Unico Fiscalizacion · 60 items · DT</div></div><div class="tipo-check" id="tc-fuf-chk"></div></div></div>
+          <div class="tipo-card" id="tc-iper"><div class="tipo-ico">⚠️</div><div style="flex:1"><div class="tipo-name">Matriz IPER</div><div class="tipo-desc">Peligros y riesgos con enfoque genero · DS 44/2024</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-pts"><div class="tipo-ico">📝</div><div style="flex:1"><div class="tipo-name">Procedimiento Trabajo Seguro (PTS)</div><div class="tipo-desc">Pasos seguros + EPP + emergencias por tarea critica</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-emergencia"><div class="tipo-ico">🚨</div><div style="flex:1"><div class="tipo-name">Plan de Emergencia</div><div class="tipo-desc">Escenarios especificos del rubro · DS 594 · NCh 934</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-fuf"><div class="tipo-ico">🔍</div><div style="flex:1"><div class="tipo-name">FUF DS 44/2024</div><div class="tipo-desc">Formulario Unico Fiscalizacion · 60 items · DT</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-karin"><div class="tipo-ico">🛡️</div><div style="flex:1"><div class="tipo-name">Protocolo Ley Karin</div><div class="tipo-desc">Prevencion acoso laboral y sexual · Ley 21.643 2024</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-capacitacion"><div class="tipo-ico">📚</div><div style="flex:1"><div class="tipo-name">Programa Capacitacion Anual</div><div class="tipo-desc">Plan formativo 8 hrs minimo · DS 44/2024 Art.16</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-derechosaber"><div class="tipo-ico">📄</div><div style="flex:1"><div class="tipo-name">Derecho a Saber</div><div class="tipo-desc">Informacion riesgos por puesto · DS 44/2024 Art.14</div></div><div class="tipo-check">✅</div></div></div>
         <div class="btn-row">
           <button class="btn btn-ghost" id="btn-gp2-back">Atras</button>
           <button class="btn btn-primary" id="btn-gp2" disabled>Generar con IA</button>
