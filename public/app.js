@@ -865,28 +865,94 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '11. Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
 }
 
-async function callClaude(prompt){
-  var ctrl=new AbortController();
-  var tmt=setTimeout(function(){ctrl.abort();},300000); // 5 min cliente
-  try{
-    var res=await fetch('/api/claude',{
+async function callClaude(prompt, intentos, onChunk){
+  intentos = intentos||0;
+  return new Promise(function(resolve, reject){
+    var fullText = '';
+    var ctrl = new AbortController();
+    var tmt = setTimeout(function(){ ctrl.abort(); }, 300000);
+
+    fetch('/api/claude', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt:prompt}),
       signal:ctrl.signal
+    }).then(function(res){
+      if(!res.ok){
+        clearTimeout(tmt);
+        if(intentos<2){
+          setTimeout(function(){
+            callClaude(prompt,intentos+1,onChunk).then(resolve).catch(reject);
+          },5000);
+        } else {
+          reject(new Error('Servidor no disponible ('+res.status+'). Espere 30s e intente de nuevo.'));
+        }
+        return;
+      }
+      var reader=res.body.getReader();
+      var decoder=new TextDecoder();
+      var buf='';
+      function leer(){
+        reader.read().then(function(result){
+          if(result.done){
+            clearTimeout(tmt);
+            if(fullText) resolve(fullText);
+            else reject(new Error('Sin contenido. Intente nuevamente.'));
+            return;
+          }
+          buf+=decoder.decode(result.value,{stream:true});
+          var lines=buf.split('\n');
+          buf=lines.pop();
+          for(var i=0;i<lines.length;i++){
+            var line=lines[i];
+            if(!line.startsWith('data: ')) continue;
+            try{
+              var obj=JSON.parse(line.slice(6));
+              if(obj.chunk){
+                fullText+=obj.chunk;
+                if(onChunk) onChunk(obj.chunk); // ← streaming en pantalla
+              }
+              if(obj.error){
+                clearTimeout(tmt);
+                if(intentos<2&&(obj.error.includes('overload')||obj.error.includes('529'))){
+                  setTimeout(function(){callClaude(prompt,intentos+1,onChunk).then(resolve).catch(reject);},8000);
+                } else {
+                  reject(new Error(obj.error));
+                }
+                return;
+              }
+              if(obj.done){
+                clearTimeout(tmt);
+                if(fullText) resolve(fullText);
+                else reject(new Error('Respuesta vacía. Intente nuevamente.'));
+                return;
+              }
+            }catch(e){}
+          }
+          leer();
+        }).catch(function(err){
+          clearTimeout(tmt);
+          if(err.name==='AbortError'){
+            reject(new Error('Tiempo de espera agotado. Intente nuevamente.'));
+          } else if(intentos<2){
+            setTimeout(function(){callClaude(prompt,intentos+1,onChunk).then(resolve).catch(reject);},3000);
+          } else {
+            reject(new Error(err.message||'Error de conexión. Intente nuevamente.'));
+          }
+        });
+      }
+      leer();
+    }).catch(function(err){
+      clearTimeout(tmt);
+      if(err.name==='AbortError'){
+        reject(new Error('Tiempo de espera agotado. Intente nuevamente.'));
+      } else if(intentos<2){
+        setTimeout(function(){callClaude(prompt,intentos+1,onChunk).then(resolve).catch(reject);},5000);
+      } else {
+        reject(new Error('Error de red. Verifique su conexión e intente nuevamente.'));
+      }
     });
-    clearTimeout(tmt);
-    var txt=await res.text();
-    var data;
-    try{ data=JSON.parse(txt); }
-    catch(e){ throw new Error('Respuesta inválida del servidor: '+txt.substring(0,100)); }
-    if(data.texto) return data.texto;
-    throw new Error(data.error||'Sin respuesta del servidor. Status: '+res.status);
-  } catch(err){
-    clearTimeout(tmt);
-    if(err.name==='AbortError') throw new Error('Tiempo de espera agotado. Intente nuevamente.');
-    throw err;
-  }
+  });
 }
 
 async function startGen(){
@@ -897,64 +963,84 @@ async function startGen(){
   var btn=document.getElementById('btn-gp3');
   var acts=document.getElementById('gp3-acts');
   gTexto='';btn.disabled=true;acts.style.display='none';
-  out.innerHTML='<div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div>Analizando normativa chilena vigente...</div>';
+
+  // Área de streaming — muestra texto en tiempo real
+  out.innerHTML='<div id="stream-box" style="font-family:Georgia,serif;font-size:11px;line-height:1.7;color:var(--txt);white-space:pre-wrap;padding:10px;min-height:60px"></div>';
   lbl.textContent='Claude · Generando '+TIPO_N[gTipo]+'...';
   document.getElementById('ai-pulse').classList.add('live');
   var s=0;clearInterval(tmrInt);
   tmrInt=setInterval(function(){s++;document.getElementById('ai-tmr').textContent=pad(Math.floor(s/60))+':'+pad(s%60);},1000);
+
   var normas=(e.normativa||NORM['default']).join(', ');
   var rStr=(e.riesgos||[]).map(function(r){return '- '+r.nombre+' (P:'+r.prob+',C:'+r.cons+')';}).join('\n')||'No especificados';
   var fecha=new Date().toLocaleDateString('es-CL');
+
+  // Función que agrega chunk al display en tiempo real
+  var streamBox=document.getElementById('stream-box');
+  var acumulado='';
+  function onChunk(txt){
+    acumulado+=txt;
+    streamBox.textContent=acumulado; // texto plano en tiempo real
+    streamBox.scrollTop=streamBox.scrollHeight; // auto-scroll
+  }
+
+  // Función para separar partes acumuladas con banner de progreso
+  function bannerParte(msg){
+    acumulado+='\n\n';
+    streamBox.textContent=acumulado;
+    lbl.textContent=msg;
+  }
+
   try {
     var texto='';
     if(gTipo==='riohs'){
       lbl.textContent='Claude · Parte 1/5 — Caps. I-VI...';
-      var p1=await callClaude(buildPrompt(e,'riohs_p1',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps I-VI listos. Generando VII-XII...</div>';
-      lbl.textContent='Claude · Parte 2/5 — Caps. VII-XII...';
-      var p2=await callClaude(buildPrompt(e,'riohs_p2',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps VII-XII listos. Generando XIII-XVII...</div>';
-      lbl.textContent='Claude · Parte 3/5 — Caps. XIII-XVII...';
-      var p3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps XIII-XVII listos. Generando XVIII-XIX...</div>';
-      lbl.textContent='Claude · Parte 4/5 — Caps. XVIII-XIX Infracciones...';
-      var p4a=await callClaude(buildPrompt(e,'riohs_p4a',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ Caps XVIII-XIX listos. Generando XX-XXII + Ley Karin...</div>';
-      lbl.textContent='Claude · Parte 5/5 — Caps. XX-XXII Ley Karin...';
-      var p4b=await callClaude(buildPrompt(e,'riohs_p4b',normas,rStr,fecha));
+      var p1=await callClaude(buildPrompt(e,'riohs_p1',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 2/5 — Caps. VII-XII...');
+      var p2=await callClaude(buildPrompt(e,'riohs_p2',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 3/5 — Caps. XIII-XVII...');
+      var p3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 4/5 — Caps. XVIII-XIX...');
+      var p4a=await callClaude(buildPrompt(e,'riohs_p4a',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 5/5 — Ley Karin + Firmas...');
+      var p4b=await callClaude(buildPrompt(e,'riohs_p4b',normas,rStr,fecha),0,onChunk);
       texto=p1.replace('===P1FIN===','').trim()+'\n\n'+p2.replace('===P2FIN===','').trim()+'\n\n'+p3.replace('===P3FIN===','').trim()+'\n\n'+p4a.replace('===P4aFIN===','').trim()+'\n\n'+p4b;
     } else if(gTipo==='iper'){
-      lbl.textContent='Claude · IPER Parte 1/2 — Metodologia y areas...';
-      var ip1=await callClaude(buildPrompt(e,'iper_p1',normas,rStr,fecha));
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ IPER Parte 1 lista. Generando plan de accion...</div>';
-      lbl.textContent='Claude · IPER Parte 2/2 — Plan de accion...';
-      var ip2=await callClaude(buildPrompt(e,'iper_p2',normas,rStr,fecha));
+      lbl.textContent='Claude · IPER Parte 1/2...';
+      var ip1=await callClaude(buildPrompt(e,'iper_p1',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · IPER Parte 2/2 — Plan de acción...');
+      var ip2=await callClaude(buildPrompt(e,'iper_p2',normas,rStr,fecha),0,onChunk);
       texto=ip1.replace('===IPER1FIN===','').trim()+'\n\n'+ip2;
     } else if(gTipo==='fuf'){
-      lbl.textContent='Claude · FUF Parte 1/2 — Items 1-28...';
+      lbl.textContent='Claude · FUF Parte 1/2 — Ítems 1-28...';
       var fuf_prompt=buildPrompt(e,'fuf',normas,rStr,fecha);
       var parts_fuf=fuf_prompt.split('===FUF_INTERMEDIO===');
-      var fp1=await callClaude(parts_fuf[0].trim());
-      out.innerHTML='<div style="color:var(--v3);padding:10px;font-size:12px">✅ FUF Items 1-28 listos. Generando Items 29-60...</div>';
-      lbl.textContent='Claude · FUF Parte 2/2 — Items 29-60 + Resumen Ejecutivo...';
-      var fp2=await callClaude(parts_fuf[1].trim());
+      var fp1=await callClaude(parts_fuf[0].trim(),0,onChunk);
+      bannerParte('Claude · FUF Parte 2/2 — Ítems 29-60 + Resumen...');
+      var fp2=await callClaude(parts_fuf[1].trim(),0,onChunk);
       texto=fp1.replace('===FUF_P1FIN===','').trim()+'\n\n'+fp2;
-    } else if(gTipo==='karin'||gTipo==='capacitacion'||gTipo==='derechosaber'||gTipo==='pts'||gTipo==='emergencia'){
-      lbl.textContent='Claude · Generando '+TIPO_N[gTipo]+'...';
-      texto=await callClaude(buildPrompt(e,gTipo,normas,rStr,fecha));
     } else {
-      texto=await callClaude(buildPrompt(e,gTipo,normas,rStr,fecha));
+      lbl.textContent='Claude · Generando '+TIPO_N[gTipo]+'...';
+      texto=await callClaude(buildPrompt(e,gTipo,normas,rStr,fecha),0,onChunk);
     }
+
+    // Documento completo — renderizar con markdown
     clearInterval(tmrInt);
     gTexto=texto;
     out.innerHTML=md2html(gTexto);
-    lbl.textContent='✅ '+TIPO_N[gTipo]+' - Listo';
+    lbl.textContent='✅ '+TIPO_N[gTipo]+' — Listo';
     document.getElementById('ai-pulse').classList.remove('live');
-    acts.style.display='block';btn.disabled=false;
+    acts.style.display='block';
+    btn.disabled=false;
+
   } catch(err){
     clearInterval(tmrInt);
-    out.innerHTML='<div style="color:var(--rojo2);padding:10px;font-size:12px">⚠ Error: '+err.message+'</div>';
-    lbl.textContent='❌ Error';acts.style.display='block';
+    document.getElementById('ai-pulse').classList.remove('live');
+    var consejo='<br><br><span style="color:#888;font-size:10px">Si es la primera generación del día, espere 30 segundos e intente nuevamente.</span>';
+    out.innerHTML='<div style="color:var(--rojo2);padding:10px;font-size:12px">'+err.message+consejo+'</div>';
+    lbl.textContent='❌ Error';
+    acts.style.display='block';
+    btn.disabled=false;
   }
 }
 
