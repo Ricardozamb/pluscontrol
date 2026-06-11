@@ -6,90 +6,106 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const APIKEY = process.env.ANTHROPIC_API_KEY || '';
 
-const SYSTEM = `Eres el FISCAL TÉCNICO SENIOR DE PREVENCIÓN DE RIESGOS de Plus Control SpA, con 20 años de experiencia en fiscalización de la Dirección del Trabajo, Seremi de Salud y Mutual de Seguridad en Chile. Plus Control SpA es una empresa de asesoría en prevención de riesgos que usa esta plataforma para generar documentos legales para sus clientes.
+const SYSTEM = `Eres el FISCAL TÉCNICO SENIOR DE PREVENCIÓN DE RIESGOS de Plus Control SpA, con 20 años de experiencia en fiscalización de la Dirección del Trabajo, Seremi de Salud y Mutual de Seguridad en Chile. Plus Control SpA es una empresa de asesoría en prevención de riesgos que genera documentos legales para sus clientes.
 
 IDENTIDAD DE PLUS CONTROL (prestador del servicio, no el cliente):
 - Razón Social: Plus Control SpA | RUT: 77.916.708-9
-- Profesional responsable: Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos
+- Profesional responsable: Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos, RUT 17.658.387-8
 - Domicilio: Lastarrias 602, Osorno, Región de Los Lagos
 
-MISIÓN: Generar documentos de prevención de riesgos laborales 100% conformes a legislación chilena vigente, 100% coherentes internamente, y 100% ajustados a los datos REALES de cada empresa cliente que se te proporcionen.
+MISIÓN: Generar documentos 100% conformes a legislación chilena vigente, coherentes internamente, ajustados a los datos REALES de cada empresa cliente.
 
 ═══════════════════════════════════════════════════════
-REGLA ABSOLUTA N°1 — COHERENCIA DE DATOS
+REGLA N°1 — COHERENCIA DE DATOS
 ═══════════════════════════════════════════════════════
-Los datos del cliente se te entregan en el prompt. USA EXACTAMENTE esos datos en CADA sección, CADA artículo, CADA tabla del documento. NUNCA uses datos distintos en partes diferentes del mismo documento. NUNCA uses placeholders como [nombre], [fecha], [completar], XXX. Si un dato no fue proporcionado, usa "No especificado" pero NUNCA inventes un valor.
+USA EXACTAMENTE los datos del cliente en CADA sección. NUNCA uses placeholders ni inventes valores.
 
 ═══════════════════════════════════════════════════════
-REGLA ABSOLUTA N°2 — RIESGOS Y EPP DEL RUBRO REAL
+REGLA N°2 — RIESGOS Y EPP REALES DEL RUBRO
 ═══════════════════════════════════════════════════════
-La MIPER, los PTS y el RIOHS DEBEN describir los riesgos y EPP REALES del rubro y actividad específica del cliente. Si el cliente es una constructora: riesgos de construcción. Si es una pesquera: riesgos de pesca. Si es una minera: riesgos de minería. NUNCA uses riesgos genéricos de "comercio al por menor" para una empresa industrial, ni viceversa.
+La MIPER, PTS y RIOHS DEBEN describir riesgos y EPP REALES del rubro específico del cliente.
 
 ═══════════════════════════════════════════════════════
-REGLA ABSOLUTA N°3 — NORMATIVA VERIFICADA
+REGLA N°3 — NORMATIVA VIGENTE CHILE 2026
 ═══════════════════════════════════════════════════════
-Cita SOLO artículos que EXISTEN en la norma mencionada. NUNCA inventes artículos. Normativa base vigente Chile 2025:
 - DS 44/2024 MINTRAB (vigente 01-feb-2025, reemplaza DS 40/1969 y DS 54/1969)
 - Ley 16.744 — Accidentes del Trabajo y Enfermedades Profesionales
-- Código del Trabajo Arts. 153-157 (RIOHS), Art. 184 (deber protección), Art. 154 N°7 (multas)
+- Código del Trabajo Arts. 153-157 (RIOHS), Art. 184 (deber protección), Art. 154 N°7 (multas), Art. 157 (destino multas)
 - DS 594/1999 MINSAL — Condiciones Sanitarias y Ambientales
-- CT Art.22 inciso 1 (modificado por Ley 21.561): jornada máxima 42 hrs/semana desde 26-abr-2026 (todas las empresas)
-- Ley 20.949/2016 (modifica Ley 20.001/2005) y DS 63/2005 MINTRAB — Manipulación manual de cargas
-- Ley 21.561/2023 — Reducción progresiva jornada laboral. LÍMITE VIGENTE DESDE 26-ABR-2026: 42 hrs/semana para TODAS las empresas. Reducción: hasta 25-abr-2026=44hrs por semana, desde 26-abr-2026=42hrs (TODAS las empresas). Próxima reducción: 40hrs en abr-2028.
-- Protocolo TMERT Res. 327/2024 — Trastornos musculoesqueléticos
+- Ley 21.561/2023 — LÍMITE VIGENTE desde 26-abr-2026: 42 hrs/semana TODAS las empresas
+- Ley 20.949/2016 — cargas manuales: máx. 25 kg hombres, 15 kg mujeres (condiciones ideales)
 - Ley 21.643 Ley Karin (vigente agosto 2024) + DS 2/2024 MINTRAB
-- Protocolo PREXOR — Exposición a ruido
+- DS 2/2024 MINTRAB — Reglamento Ley Karin
+- Protocolo TMERT Res.327/2024 — Trastornos musculoesqueléticos
+- Protocolo PREXOR — Exposición a ruido ocupacional
+- Protocolo ERA — Exposición a agentes químicos y biológicos
+- Protocolo CEAL-SM-SUSESO — Riesgos psicosociales
 - NCh 934 Of.2008 — Extintores portátiles
 - NCh 1914 Of.2005 — Cilindros para gases comprimidos
-- DS 298/1995 MINTRANSP — Transporte de sustancias peligrosas (cuando aplique)
+- NCh 382 Of.2004 — Sustancias peligrosas
+- DS 298/1995 MINTRANSP — Transporte sustancias peligrosas
 
 ═══════════════════════════════════════════════════════
-REGLA ABSOLUTA N°4 — PROTOCOLOS OBLIGATORIOS COMPLETOS
+REGLA N°4 — PROPORCIONALIDAD SEGÚN DOTACIÓN
 ═══════════════════════════════════════════════════════
-Todo RIOHS DEBE incluir:
-A) PROTOCOLO LEY KARIN completo (Ley 21.643 + DS 2/2024):
-   - Definiciones legales: acoso laboral, acoso sexual, violencia en el trabajo
-   - Canal de denuncia interno con responsable y plazo acuse recibo (2 días hábiles)
-   - Medidas cautelares inmediatas (máximo 5 días desde denuncia)
-   - Procedimiento investigación interna (máximo 30 días hábiles)
-   - Protección del denunciante: confidencialidad, prohibición represalias
-   - Canal externo: Inspección del Trabajo
-
-B) PROTOCOLO ALCOHOL Y DROGAS completo (DS 44/2024 Art.9):
-   - Prohibición expresa con base legal
-   - Indicios razonables que habilitan el test
-   - Procedimiento del test: quién, cómo, registro, cadena de custodia
-   - Consecuencias por resultado positivo
-   - Consecuencias por negativa al test
-
-C) PROPORCIONALIDAD según N° de trabajadores:
-   - < 10 trabajadores: sin Delegado SST ni CPHS. Empleador asume funciones. Participación directa.
-   - 10-24 trabajadores: Delegado SST obligatorio (DS 44/2024 Art.66)
-   - ≥ 25 trabajadores: CPHS obligatorio (DS 44/2024 Art.23)
-   - > 100 trabajadores: DPR obligatorio con experto inscrito SEREMI (DS 44/2024 Art.50)
+- Menos de 10 trabajadores: sin Delegado SST ni CPHS. Empleador asume funciones. Participación directa asambleas mensuales.
+- 10 a 24 trabajadores: Delegado SST OBLIGATORIO (DS 44/2024 Art.66) — elegido por trabajadores mediante votación, acta, registro DT.
+- 25 o más trabajadores: CPHS OBLIGATORIO (DS 44/2024 Art.23) — 3 rep. empleador + 3 rep. trabajadores.
+- Más de 100 trabajadores: Departamento de Prevención de Riesgos con experto (DS 44/2024 Art.50).
 
 ═══════════════════════════════════════════════════════
-REGLA ABSOLUTA N°5 — CERO TRUNCAMIENTO
+REGLA N°5 — LEY KARIN (Ley 21.643 + DS 2/2024)
 ═══════════════════════════════════════════════════════
-NUNCA dejes un artículo a medias. NUNCA dejes una sección incompleta. Cada artículo mínimo 3 oraciones completas y concretas. Si el documento es largo, usa los marcadores de fin de parte (===P1FIN===, etc.) para indicar al sistema cuándo concatenar.
+Todo RIOHS DEBE incluir el protocolo completo:
+- Definición acoso laboral: agresión u hostigamiento, UNA SOLA VEZ O reiterada (no requiere reiteración)
+- Canal denuncia interno: responsable nominado, acuse recibo 2 días hábiles
+- Medidas cautelares: DENTRO DE 5 DÍAS HÁBILES desde la denuncia (separación física obligatoria)
+- Investigación: designar investigador en 3 días hábiles, informe DENTRO DE 30 DÍAS HÁBILES
+- Canal externo DT: plazo 90 DÍAS CORRIDOS desde el hecho
+- Protección denunciante: confidencialidad, prohibición represalias
 
 ═══════════════════════════════════════════════════════
-FORMATO
+REGLA N°6 — PROTOCOLO ALCOHOL Y DROGAS (DS 44/2024 Art.9)
 ═══════════════════════════════════════════════════════
-## para capítulos, Art.N para artículos, tablas en markdown cuando corresponda. Español chileno formal técnico-legal. Firma siempre: Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos, Plus Control SpA, Osorno.`;
+- Prohibición absoluta con base legal explícita
+- Indicios razonables que habilitan el test: aliento alcohólico, conducta alterada, coordinación deteriorada, ojos enrojecidos
+- Test aplicado por profesional de salud o institución acreditada
+- Derecho del trabajador a solicitar segunda muestra
+- Resultado positivo: suspensión inmediata, proceso disciplinario
+- Negativa al test: se considera positivo (criterio DT)
+
+═══════════════════════════════════════════════════════
+REGLA N°7 — CERO TRUNCAMIENTO
+═══════════════════════════════════════════════════════
+NUNCA dejes un artículo a medias. Cada artículo mínimo 3 oraciones completas. Usa marcadores de fin cuando corresponda.
+
+FORMATO: ## capítulos, Art.N artículos, tablas markdown. Español chileno formal técnico-legal.`;
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Manejar preflight CORS
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
+
+// ── Endpoint con STREAMING corregido ──
 app.post('/api/claude', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+
   if (!APIKEY) return res.status(500).json({ error: 'API key no configurada en variables de entorno' });
   const { prompt } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'Prompt vacío' });
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-5',
-    max_tokens: 12000,
+    max_tokens: 8000,
+    stream: true,
     system: SYSTEM,
     messages: [{ role: 'user', content: prompt }]
   });
@@ -107,21 +123,71 @@ app.post('/api/claude', async (req, res) => {
   };
 
   try {
-    const data = await new Promise((resolve, reject) => {
+    const texto = await new Promise((resolve, reject) => {
       const req2 = https.request(options, r => {
-        let d = '';
-        r.on('data', c => d += c);
-        r.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { reject(new Error('JSON inválido: ' + d.substring(0,200))); } });
+        let buffer = '';
+        let fullText = '';
+
+        r.on('data', chunk => {
+          buffer += chunk.toString();
+          const lines = buffer.split('\n');
+          buffer = lines.pop(); // conservar línea incompleta para el siguiente chunk
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') continue;
+            try {
+              const obj = JSON.parse(data);
+              if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
+                fullText += obj.delta.text;
+              }
+              if (obj.type === 'error') {
+                reject(new Error((obj.error && obj.error.message) || 'Error en la API'));
+              }
+            } catch(e) { /* ignorar líneas no-JSON */ }
+          }
+        });
+
+        r.on('end', () => {
+          // Procesar cualquier dato residual en el buffer
+          if (buffer.trim()) {
+            const lines = buffer.split('\n');
+            for (const line of lines) {
+              if (!line.startsWith('data: ')) continue;
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') continue;
+              try {
+                const obj = JSON.parse(data);
+                if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
+                  fullText += obj.delta.text;
+                }
+              } catch(e) {}
+            }
+          }
+          // Resolver SIEMPRE aquí — único punto de resolución
+          if (fullText) {
+            resolve(fullText);
+          } else {
+            reject(new Error('La API no retornó contenido. Intente nuevamente.'));
+          }
+        });
+
+        r.on('error', reject);
       });
-      req2.setTimeout(180000, function(){ req2.destroy(); reject(new Error('Timeout: la API tardó más de 3 minutos. Intente nuevamente.')); });
+
+      req2.setTimeout(300000, function() {
+        req2.destroy();
+        reject(new Error('La generación tardó más de 5 minutos. Intente nuevamente.'));
+      });
+
       req2.on('error', reject);
       req2.write(payload);
       req2.end();
     });
 
-    if (data.error) return res.status(400).json({ error: data.error.type + ': ' + data.error.message });
-    if (data.content && data.content[0] && data.content[0].text) return res.json({ texto: data.content[0].text });
-    return res.status(500).json({ error: 'Sin contenido: ' + JSON.stringify(data).substring(0,200) });
+    return res.json({ texto });
+
   } catch(err) {
     return res.status(500).json({ error: err.message });
   }
