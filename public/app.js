@@ -587,6 +587,10 @@ function goStep(n){
 // ── PROMPTS v2 — Fiscalizador Extremo Senior ──
 function buildBase(e) {
   var hombres = (e.trabajadores||1) - (e.mujeres||0);
+  // Variables dinámicas — deben estar aquí porque buildBase se llama antes de buildPrompt
+  var veh_pesado = (e.trab_vehiculos||'').toLowerCase().indexOf('pesad') >= 0;
+  var tiene_plaguicidas = (e.sustancias||'').toLowerCase().indexOf('plaguicida') >= 0 || (e.sustancias||'').toLowerCase().indexOf('herbicida') >= 0 || (e.sustancias||'').toLowerCase().indexOf('fungicida') >= 0 || (e.sustancias||'').toLowerCase().indexOf('agroquimico') >= 0;
+  var tiene_uv = (e.radiacion||'').toLowerCase().indexOf('uv') >= 0 || (e.radiacion||'').toLowerCase().indexOf('solar') >= 0;
   return [
     '═══════════════ DATOS MAESTROS EMPRESA CLIENTE ═══════════════',
     'RAZÓN SOCIAL: '+e.razon,
