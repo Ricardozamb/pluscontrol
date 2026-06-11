@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════
 // PLUS CONTROL — app.js
-// Sistema de Prevencion de Riesgos · Chile 2025
+// Sistema de Prevencion de Riesgos · Chile 2026
 // ══════════════════════════════════════════════
 
 // ══════════════════════════════════════════════
@@ -112,7 +112,7 @@ function doLogout() {
 })();
 
 
-// ── NORMATIVA POR RUBRO (actualizada 2025) ──
+// ── NORMATIVA POR RUBRO (actualizada 2026) ──
 var NORM = {
   'Construccion':['DS 44/2024 MINTRAB (vigente 01-feb-2025)','Ley 16.744','DS 594/1999 MINSAL','DS 44/2024 MINTRAB Arts.20-21 (coordinacion empleadores, reemplaza DS 78/2010)','Ley 20.123','NCh 433 Of.2009','NCh 349 (andamios)','Protocolo TMERT Res.327/2024','Protocolo PREXOR','NCh 934 Of.2008','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB','Protocolo CEAL-SM-SUSESO (evaluacion riesgos psicosociales)'],
   'Mineria':['DS 44/2024 MINTRAB','Ley 16.744','DS 594/1999 MINSAL','DS 132/2002 MINMIN','DS 72/1985 MINMIN','Protocolo PREXOR','Protocolo ERA','NCh 2190 explosivos','Convenio OIT 176 ratif.2024','Ley 21.643 Ley Karin 2024','DS 2/2024 MINTRAB'],
@@ -319,7 +319,7 @@ function showEmpSheet(id){
     '<strong>Trabajadores:</strong> '+e.trabajadores+'<br>'+
     '<strong>Mutualidad:</strong> '+(e.mutualidad||'-')+'<br>'+
     '<strong>Rep. Legal:</strong> '+(e.rep_nombre||'-')+'</div>'+
-    '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Normativa Chile 2025</div>'+
+    '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Normativa Chile 2026</div>'+
     '<div style="margin-bottom:16px">'+(e.normativa||[]).slice(0,5).map(function(n){return '<span class="norma-pill">'+n+'</span>';}).join('')+'</div>'+
     '<div style="font-size:11px;color:var(--muted);margin-bottom:14px">'+de.length+' documento'+(de.length!==1?'s':'')+' generado'+(de.length!==1?'s':'')+'</div>'+
     '<button class="btn btn-primary" id="s-btn-gen">Generar documentos</button>'+
@@ -697,29 +697,58 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     ''
   ].filter(function(x){return x!=='';}).join('\n');
 
-  if(tipo==='riohs_p1') return I+'\nElabora RIOHS 2025 PARTE 1 (Caps. I-VI) para el siguiente cliente:\n\n'+base+'\n\nControl: '+ctrl+'\nNormativa: DS 44/2024 MINTRAB, Ley 16.744, Ley 21.643 Ley Karin, CT Arts. 153-157 y 184, DS 594/1999.\n\n'+
+  if(tipo==='riohs_p1a') return I+'\nElabora RIOHS PARTE 1 (Caps. I-III) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
     'CAP.I PREÁMBULO, VIGENCIA Y POLÍTICA SST:\n'+
-    'Art.1 Fundamento legal: DS 44/2024, Ley 16.744, CT Art.153-157, Ley 21.643.\n'+
-    'Art.2 Ámbito de aplicación: todos los trabajadores de '+e.razon+'. DOMICILIO LEGAL: '+e.direccion+', '+e.ciudad+', Región de '+e.region+'. '+(e.sucursales_txt?'DOMICILIOS OPERACIONALES (lugar efectivo de trabajo): '+e.sucursales_txt+'. La fiscalización corresponde a la Inspección del Trabajo de cada jurisdicción donde operan los trabajadores.':'')+'Cargos: '+(e.cargos||'Ver ficha de cargos de la empresa')+'. Horario: '+e.horario+'.\n'+
-    'Art.3 Vigencia: desde '+fecha+', revisión anual o ante cambios.\n'+
-    'Art.4 POLÍTICA DE SST firmada: compromiso específico del empleador '+e.rep_nombre+', objetivos medibles, responsabilidades. Mínimo 10 líneas. FIRMADA.\n'+
-    'Art.5 Difusión: entrega gratuita, acuse firma, ingreso web DT (Art.156 CT).\n\n'+
-    'CAP.II DEFINICIONES (DS 44/2024 + Ley 21.643): mínimo 20 definiciones completas. OBLIGATORIAS: (1) Acoso laboral (Ley 21.643 Art.2: agresión u hostigamiento, una sola vez O reiterada, que menoscabe o humille al trabajador); (2) Acoso sexual (CT Art.2 inc.2: requerimiento sexual no consentido que amenace situación laboral); (3) Violencia en el trabajo (Ley 21.643: ejercicio de fuerza física o psicológica con resultado de daño); (4) Peligro (DS 44/2024 Art.4 N°12: fuente con potencial de causar daño); (5) Riesgo (DS 44/2024 Art.4 N°19: combinación probabilidad y severidad); (6) Lugar de trabajo (DS 44/2024 Art.4 N°9: todo sitio donde trabajadores deban permanecer); (7) Medida de control (DS 44/2024 Art.4 N°10: acción para eliminar o reducir riesgo); (8) MIPER, (9) OAL, (10) EPP, (11) Incidente, (12) Accidente del trabajo (Ley 16.744 Art.5), (13) Enfermedad profesional (Ley 16.744 Art.7), (14) Perspectiva de género, (15) Delegado SST / CPHS según dotación, más definiciones complementarias hasta 20 mínimo.\n\n'+
-    'CAP.III ADMISIÓN: exámenes preocupacionales recomendados según cargo y riesgo (obligatorios solo para: conductores, manejo de plaguicidas, alturas, gases comprimidos — NO exigibles como condición de contratación CT Art.2), inducción 8 horas, documentación obligatoria, Derecho a Saber firmado.\n\n'+
-    'CAP.IV JORNADA LABORAL (CT Art.22 inciso 1, Ley 21.561/2023 — máx. 42 hrs/semana desde 26-abr-2026): '+
-    'Jornada: '+e.jornada+'. Horario: '+e.horario+'. Horas semanales: '+e.horas_semanales+' hrs. '+
-    'OBLIGATORIO en este artículo: (1) especificar duración exacta de colación (mínimo 30 min CT Art.34, no se computa en jornada); (2) verificar que horas brutas menos colación no excedan 42 hrs; (3) si el horario da más de 42 hrs trabajadas, indicar el pacto de horas extras escrito o ajustar horario. '+(veh_pesado?'(4) ARTÍCULO ESPECÍFICO PARA CONDUCTOR (CT Art.25): jornada máxima 10 hrs diarias incluyendo esperas, descanso obligatorio de 2 horas cada 5 horas de conducción continua, registro en tacógrafo DS 72/2019, tiempo de conducción efectiva no puede exceder 5 hrs sin pausa. Este artículo debe redactarse SEPARADO del horario general de la empresa.':'')+' '+
-    'JORNADA MÁXIMA LEGAL VIGENTE: 42 hrs/semana desde 26-abr-2026 para TODAS las empresas (CT Art.22 inciso 1, Ley 21.561/2023). Reducción: hasta 25-abr-2026=44hrs, desde 26-abr-2026=42hrs (todas las empresas). Próxima: 40hrs en abr-2028. '+(parseInt(e.horas_semanales||42)>42?'ATENCIÓN LEGAL: las '+e.horas_semanales+' hrs/semana declaradas superan el límite máximo vigente de 42 hrs semanales (CT Art.22 inciso 1, Ley 21.561 — vigente desde 26-abr-2026 para TODAS las empresas). Indicar en este artículo: (a) que la jornada ordinaria es de 42 hrs semanales, (b) que las horas adicionales requieren pacto de horas extraordinarias escrito con recargo del 50% según CT Art.32, o (c) que la empresa cuenta con resolución de jornada excepcional autorizada por la DT. CITA LEGAL: CT Art.22 inciso 1, Ley 21.561/2023.':e.horas_semanales+' hrs/sem.')+' Horas extras, descansos, feriados, permisos maternidad/paternidad.\n\n'+
-    'CAP.V OBLIGACIONES DEL EMPLEADOR: DS 44/2024 Art.4 (deber protección, CT Art.184), Art.7 (MIPER), Art.8 (programa preventivo anual), Art.13 (EPP sin costo, certificado ISP), Art.14 (información riesgos), Art.15 (capacitación), Art.16 (formación enfoque género), Art.19 (plan emergencia). MIPER, programa preventivo, EPP sin costo, capacitación 8 hrs enfoque género, investigación accidentes OAL, riesgos psicosociales CEAL-SM-SUSESO.\n\n'+
-    'CAP.VI RIESGOS DEL RUBRO '+e.rubro.toUpperCase()+': mínimo 10 peligros REALES de '+e.subrubro+'. Jerarquía de controles. Mapa de riesgos. Riesgos ergonómicos (Ley 20.949/2016, DS 63/2005 MINTRAB). Riesgos psicosociales.\n\nAl terminar escribe exactamente: ===P1FIN===';
+    '- Art.1 Fundamento legal completo: DS 44/2024, Ley 16.744, CT Arts.153-157 y 184, Ley 21.643, DS 2/2024.\n'+
+    '- Art.2 Ámbito de aplicación: todos los trabajadores, contratistas, visitas. Dotación: '+e.trabajadores+' trabajadores ('+e.cargos+'). Domicilio: '+e.direccion+', '+e.ciudad+'. Horario: '+e.horario+' = '+e.horas_semanales+' hrs/semana (máx. legal 42 hrs Ley 21.561).\n'+
+    '- Art.3 Vigencia y revisión anual.\n'+
+    '- Art.4 Política SST firmada: compromiso dirección, objetivos medibles 2026-2027, responsabilidades.\n'+
+    '- Art.5 Difusión y entrega gratuita (CT Art.156).\n\n'+
+    'CAP.II DEFINICIONES (DS 44/2024 + Ley 21.643): mínimo 20 definiciones completas. OBLIGATORIAS: acoso laboral (UNA SOLA VEZ O reiterada Ley 21.643 Art.2), acoso sexual (CT Art.2 inc.2), violencia en el trabajo, peligro (DS 44/2024 Art.4 N°12), riesgo (Art.4 N°19), lugar de trabajo (Art.4 N°9), medida de control (Art.4 N°10), MIPER, OAL, EPP, incidente, accidente del trabajo (Ley 16.744 Art.5), enfermedad profesional (Ley 16.744 Art.7), perspectiva de género, Delegado SST, CPHS, Derecho a Saber.\n\n'+
+    'CAP.III ADMISIÓN Y CONTRATACIÓN: exámenes según cargo y riesgo (no exigibles como condición CT Art.2), inducción SST mínimo 2 hrs primer día, entrega RIOHS + MIPER + PTS, firma acuse recibo, Derecho a Saber (DS 44/2024 Art.14-15).\n\nAl terminar escribe exactamente: ===P1aFIN===';
 
-  if(tipo==='riohs_p2') return I+'\nElabora RIOHS 2025 PARTE 2 (Caps. VII-XII) para el siguiente cliente:\n\n'+base+'\n\nControl: '+ctrl+'\nFecha: '+fecha+'.\n\n'+
-    'CAP.VII OBLIGACIONES DE TRABAJADORES (DS 44/2024 Art.5): mínimo 15 artículos específicos para cargos reales: '+(e.cargos||'Ver ficha de cargos de la empresa')+'. Incluir: RIOHS, EPP, condiciones inseguras, capacitaciones, alcohol/drogas, accidentes, simulacros, PTS.\n\n'+
-    'CAP.VIII PROHIBICIONES: mínimo 12 prohibiciones concretas para '+e.rubro+'/'+e.subrubro+'. Incluir: alcohol/drogas, celular en zonas riesgo, desactivar dispositivos seguridad, EPP en tareas alto riesgo.\n\n'+
-    'CAP.IX DERECHO A SABER (DS 44/2024 Art.14-15): tabla por cargo real. Columnas: cargo|tarea|peligro específico|agente|vía exposición|consecuencia|medida control|EPP|normativa. Mínimo 8 registros con datos reales de '+e.rubro+'.\n\n'+
-    'CAP.X EPP OBLIGATORIO: tabla por cargo: cargo|EPP|norma NCh|certificación ISP|cuándo usarlo. Basado en cargos reales: '+(e.cargos||'Ver ficha de cargos de la empresa')+'. Sustancias: '+e.sustancias+'. Trabajos especiales: altura='+e.trab_altura+', caliente='+e.trab_caliente+', confinado='+e.trab_confinado+', vehículos='+e.trab_vehiculos+'.\n\n'+
-    'CAP.XI ACCIDENTES Y ENFERMEDADES PROFESIONALES (Ley 16.744):\n- ACCIDENTE DEL TRABAJO (Art.5 inc.1): toda lesión que sufra el trabajador durante el ejercicio de labores. Procedimiento: primeros auxilios → SAMU 131 → DIAT ante la mutualidad dentro de las 24 horas siguientes al accidente (Ley 16.744 Art.76) → investigación OAL con enfoque género.\n- ACCIDENTE DE TRAYECTO (Art.5 inc.2): ocurrido directamente entre habitación y lugar de trabajo. El trabajador presenta personalmente el DIAT ante la mutualidad; el empleador debe facilitar y documentar la gestión.\n- ENFERMEDAD PROFESIONAL (Art.7): causada de manera directa por el ejercicio de la profesión. Denuncia de Enfermedad Profesional (DEP) ante la mutualidad.\n- PRESTACIONES Ley 16.744: médicas, económicas (subsidio, pensión), rehabilitación. Investigación OAL, libro de novedades.\n\n'+
-    'CAP.XII RIESGOS PSICOSOCIALES (DS 44/2024 y Protocolo CEAL-SM-SUSESO):\n'+'- Evaluación de riesgos psicosociales: instrumento CEAL-SM-SUSESO, dimensiones (carga laboral, desarrollo de tareas, liderazgo, relaciones sociales, doble presencia), frecuencia anual, medidas organizacionales.\n'+'- NOTA: El Protocolo completo de Violencia Laboral (Ley Karin 21.643) se desarrolla íntegramente en el CAPÍTULO XX del presente Reglamento.\n'+'- PROTOCOLO ALCOHOL Y DROGAS (DS 44/2024 Art.9): prohibición expresa. Indicios razonables (aliento alcohólico, conducta alterada, coordinación deteriorada, ojos enrojecidos). Test por profesional de salud acreditado; cadena de custodia; derecho a segunda muestra; resultado positivo: suspensión inmediata y proceso disciplinario; negativa al test: se considera positivo (criterio DT).\n\nAl terminar escribe exactamente: ===P2FIN==='
+  if(tipo==='riohs_p1b') return I+'\nElabora RIOHS PARTE 2 (Caps. IV-VI) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAP.IV JORNADA LABORAL (CT Art.22, Ley 21.561):\n'+
+    '- Jornada ordinaria: '+e.horario+' = '+e.horas_semanales+' hrs/semana. Colación mínima 30 min (CT Art.34) NO imputable a jornada.\n'+
+    '- Jornada máxima legal vigente desde 26-abr-2026: 42 hrs/semana (Ley 21.561/2023). Próxima reducción: 40 hrs en abr-2028.\n'+
+    '- Horas extraordinarias: máx. 2 hrs/día, pacto escrito CT Art.32, recargo 50%.\n'+
+    '- '+cphs_txt+'\n'+
+    '- Trabajo nocturno, feriados, descanso dominical y semanal según CT.\n\n'+
+    'CAP.V OBLIGACIONES DEL EMPLEADOR (CT Art.184, DS 44/2024):\n'+
+    '- Proporcionar EPP gratuitos certificados ISP.\n'+
+    '- Elaborar y mantener MIPER actualizada (DS 44/2024 Art.7).\n'+
+    '- Capacitar mínimo 8 hrs anuales con enfoque género (DS 44/2024 Art.16).\n'+
+    '- Investigar accidentes e incidentes.\n'+
+    '- Informar riesgos (Derecho a Saber DS 44/2024 Art.14-15).\n'+
+    '- Mantener registros documentales disponibles para DT y Mutual.\n'+
+    '- Implementar Protocolo Ley Karin.\n\n'+
+    'CAP.VI RIESGOS ESPECÍFICOS DEL RUBRO '+e.rubro+' — '+e.subrubro+':\n'+
+    '- Mínimo 12 peligros REALES de la actividad con sus medidas de control específicas.\n'+
+    '- Riesgos físicos, químicos, ergonómicos, de seguridad y psicosociales del rubro.\n'+
+    '- Agentes específicos: '+e.sustancias+'.\n'+
+    '- Maquinaria: '+e.maquinaria+'.\n\nAl terminar escribe exactamente: ===P1bFIN===';
+
+  if(tipo==='riohs_p2a') return I+'\nElabora RIOHS PARTE 3 (Caps. VII-IX) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAP.VII OBLIGACIONES DE LOS TRABAJADORES (DS 44/2024 Art.5, CT Art.184):\n'+
+    'Mínimo 15 artículos numerados, específicos para '+e.rubro+'. Incluir obligatoriamente: uso EPP, reporte condiciones inseguras, asistencia capacitaciones, participación simulacros, cumplimiento PTS, prohibición alcohol/drogas, orden y aseo, cuidado herramientas y vehículos, reporte accidentes, participación asambleas mensuales.\n\n'+
+    'CAP.VIII PROHIBICIONES (CT Art.154 bis, DS 44/2024):\n'+
+    'Mínimo 12 prohibiciones concretas para '+e.rubro+'. Incluir: alcohol/drogas en trabajo, fumar en zonas de riesgo, desactivar dispositivos seguridad, uso EPP ajeno, modificar equipos sin autorización, transporte personas no autorizadas, uso celular conducción, fotografiar instalaciones sin autorización, otras específicas del rubro.\n\n'+
+    'CAP.IX DERECHO A SABER (DS 44/2024 Art.14-15):\n'+
+    'Tabla por cada cargo real ('+e.cargos+'). Columnas: Cargo | Tarea | Riesgo | Medida preventiva | EPP obligatorio | Normativa. Mínimo 3 filas por cargo. Formato tabla markdown. Al final: protocolo entrega, firma trabajador, actualización ante cambios.\n\nAl terminar escribe exactamente: ===P2aFIN===';
+
+  if(tipo==='riohs_p2b') return I+'\nElabora RIOHS PARTE 4 (Caps. X-XII) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAP.X EQUIPOS DE PROTECCIÓN PERSONAL (DS 44/2024 Art.13, Ley 16.744 Art.68):\n'+
+    'Tabla por cargo: Cargo | EPP | Norma NCh | Certificación ISP | Cuándo usar | Responsable entrega. Incluir todos los cargos ('+e.cargos+'). EPP específicos para '+e.rubro+'. Procedimiento entrega, reposición, registro.\n\n'+
+    'CAP.XI ACCIDENTES DEL TRABAJO Y ENFERMEDADES PROFESIONALES (Ley 16.744):\n'+
+    '- Definiciones: accidente del trabajo (Art.5), accidente de trayecto (Art.5 inc.2), enfermedad profesional (Art.7).\n'+
+    '- Procedimiento ante accidente: primeros auxilios → SAMU 131 → DIAT ante mutualidad dentro de 24 horas siguientes (Ley 16.744 Art.76) → investigación OAL.\n'+
+    '- Accidente de trayecto: trabajador presenta personalmente DIAT ante mutual.\n'+
+    '- Investigación interna: metodología árbol de causas, medidas correctivas, plazos.\n'+
+    '- Estadísticas de accidentabilidad.\n\n'+
+    'CAP.XII RIESGOS PSICOSOCIALES (DS 44/2024, Protocolo CEAL-SM-SUSESO):\n'+
+    '- Evaluación CEAL-SM-SUSESO: dimensiones, frecuencia (cada 2 años mínimo), medidas organizacionales.\n'+
+    '- NOTA: El Protocolo Ley Karin completo (canales denuncia, plazos, investigación) está en Cap.XX.\n'+
+    '- Protocolo alcohol y drogas: prohibición DS 44/2024 Art.9, indicios razonables, test por profesional de salud acreditado, cadena de custodia, segunda muestra, consecuencias.\n\nAl terminar escribe exactamente: ===P2bFIN===';
 
   if(tipo==='riohs_p3') return I+'\nElabora RIOHS 2025 PARTE 3 (Caps. XIII-XVII) para el siguiente cliente:\n\n'+base+'\n\n'+cphs_txt+' Fecha: '+fecha+'.\n\n'+
     'CAP.XIII REPRESENTACIÓN PREVENTIVA: '+cphs_txt+' Desarrollo completo según corresponda al tamaño de la empresa.\n\n'+
@@ -994,17 +1023,27 @@ async function startGen(){
   try {
     var texto='';
     if(gTipo==='riohs'){
-      lbl.textContent='Claude · Parte 1/5 — Caps. I-VI...';
-      var p1=await callClaude(buildPrompt(e,'riohs_p1',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 2/5 — Caps. VII-XII...');
-      var p2=await callClaude(buildPrompt(e,'riohs_p2',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 3/5 — Caps. XIII-XVII...');
+      lbl.textContent='Claude · Parte 1/8 — Preámbulo y Definiciones...';
+      var p1a=await callClaude(buildPrompt(e,'riohs_p1a',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 2/8 — Jornada y Riesgos del Rubro...');
+      var p1b=await callClaude(buildPrompt(e,'riohs_p1b',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 3/8 — Obligaciones y Derecho a Saber...');
+      var p2a=await callClaude(buildPrompt(e,'riohs_p2a',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 4/8 — EPP, Accidentes y Psicosocial...');
+      var p2b=await callClaude(buildPrompt(e,'riohs_p2b',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 5/8 — Representación y Gestión Preventiva...');
       var p3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 4/5 — Caps. XVIII-XIX...');
+      bannerParte('Claude · Parte 6/8 — Infracciones y Sanciones...');
       var p4a=await callClaude(buildPrompt(e,'riohs_p4a',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 5/5 — Ley Karin + Firmas...');
+      bannerParte('Claude · Parte 7/8 — Protocolo Ley Karin...');
       var p4b=await callClaude(buildPrompt(e,'riohs_p4b',normas,rStr,fecha),0,onChunk);
-      texto=p1.replace('===P1FIN===','').trim()+'\n\n'+p2.replace('===P2FIN===','').trim()+'\n\n'+p3.replace('===P3FIN===','').trim()+'\n\n'+p4a.replace('===P4aFIN===','').trim()+'\n\n'+p4b;
+      texto=p1a.replace('===P1aFIN===','').trim()+'\n\n'+
+            p1b.replace('===P1bFIN===','').trim()+'\n\n'+
+            p2a.replace('===P2aFIN===','').trim()+'\n\n'+
+            p2b.replace('===P2bFIN===','').trim()+'\n\n'+
+            p3.replace('===P3FIN===','').trim()+'\n\n'+
+            p4a.replace('===P4aFIN===','').trim()+'\n\n'+
+            p4b;
     } else if(gTipo==='iper'){
       lbl.textContent='Claude · IPER Parte 1/2...';
       var ip1=await callClaude(buildPrompt(e,'iper_p1',normas,rStr,fecha),0,onChunk);
