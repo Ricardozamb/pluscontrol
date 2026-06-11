@@ -84,7 +84,7 @@ FORMATO: ## capítulos, Art.N artículos, tablas markdown. Español chileno form
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Manejar preflight CORS
+// CORS
 app.options('*', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
@@ -92,15 +92,28 @@ app.options('*', (req, res) => {
   res.sendStatus(200);
 });
 
-// ── Endpoint con STREAMING corregido ──
-app.post('/api/claude', async (req, res) => {
+// ── Endpoint SSE — envía chunks al cliente en tiempo real ──
+// Esto resuelve el problema de Render Free que corta conexiones largas sin actividad:
+// al enviar datos continuamente, la conexión se mantiene viva.
+app.post('/api/claude', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (!APIKEY) return res.status(500).json({ error: 'API key no configurada en variables de entorno' });
+  if (!APIKEY) {
+    res.status(500).json({ error: 'API key no configurada en variables de entorno' });
+    return;
+  }
   const { prompt } = req.body || {};
-  if (!prompt) return res.status(400).json({ error: 'Prompt vacío' });
+  if (!prompt) {
+    res.status(400).json({ error: 'Prompt vacío' });
+    return;
+  }
+
+  // Responder como SSE para mantener la conexión viva en Render Free
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('X-Accel-Buffering', 'no'); // deshabilitar buffering en Nginx/Render
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-5',
@@ -122,75 +135,71 @@ app.post('/api/claude', async (req, res) => {
     }
   };
 
-  try {
-    const texto = await new Promise((resolve, reject) => {
-      const req2 = https.request(options, r => {
-        let buffer = '';
-        let fullText = '';
+  const req2 = https.request(options, r => {
+    let buffer = '';
 
-        r.on('data', chunk => {
-          buffer += chunk.toString();
-          const lines = buffer.split('\n');
-          buffer = lines.pop(); // conservar línea incompleta para el siguiente chunk
+    r.on('data', chunk => {
+      buffer += chunk.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
 
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6).trim();
-            if (data === '[DONE]') continue;
-            try {
-              const obj = JSON.parse(data);
-              if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
-                fullText += obj.delta.text;
-              }
-              if (obj.type === 'error') {
-                reject(new Error((obj.error && obj.error.message) || 'Error en la API'));
-              }
-            } catch(e) { /* ignorar líneas no-JSON */ }
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const obj = JSON.parse(data);
+          if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
+            // Enviar chunk al cliente inmediatamente — mantiene la conexión viva
+            res.write('data: ' + JSON.stringify({ chunk: obj.delta.text }) + '\n\n');
           }
-        });
-
-        r.on('end', () => {
-          // Procesar cualquier dato residual en el buffer
-          if (buffer.trim()) {
-            const lines = buffer.split('\n');
-            for (const line of lines) {
-              if (!line.startsWith('data: ')) continue;
-              const data = line.slice(6).trim();
-              if (data === '[DONE]') continue;
-              try {
-                const obj = JSON.parse(data);
-                if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
-                  fullText += obj.delta.text;
-                }
-              } catch(e) {}
-            }
+          if (obj.type === 'error') {
+            res.write('data: ' + JSON.stringify({ error: (obj.error && obj.error.message) || 'Error API' }) + '\n\n');
+            res.end();
           }
-          // Resolver SIEMPRE aquí — único punto de resolución
-          if (fullText) {
-            resolve(fullText);
-          } else {
-            reject(new Error('La API no retornó contenido. Intente nuevamente.'));
-          }
-        });
-
-        r.on('error', reject);
-      });
-
-      req2.setTimeout(300000, function() {
-        req2.destroy();
-        reject(new Error('La generación tardó más de 5 minutos. Intente nuevamente.'));
-      });
-
-      req2.on('error', reject);
-      req2.write(payload);
-      req2.end();
+        } catch(e) {}
+      }
     });
 
-    return res.json({ texto });
+    r.on('end', () => {
+      // Procesar buffer residual
+      if (buffer.trim()) {
+        const lines = buffer.split('\n');
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          try {
+            const obj = JSON.parse(data);
+            if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
+              res.write('data: ' + JSON.stringify({ chunk: obj.delta.text }) + '\n\n');
+            }
+          } catch(e) {}
+        }
+      }
+      // Señal de fin
+      res.write('data: ' + JSON.stringify({ done: true }) + '\n\n');
+      res.end();
+    });
 
-  } catch(err) {
-    return res.status(500).json({ error: err.message });
-  }
+    r.on('error', err => {
+      res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
+      res.end();
+    });
+  });
+
+  req2.setTimeout(300000, () => {
+    req2.destroy();
+    res.write('data: ' + JSON.stringify({ error: 'La generación tardó más de 5 minutos. Intente nuevamente.' }) + '\n\n');
+    res.end();
+  });
+
+  req2.on('error', err => {
+    res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
+    res.end();
+  });
+
+  req2.write(payload);
+  req2.end();
 });
 
 app.get('*', (req, res) => {
