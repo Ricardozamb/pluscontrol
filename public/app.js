@@ -715,7 +715,7 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
   if(tipo==='riohs_p2') return I+'\nElabora RIOHS PARTE 2 — CAPÍTULOS II y III para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
     'CAPÍTULO II: DEFINICIONES Y GLOSARIO (DS 44/2024 + Ley 21.643)\n'+
     'Desarrollar MÍNIMO 20 definiciones completas, mínimo 3 oraciones cada una. OBLIGATORIAS:\n'+
-    '1. Acoso laboral (Ley 21.643 Art.2: agresión u hostigamiento, UNA SOLA VEZ O reiterada, que menoscabe o humille)\n'+
+    '1. Acoso laboral (CT Art.2° inc.2° letra b, modificado por Ley 21.643): toda conducta de agresión u hostigamiento física o psicológica, ejercida por el empleador o por uno o más trabajadores contra otro u otros, por cualquier medio (verbal, escrito, no verbal, digital), que tenga como resultado menoscabo, maltrato o humillación, o que amenace o perjudique su situación laboral. La Ley Karin ELIMINÓ el requisito de reiteración: basta UNA SOLA conducta grave. Conductas constitutivas de acoso laboral según la DT (fuente oficial dt.gob.cl): (1) violencia física sobre el trabajador o sus pertenencias; (2) intimidación, amenazas y conductas de violencia psicológica; (3) obligar a ejecutar tareas en contra de la conciencia del trabajador; (4) juzgar el desempeño del trabajador de manera ofensiva; (5) cuestionar injustificadamente decisiones del trabajador; (6) no asignar tareas, asignar tareas sin sentido, asignar tareas muy por debajo de las capacidades o sobrecargar de tareas; (7) aislar o ignorar al trabajador; (8) gritos y gestos agresivos o intimidatorios; (9) creación de ambiente de trabajo hostil y ofensivo. IMPORTANTE: basta UNA SOLA conducta grave para configurar acoso laboral (CT Art.2° inc.2° letra b) modificado por Ley 21.643 — eliminó el requisito de reiteración).\n'+
     '2. Acoso sexual (CT Art.2 inc.2: requerimiento sexual no consentido que amenace situación laboral)\n'+
     '3. Violencia en el trabajo (Ley 21.643: fuerza física o psicológica de terceros con resultado de daño)\n'+
     '4. Peligro (DS 44/2024 Art.4 N°12: fuente con potencial de causar daño)\n'+
@@ -743,17 +743,21 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
 
   // PARTE 3 — Cap.IV + V + VI (4.700 tokens)
   if(tipo==='riohs_p3') return I+'\nElabora RIOHS PARTE 3 — CAPÍTULOS IV, V y VI para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-    'CAPÍTULO IV: JORNADA LABORAL, REMUNERACIONES Y DESCANSOS (CT Arts.22 y ss, Ley 21.561)\n'+
+    'CAPÍTULO IV: JORNADA LABORAL, REMUNERACIONES Y DESCANSOS (CT Arts.22, 41-55, 154, Ley 21.561)\n'+
     'Art.10 Jornada ordinaria: '+e.horario+'. Horas semanales: '+e.horas_semanales+'. Colación: mínimo 30 min (CT Art.34), no imputable a jornada.\n'+
     'Art.11 Jornada máxima legal: 42 hrs/semana vigente desde 26-abr-2026 (Ley 21.561/2023). Próxima reducción: 40 hrs en abr-2028. '+((parseInt(e.horas_semanales||42)>42)?'⚠️ ALERTA: las '+e.horas_semanales+' hrs declaradas EXCEDEN el máximo legal de 42 hrs — corregir de inmediato.':'')+'\n'+
     'Art.12 Horas extraordinarias: máx. 2 hrs/día, pacto escrito previo CT Art.32, recargo 50% sobre hora ordinaria, máx. 2 semanas continuas, límite 12 hrs semanales adicionales.\n'+
     'Art.13 '+cphs_txt+'\n'+
-    'Art.14 Descansos legales: semanal (CT Art.35), feriados legales (CT Art.35), feriado proporcional (CT Art.67).\n\n'+
-    'CAPÍTULO V: OBLIGACIONES DEL EMPLEADOR (CT Art.184, DS 44/2024)\n'+
+    'Art.14 Descansos legales: semanal (CT Art.35), feriados legales (CT Art.35), feriado proporcional (CT Art.67).\n'+
+    'Art.15 Remuneraciones (CT Art.154 N°3 — OBLIGATORIO): describir los tipos de remuneración que reciben los trabajadores de '+e.razon+': sueldo base mensual, gratificaciones legales (CT Art.47: 25% de remuneraciones con tope de 4,75 IMM, o 30% de utilidades), bonos, comisiones u otros estipendios si aplican. Indicar que toda remuneración se paga en moneda de curso legal o depósito bancario.\n'+
+    'Art.16 Lugar, día y hora de pago (CT Art.154 N°4 — OBLIGATORIO): el pago de remuneraciones se efectúa el último día hábil de cada mes (o la fecha pactada en el contrato individual), en el domicilio de '+e.razon+' ubicado en '+e.direccion+', '+e.ciudad+', o mediante depósito bancario en cuenta del trabajador. El empleador entregará liquidación de sueldo firmada en cada período de pago (CT Art.54 bis).\n'+
+    'Art.17 Comprobación de obligaciones legales (CT Art.154 N°8 — OBLIGATORIO): al momento de la contratación y durante la vigencia del contrato, '+e.razon+' verificará: (a) afiliación previsional vigente — AFP e ISAPRE o FONASA; (b) cumplimiento del servicio militar obligatorio cuando corresponda (Ley 27.000); (c) cédula de identidad vigente — sin cédula vencida ningún trabajador puede iniciar funciones; (d) certificado de antecedentes cuando la naturaleza del cargo lo justifique; (e) en caso de trabajadores menores de 18 años (si aplica), certificado de haber cumplido la obligación escolar conforme a la Ley General de Educación. El empleador mantendrá copia de estos documentos en la carpeta personal de cada trabajador, disponible para fiscalización de la Dirección del Trabajo.\n\n'+
+    'CAPÍTULO V: OBLIGACIONES DEL EMPLEADOR (CT Art.184, DS 44/2024, Ley 16.744)\n'+
     'Desarrollar mínimo 10 obligaciones específicas con base legal para '+e.rubro+'. Incluir obligatoriamente:\n'+
-    '- Proporcionar EPP gratuitos certificados ISP sin costo para el trabajador\n'+
+    '- Proporcionar EPP gratuitos certificados ISP sin costo para el trabajador (Ley 16.744 Art.68 inc.3)\n'+
     '- Elaborar y mantener MIPER actualizada anualmente (DS 44/2024 Art.7)\n'+
-    '- Capacitar mínimo 8 hrs anuales con enfoque género (DS 44/2024 Art.16)\n'+
+    '- Capacitar mínimo 8 hrs anuales con enfoque género (DS 44/2024 Art.16). NOTA LEGAL OBLIGATORIA en este artículo: la capacitación en prevención de riesgos es una obligación del empleador y NO puede exigirse como requisito previo a la contratación del trabajador — es deber del empleador adiestrar a sus trabajadores, no del trabajador llegar capacitado (Dictamen SUSESO 1484/2004, DS 40/1969 Art.23).\n'+
+    '- Entregar Derecho a Saber al inicio de labores y ante cambios de actividad, SIN COSTO para el trabajador (DS 44/2024 Art.15, DS 40/1969 Art.21). Para empresas como '+e.razon+' con '+nt+' trabajadores '+(nt<25?'(sin CPHS ni DPR obligatorio), el empleador entrega directamente el Derecho a Saber en la forma más conveniente y adecuada según DS 40/1969 Art.23 y Dictamen SUSESO 1484/2004.':'con CPHS, el Derecho a Saber se entrega a través del CPHS.')+'\n'+
     '- Investigar accidentes e incidentes (DS 44/2024 Art.18)\n'+
     '- Implementar Protocolo Ley Karin (Ley 21.643 + DS 2/2024)\n'+
     '- Mantener registros disponibles para DT, SEREMI Salud y '+e.mutualidad+'\n'+
@@ -824,10 +828,12 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
      e.trabajadores<25 ? 'Delegado SST: elección democrática, funciones, mandato, protección. Asambleas mensuales. Derechos de los trabajadores.' :
      'CPHS: constitución, representantes, funciones DS 44/2024 Art.23, reuniones mensuales, actas, facultades.')+'\n\n'+
     'CAPÍTULO XIV: SISTEMA DE GESTIÓN PREVENTIVA (DS 44/2024 Arts.7-22)\n'+
-    '- MIPER: metodología PxC 1-5 con enfoque género, identificación sistemática todos los peligros de '+e.rubro+', revisión anual o ante cambios, disponible para consulta de trabajadores.\n'+
+    '- MIPER: metodología VEP (Valor Esperado de la Pérdida, Guía ISP v3 2024, Res.Ex. E668/25) con enfoque género, identificación sistemática todos los peligros de '+e.rubro+', revisión anual o ante cambios, disponible para consulta de trabajadores.\n'+
     '- Programa de Trabajo Preventivo: elaborar dentro de 30 días de la MIPER, mínimo: capacitaciones, inspecciones, evaluaciones ambientales, simulacros.\n'+
     '- Vigilancia de la salud: exámenes según riesgo del cargo, coordinación con '+e.mutualidad+'.\n'+
-    '- Jerarquía de controles (DS 44/2024 Art.11): eliminación → sustitución → ingeniería → administrativos → EPP.\n\n'+
+    '- Jerarquía de controles (DS 44/2024 Art.11): eliminación → sustitución → ingeniería → administrativos → EPP.\n'+
+    '- Informe IPER del Organismo Administrador (Compendio SUSESO Libro IV Letra C): '+e.razon+' tiene derecho a recibir de '+e.mutualidad+' un informe formal con: (a) factor de riesgo y valoración; (b) medidas preventivas a implementar; (c) plazos; (d) profesional responsable. Es GRATUITO por ser empresa adherida — solicitarlo una vez validada la MIPER.\n'+
+    '- Asistencia técnica gratuita del OA (Compendio SUSESO Libro IV Letra C): '+e.mutualidad+' tiene obligación de evaluar al menos cada 2 años que empresas sin experto en prevención hayan actualizado su MIPER, y otorgar asistencia técnica gratuita para ello. '+(nt<=100?''+e.razon+' ('+e.trabajadores+' trabajadores, sin DPR obligatorio) puede exigir esta asistencia técnica a '+e.mutualidad+' sin costo adicional.':'Aun con DPR, la mutualidad puede brindar asistencia complementaria.')+'\n\n'+
     'CAPÍTULO XV: ORDEN, HIGIENE Y CONDICIONES SANITARIAS (DS 594/1999 MINSAL)\n'+
     '- Servicios higiénicos según DS 594 Art.25-28: requerimientos para '+e.trabajadores+' trabajadores, '+(e.mujeres||0)+' mujeres.\n'+
     '- Agua potable, comedor (DS 594 Art.28), vestuarios si corresponde.\n'+
@@ -863,18 +869,19 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
 
   // PARTE 8 — Cap.XIX + XX + XXI + XXII (6.800 tokens)
   if(tipo==='riohs_p8') return I+'\nElabora RIOHS PARTE 8 FINAL — CAPÍTULOS XIX, XX, XXI y XXII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-    'CAPÍTULO XIX: CANALES DE DENUNCIA Y RECLAMO\n'+
-    'Art.1 Canal interno: '+e.rep_nombre+', '+e.rep_cargo+', correo: '+(e.email||'ver datos de contacto')+'. Acuse recibo 2 días hábiles.\n'+
-    'Art.2 Canal DT externo: dt.gob.cl, fono 600 4500 247, oficina DT Región de '+e.region+'.\n'+
-    'Art.3 Canal SUSESO: 600 4200 400. '+getSEREMI(e.region)+'.\n'+
-    'Art.4 Plazos: resolución interna 30 días hábiles.\n'+
-    'Art.5 Protección denunciante: confidencialidad, prohibición represalias.\n\n'+
+    'CAPÍTULO XIX: CANALES DE DENUNCIA Y RECLAMO (CT Arts.154 N°6, N°12, N°13)\n'+
+    'Art.1 Canal interno general: '+e.rep_nombre+', '+e.rep_cargo+', correo: '+(e.email||'ver datos de contacto')+'. Todo trabajador puede plantear peticiones, reclamos, consultas y sugerencias ante esta persona conforme CT Art.154 N°6. Acuse recibo 2 días hábiles.\n'+
+    'Art.2 Canal DT externo: dt.gob.cl, fono 600 4500 247, oficina Inspección del Trabajo Región de '+e.region+'.\n'+
+    'Art.3 Canal SUSESO (prestaciones Ley 16.744): 600 4200 400. '+getSEREMI(e.region)+'.\n'+
+    'Art.4 Plazos: resolución interna 30 días hábiles. La respuesta del empleador deberá ser por escrito y fundada (CT Art.154 inc.final).\n'+
+    'Art.5 Protección denunciante: confidencialidad, prohibición de represalias.\n'+
+    'Art.6 Procedimiento de reclamo por igualdad de remuneraciones entre hombres y mujeres (CT Art.154 N°13 — OBLIGATORIO): conforme al principio de igualdad de remuneraciones establecido en el CT Art.62 bis, todo trabajador o trabajadora de '+e.razon+' que considere que está percibiendo una remuneración inferior a la de otro trabajador del sexo contrario que realice el mismo trabajo, tiene derecho a presentar reclamo formal. El procedimiento es el siguiente: (a) el trabajador o trabajadora presenta reclamo escrito ante '+e.rep_nombre+', '+e.rep_cargo+', indicando el nombre del trabajador con quien compara su remuneración, el cargo que ambos desempeñan y la diferencia remuneracional que estima injustificada; (b) el empleador deberá responder por escrito dentro de 30 días corridos, indicando si acoge o rechaza el reclamo, con los fundamentos de su decisión; (c) si el reclamo es rechazado o no recibe respuesta en el plazo, el trabajador puede recurrir a la Inspección del Trabajo competente (Región de '+e.region+', fono 600 4500 247, portal dt.gob.cl); (d) las diferencias remuneraciones no podrán fundarse en criterios basados en el sexo o género de los trabajadores, sino exclusivamente en capacidades, calificaciones, idoneidad, responsabilidad o productividad.\n\n'+
     'CAPÍTULO XX: PROTOCOLO LEY KARIN — PREVENCIÓN Y SANCIÓN VIOLENCIA LABORAL (Ley 21.643 + DS 2/2024)\n'+
     'Desarrollar COMPLETAMENTE. Mínimo 3 oraciones por artículo:\n'+
     'Art.6 Ámbito: '+e.razon+', incluyendo conductas de clientes/proveedores/público hacia trabajadores.\n'+
-    'Art.7 Acoso laboral (Ley 21.643 Art.2): agresión u hostigamiento, UNA SOLA VEZ O reiterada, que menoscabe o humille.\n'+
-    'Art.8 Acoso sexual (CT Art.2 inc.2): requerimiento sexual no consentido que amenace situación laboral.\n'+
-    'Art.9 Violencia en el trabajo: fuerza física o psicológica por terceros con resultado de daño.\n'+
+    'Art.7 Acoso laboral (CT Art.2° inc.2° letra b, modificado por Ley 21.643): toda conducta de agresión u hostigamiento física o psicológica, ejercida por el empleador o por uno o más trabajadores contra otro u otros, por cualquier medio, que tenga como resultado menoscabo, maltrato o humillación, o que amenace o perjudique la situación laboral. La Ley Karin eliminó el requisito de reiteración: UNA SOLA conducta grave configura acoso laboral. Conductas constitutivas de acoso laboral según la DT (fuente oficial dt.gob.cl): (1) violencia física sobre el trabajador o sus pertenencias; (2) intimidación, amenazas y conductas de violencia psicológica; (3) obligar a ejecutar tareas en contra de la conciencia del trabajador; (4) juzgar el desempeño del trabajador de manera ofensiva; (5) cuestionar injustificadamente decisiones del trabajador; (6) no asignar tareas, asignar tareas sin sentido, asignar tareas muy por debajo de las capacidades o sobrecargar de tareas; (7) aislar o ignorar al trabajador; (8) gritos y gestos agresivos o intimidatorios; (9) creación de ambiente de trabajo hostil y ofensivo. IMPORTANTE: basta UNA SOLA conducta grave para configurar acoso laboral (CT Art.2° inc.2° letra b) modificado por Ley 21.643 — eliminó el requisito de reiteración).\n'+
+    'Art.8 Acoso sexual (CT Art.2° inc.2° letra a, modificado por Ley 21.643): Conductas constitutivas de acoso sexual según la DT (fuente oficial dt.gob.cl): toda conducta realizada de forma indebida y por cualquier medio que implique requerimientos (imposiciones, exigencias, invitaciones, etc.) de carácter sexual por una persona contra otra que no consiente, y que amenacen o perjudiquen su situación laboral o sus oportunidades en el empleo (CT Art.2° inc.2° letra a), modificado por Ley 21.643). Incluye: insinuaciones verbales, comentarios de connotación sexual, mensajes digitales, contacto físico no consentido, exhibición de material sexual, promesas de beneficios laborales condicionadas a favores sexuales, amenazas ante negativa.\n'+
+    'Art.9 Violencia en el trabajo ejercida por terceros (CT Art.2° inc.2° letra c, modificado por Ley 21.643): Violencia ejercida por terceros según la DT (fuente oficial dt.gob.cl): cualquier conducta dañina ejercida por personas ajenas a la empresa — clientes, proveedores, usuarios u otros — que afecte a las y los trabajadores CON OCASIÓN de la prestación de sus servicios, sea dentro o fuera del lugar de trabajo (CT Art.2° inc.2° letra c) modificado por Ley 21.643). Incluye: agresiones físicas, intimidación, amenazas verbales o escritas, insultos y trato denigrante.\n'+
     'Art.10 Medidas preventivas: capacitación anual, CEAL-SM-SUSESO, difusión trimestral protocolo.\n'+
     'Art.11 Responsable nominado: '+e.rep_nombre+', '+e.rep_cargo+', '+( e.email||'ver contacto empresa')+'. Acuse recibo DENTRO DE 2 DÍAS HÁBILES.\n'+
     'Art.12 Medidas cautelares DENTRO DE 5 DÍAS HÁBILES: separación física obligatoria, redistribución tareas.\n'+
@@ -899,21 +906,28 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
 
     if(tipo==='iper_p1') return I+'\nElabora MATRIZ IPER DS 44/2024 PARTE 1 para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
     'ENCABEZADO FORMAL completo con datos del cliente arriba.\n\n'+
-    'METODOLOGÍA P×C CON ENFOQUE DE GÉNERO (DS 44/2024 Art.7):\n'+
-    'Probabilidad 1-5: 1=Muy poco probable, 2=Poco probable, 3=Posible, 4=Probable, 5=Muy probable.\n'+
-    'Consecuencia 1-5: 1=Insignificante, 2=Menor, 3=Moderado (tratamiento médico), 4=Mayor (incapacidad parcial), 5=Catastrófico (muerte).\n'+
-    'Clasificación: Trivial(1-4), Tolerable(5-8), Moderado(9-16), Importante(17-24), Intolerable(25).\n\n'+
+    'METODOLOGÍA OFICIAL ISP v3 2024 — VALOR ESPERADO DE LA PÉRDIDA (VEP) CON ENFOQUE DE GÉNERO (DS 44/2024 Art.7 + Guía ISP Res.Ex. E668/25):\n'+
+    'IMPORTANTE: La Guía ISP v3 2024 (vigente desde 01-feb-2025) introduce la metodología VEP para riesgos de seguridad, desastres y emergencias. '+
+    'Aplica VEP para todos los riesgos de seguridad. Para riesgos higiénicos usa protocolos MINSAL. Para psicosociales usa CEAL-SM-SUSESO.\n\n'+
+    'METODOLOGÍA VEP (Valor Esperado de la Pérdida) para riesgos de seguridad:\n'+
+    'Probabilidad (P) 1-5: 1=Muy improbable (<1 vez/10 años), 2=Improbable (1 vez/5-10 años), 3=Posible (1 vez/1-5 años), 4=Probable (1 vez/año), 5=Muy probable (1 vez/mes o más).\n'+
+    'Severidad (S) 1-5: 1=Insignificante (primeros auxilios sin días perdidos), 2=Menor (lesión leve, <3 días perdidos), 3=Moderada (lesión tratable médicamente, >3 días perdidos), 4=Mayor (incapacidad permanente parcial), 5=Catastrófica (muerte o incapacidad total permanente).\n'+
+    'VEP = P × S. Clasificación de nivel de riesgo: Trivial (VEP 1-4, acción: sin mejora inmediata), Tolerable (VEP 5-8, acción: mantener controles actuales), Moderado (VEP 9-16, acción: implementar controles en plazo definido), Importante (VEP 17-24, acción: no iniciar trabajo sin reducir riesgo), Intolerable (VEP 25, acción: paralizar faena).\n'+
+    'JERARQUÍA DE CONTROLES (DS 44/2024 Art.11 — aplicar en este orden): 1°Eliminación del peligro → 2°Sustitución → 3°Controles de ingeniería → 4°Controles administrativos → 5°EPP (última opción).\n'+
+    'NOTA EN ENCABEZADO MIPER: '+e.mutualidad+' tiene la obligación de otorgar asistencia técnica gratuita para la elaboración y actualización de esta MIPER (Compendio SUSESO Libro IV Letra C). '+(nt<=100?''+e.razon+' puede solicitar esta asistencia a su OA sin costo adicional.':'Empresa puede complementar con asistencia del OA.')+' Asimismo, la empresa tiene derecho a recibir del OA un informe formal con los resultados de la IPER (factor de riesgo, valoración, medidas, plazos y profesional responsable).\n\n'+
     'TABLA MIPER — primera mitad de puestos/procesos de '+e.rubro+'/'+e.subrubro+':\n'+
-    'Columnas: N°|Área/Proceso|Puesto de Trabajo|Tarea específica|Peligro REAL del rubro|Tipo peligro|Causa raíz|Consecuencia potencial|N° trab. expuestos (máx. '+e.trabajadores+')|Género expuesto|P|C|P×C|Nivel riesgo|Normativa aplicable|Control eliminación|Control ingeniería|Control administrativo|EPP con norma NCh.\n'+
+    'Columnas: N°|Área/Proceso|Actividad (Rutinaria/No rutinaria — marcar R o NR)|Puesto de Trabajo|¿Por empresa propia o empresa de servicio/contratista? (marcar EP o ES)|Tarea específica|Peligro — Fuente o Situación (origen físico: equipo, material, ambiente)|Peligro — Acto o condición insegura (comportamiento o estado que activa el peligro)|Tipo peligro (seguridad/higiénico/ergonómico/psicosocial)|Incidente potencial / Consecuencia|N° trab. expuestos (máx. '+e.trabajadores+')|Género expuesto (H/M/Ambos)|P (1-5)|S (1-5)|VEP=P×S|Nivel riesgo (Trivial/Tolerable/Moderado/Importante/Intolerable)|Normativa aplicable|Control: Eliminación/Sustitución|Control: Ingeniería|Control: Administrativo/PTS asociado|EPP con norma NCh.\n'+
+    'INSTRUCCIÓN COLUMNAS NUEVAS: (1) Rutinaria=actividad regular del trabajo diario; No Rutinaria=mantenimiento, emergencias, tareas esporádicas o de inicio/cierre. (2) Separar siempre Fuente/Situación del Acto: Fuente=origen físico del peligro (ej: sustancia corrosiva sin rotular), Acto=comportamiento que lo activa (ej: manipular sin guantes). (3) EP=personal propio de '+e.razon+'; ES=contratistas o personal de empresas de servicio que operen en las mismas instalaciones.\n'+
     'Mínimo 15 registros con peligros REALES de: '+e.subrubro+'. '+
     (e.mujeres>0?'PERSPECTIVA DE GÉNERO OBLIGATORIA: generar filas específicas para los '+e.mujeres+' cargos femeninos con análisis diferencial de: exposición a plaguicidas (límites menores), carga manual (15 kg máx.), riesgo violencia/acoso de clientes (Ley Karin), ergonomía de pie (TMERT). ':'')+
     'Incluir: '+e.sustancias+', altura='+e.trab_altura+', caliente='+e.trab_caliente+', confinado='+e.trab_confinado+', presión='+e.trab_presion+'.\n\nAl terminar escribe exactamente: ===IPER1FIN===';
 
   if(tipo==='iper_p2') return I+'\nElabora MATRIZ IPER DS 44/2024 PARTE 2 para el siguiente cliente:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-    'SEGUNDA MITAD: mismas columnas, mínimo 15 registros adicionales. OBLIGATORIO incluir: riesgos ergonómicos (MMC Ley 20.949/2016 + DS 63/2005, posturas forzadas, TMERT Res.327/2024), riesgos psicosociales (CEAL-SM-SUSESO), exposición a '+e.sustancias+', ruido='+e.ruido+', polvo='+e.polvo+', temperatura='+e.temperatura+', biológico='+e.biologico+'.\n\n'+
+    'SEGUNDA MITAD: mismas columnas VEP (P|S|VEP|Nivel riesgo), mínimo 15 registros adicionales. OBLIGATORIO incluir: riesgos ergonómicos (MMC Ley 20.949/2016 + DS 63/2005, posturas forzadas, TMERT Res.327/2024), riesgos psicosociales (CEAL-SM-SUSESO), exposición a '+e.sustancias+', ruido='+e.ruido+', polvo='+e.polvo+', temperatura='+e.temperatura+', biológico='+e.biologico+'.\n\n'+
     'TABLA RIESGOS PSICOSOCIALES: instrumento '+(e.mutualidad||'mutualidad')+' / CEAL-SM-SUSESO. Dimensiones, nivel riesgo, medidas organizacionales.\n\n'+
     'PLAN DE ACCIÓN — riesgos Importantes e Intolerables:\n'+
-    'Columnas: N°|Peligro|Nivel|Medida correctiva específica|Responsable (cargo real)|Plazo días hábiles|Recurso|Indicador cumplimiento|Fecha seguimiento|Estado.\n\n'+
+    'Columnas: N°|Peligro|Nivel|Medida correctiva específica|Responsable (cargo real)|Plazo días hábiles|Recurso|Indicador cumplimiento|Fecha seguimiento|Estado.\n'+
+    'NOTA CIERRE PLAN DE ACCIÓN (Compendio SUSESO Libro IV Letra C): '+e.mutualidad+' debe emitir a '+e.razon+' un informe formal con los resultados de la IPER (factor de riesgo, valoración, medidas, plazos, profesional responsable) — es GRATUITO. Solicitar a '+e.mutualidad+' una vez validada esta MIPER. Además, '+e.mutualidad+' tiene obligación de evaluar cada 2 años la actualización de la MIPER y brindar asistencia técnica gratuita.\n\n'+
     'PROGRAMA ANUAL PREVENTIVO '+new Date().getFullYear()+': mes|actividad|responsable|participantes|duración|indicador.\n\n'+
     'FIRMAS: Alan Bascur Montenegro IPR Plus Control SpA | '+(e.rep_nombre||'Rep.Legal')+' '+e.rep_cargo+' | Fecha próxima revisión.';
 
@@ -936,27 +950,123 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '14. ACTUALIZACIÓN: ante accidente, cambio proceso, o anualmente.';
 
   if(tipo==='fuf'){
-    var p1 = I+'\nElabora FUF DS 44/2024 PARTE 1 (ítems 1-28) para:\n\n'+base+'\n\n'+
-      'Para cada ítem marca CUMPLE / NO CUMPLE / NO APLICA según realidad real del cliente.\n'+
-      'Justifica cada NO CUMPLE con infracción y artículo vulnerado.\n'+
-      'NO APLICA con razón breve.\n'+
-      (nt<10?'EMPRESA <10 TRABAJADORES: CPHS y Delegado SST NO APLICAN. Indicar correctamente.':nt<25?'EMPRESA 10-24 TRABAJADORES: Delegado SST APLICA, CPHS NO APLICA.':'EMPRESA ≥25 TRABAJADORES: CPHS APLICA.')+'\n\n'+
-      'SECCIÓN 1 SGSST (Art.22,64): Ítem1 política SST con estructura y mejora continua.\n'+
-      'SECCIÓN 2 MIPER (Art.7): Ítems 2-7: MIPER todos procesos, riesgos psicosociales/género, disponibilidad, peligros/evaluación/controles, revisión anual, autoevaluación OAL.\n'+
-      'SECCIÓN 3 PROGRAMA (Art.8-19): Ítems 8-28: programa preventivo escrito y aprobado, medidas control, EPP (sin costo, certificado ISP, capacitación), información y formación (8 hrs género), participación, RGI, plan emergencia, pruebas anuales.\n\nAl terminar: ===FUF_P1FIN===';
-    var p2 = I+'\nFUF DS 44/2024 PARTE 2 (ítems 29-60 + Resumen Ejecutivo) para el siguiente cliente:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-      'SECCIÓN 7 COORDINACIÓN (DS 44/2024 Art.20): Ítem 29: Cuando '+e.razon+' trabaja en instalaciones de clientes, verificar si existe acuerdo de coordinación con la empresa principal y si se informaron los riesgos mutuamente.\n'+'SECCIÓN 8 CPHS/DELEGADO (Art.23-66): Ítems 30-40 según tamaño real: '+nt+' trabajadores. '+cphs_txt+'\n'+
-      'SECCIÓN 9 DPR (Art.50-65): Ítems 41-48: '+(nt>100?'DPR OBLIGATORIO':'No aplica por '+nt+' trabajadores.')+'\n'+
-      'SECCIÓN 10 RIOHS (Art.56-58): Ítems 49-52: vigente, distribuido, revisado, contenido completo.\n'+
-      'SECCIÓN 11 MAPAS RIESGO (Art.62): Ítem 53.\n'+
-      'SECCIONES 12-14 (DS 44/2024 Título V — vigilancia de la salud y ambiente, investigación accidentes): Ítems 54-60: vigilancia ambiental/salud, investigación accidentes con enfoque género, documentación disponible para fiscalizadores.\n\n'+
-      'RESUMEN EJECUTIVO:\n'+
-      '- CONTEO: Cumple X / No Cumple X / No Aplica X\n'+
-      '- NIVEL RIESGO LEGAL: ALTO(>10 NC) / MEDIO(5-10 NC) / BAJO(<5 NC)\n'+
-      '- MULTAS ESTIMADAS EN UTM según DS 44/2024\n'+
-      '- TOP 5 INCUMPLIMIENTOS CRÍTICOS con plazo recomendado\n'+
-      '- PLAN DE ACCIÓN INMEDIATA\n'+
-      'Elaborado: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+    var p1 = I+'\nFUF DS 44/2024 PARTE 1 — Ítems 1 al 28 para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+      'INSTRUCCIÓN: Evalúa EXACTAMENTE los siguientes 28 ítems del FUF oficial DS 44/2024. Para cada ítem indica CUMPLE / NO CUMPLE / NO APLICA con justificación específica basada en los datos reales del cliente. NO omitas ningún ítem. '+
+      (nt<10?'EMPRESA <10 TRABAJADORES: ítems de CPHS y Delegado SST serán NO APLICA.':nt<25?'EMPRESA 10-24 TRABAJADORES: Delegado SST APLICA, CPHS NO APLICA.':'EMPRESA ≥25 TRABAJADORES: CPHS APLICA.')+'\n\n'+
+
+      '--- SECCIÓN 1: SGSST — SISTEMA DE GESTIÓN SST (Art.22, Art.64) ---\n'+
+      'Ítem 1: ¿La entidad empleadora cuenta con un Sistema de Gestión SST que contiene como mínimo: a) Política de SST; b) Estructura organizacional para la gestión preventiva; c) Diagnóstico, planificación y programación de la actividad preventiva; d) Evaluación o auditoría periódica del desempeño del SGSST; e) Acciones de mejora continua o correctivas? (Art.22 inc.1, Art.64 inc.1). '+
+      'Verificar en '+e.razon+' ('+e.trabajadores+' trabajadores, rubro: '+e.rubro+') si existe política escrita firmada por '+e.rep_nombre+', estructura con responsabilidades asignadas, programa preventivo actualizado, auditoría o autoevaluación periódica y registro de mejoras.\n\n'+
+
+      '--- SECCIÓN 2: MIPER (Art.7) ---\n'+
+      'Ítem 2: ¿Cuenta con MIPER que incorpore todos los procesos, tareas y puestos de trabajo? (Art.7 inc.1). '+
+      'Verificar cobertura de: '+e.cargos+'. Procesos declarados: '+e.subrubro+'. MIPER declarada: '+(e.tiene_iper||'no especificado')+'.\n'+
+      'Ítem 3: ¿La MIPER considera exposición a todos los agentes y factores de riesgo: ergonómicos, psicosociales, violencia y acoso, accidentes/EP producidos, programas de vigilancia, con enfoque de género? (Art.7 inc.2). '+
+      'Agentes declarados: sustancias='+e.sustancias+', ruido='+e.ruido+', polvo='+e.polvo+', temperatura='+e.temperatura+', vibraciones='+e.vibracion+', biológico='+e.biologico+', radiación='+e.radiacion+'. Mujeres: '+(e.mujeres||0)+'.\n'+
+      'Ítem 4: ¿La MIPER está disponible en los lugares de trabajo e informada a trabajadores, CPHS/Delegado SST, dirigentes sindicales y toda la línea de mando? (Art.7 inc.9). Verificar acceso físico/digital y registro de difusión.\n'+
+      'Ítem 5: ¿La MIPER contiene los elementos mínimos: a) identificación de peligros del puesto; b) evaluación de riesgos; c) magnitud o nivel de riesgo; d) medidas preventivas de control y de emergencias adicionales? (Art.7 inc.3). Verificar que la matriz use metodología VEP (Valor Esperado de la Pérdida, Guía ISP v3 2024 Res.Ex. E668/25, vigente 01-feb-2025): columnas P, S, VEP=P×S y nivel de riesgo (Trivial/Tolerable/Moderado/Importante/Intolerable).\n'+
+      'Ítem 6: ¿La MIPER tiene fecha de elaboración y es revisada al menos anualmente o cuando cambien condiciones de trabajo, ocurra un accidente del trabajo, se diagnostique EP o se genere riesgo grave e inminente? (Art.7 inc.9, Art.64 inc.2). Accidentes últimos 12 meses: '+(e.accidentes||'ninguno declarado')+'.\n'+
+      'Ítem 7: ¿La entidad empleadora de hasta 25 trabajadores identifica y evalúa sus condiciones ambientales, psicosociales y ergonómicas y el cumplimiento normativo con el instrumento de autoevaluación del OA? (Art.64 inc.1). '+
+      (nt<=25?'APLICA — '+nt+' trabajadores. OA: '+e.mutualidad+'. Verificar si se aplicó instrumento de autoevaluación.':'NO APLICA — '+nt+' trabajadores > 25.')+'\n\n'+
+
+      '--- SECCIÓN 3: PROGRAMA DE TRABAJO PREVENTIVO (Art.8) ---\n'+
+      'Ítem 8: ¿La entidad empleadora cuenta con programa de trabajo preventivo confeccionado o actualizado a partir de la MIPER, en un plazo de 30 días corridos desde la confección o actualización de la MIPER? (Art.8 inc.1). Verificar existencia y fecha del programa preventivo.\n'+
+      'Ítem 9: ¿El programa de trabajo preventivo está por escrito y aprobado por el representante legal? (Art.8 inc.1). Verificar firma de '+e.rep_nombre+', '+e.rep_cargo+'.\n'+
+      'Ítem 10: ¿El programa de trabajo preventivo contiene: a) medidas preventivas y correctivas según MIPER; b) plazos de implementación; c) responsables; d) actividades para prevenir consumo alcohol y drogas; e) difusión estilo de vida y alimentación saludable; f) actividades para prevenir riesgos de conducción de vehículos motorizados'+
+      (e.trab_vehiculos!=='No'?' (APLICA: '+e.trab_vehiculos+')':'')+'; g) fechas de modificaciones y aprobación? (Art.8 inc.1,2,3).\n'+
+      'Ítem 11: ¿El programa de trabajo preventivo ha sido difundido en los lugares de trabajo a los trabajadores y remitido al CPHS? (Art.8 inc.3). '+
+      (nt>=25?'APLICA — verificar remisión al CPHS':'Verificar difusión a los '+nt+' trabajadores.')+'\n\n'+
+
+      '--- SECCIÓN 4: USO DE MÁQUINAS, EPP Y MEDIDAS CONTROL (Art.10-14) ---\n'+
+      'Ítem 12: En relación con el uso de máquinas, equipos y elementos de trabajo: a) ¿Se informa sobre sus riesgos y manejo adecuado y seguro? b) ¿Se informa sobre el contenido sustancial de manuales e instrucciones? c) ¿Cuenta con procedimiento de trabajo seguro (PTS)? d) ¿Se informa y capacita sobre uso correcto y seguro? (Art.10 inc.1,2). '+
+      'Equipos declarados: '+(e.maquinaria||'no especificado')+'. Vehículos: '+e.trab_vehiculos+'. Equipos presión: '+e.trab_presion+'.\n'+
+      'Ítem 13: ¿Se adoptan medidas de prevención según prelación, privilegiando protección colectiva por sobre EPP? (Art.12). Verificar jerarquía de controles: eliminación → sustitución → ingeniería → administrativos → EPP.\n'+
+      'Ítem 14: Ante riesgo residual, ¿se proporciona EPP libres de costo a los trabajadores? (Art.13 inc.1). Registro de entrega EPP declarado: '+(e.registro_epp||'no especificado')+'.\n'+
+      'Ítem 15: ¿Los EPP son adecuados al riesgo a cubrir? (Art.13 inc.1). Verificar concordancia entre riesgos de '+e.rubro+' y EPP entregados. Riesgos principales: '+(e.sustancias!=='Ninguna'?'exposición química ('+e.sustancias+')':'')+
+      (e.trab_altura!=='No'?', trabajo en altura':'')+
+      (e.trab_vehiculos!=='No'?', conducción vehículos':'')+'.\n'+
+      'Ítem 16: ¿Los EPP cumplen normas vigentes de certificación de calidad o están registrados en el ISP? (Art.13 inc.2). Verificar certificaciones NCh/ISP de EPP utilizados en '+e.rubro+'.\n'+
+      'Ítem 17: ¿Cuenta con procedimiento que considere la utilización, mantenimiento, reposición o recambio de los EPP? (Art.13 inc.2). Verificar existencia de procedimiento escrito de gestión de EPP.\n'+
+      'Ítem 18: ¿Los trabajadores están capacitados sobre el uso y mantención de los EPP? Nota: curso mínimo 1 hora que considere partes del EPP, colocación, limitaciones, limpieza, almacenamiento y chequeo diario. (Art.13 inc.3). Capacitaciones declaradas: '+(e.capacitaciones||'no especificado')+'.\n'+
+      'Ítem 19: ¿Cuenta con registro de actividades de capacitación en EPP? Nota: el registro debe considerar: a) actividades teóricas y prácticas; b) asistentes; c) relatores; d) resultados de evaluaciones de aprendizaje; e) actividades de reforzamiento. (Art.13 inc.4).\n'+
+      'Ítem 20: ¿Se realiza al menos anualmente una evaluación del cumplimiento del programa de trabajo preventivo, especialmente la eficacia de las acciones programadas, y se disponen medidas de mejora continua? (Art.14, Art.52).\n\n'+
+
+      '--- SECCIÓN 5: INFORMACIÓN Y FORMACIÓN EN SST (Art.15-16) ---\n'+
+      'Ítem 21: ¿Se informa a los trabajadores los riesgos de sus labores, medidas preventivas y métodos de trabajo correctos, de forma: a) oportuna y adecuada; b) previa al inicio de labores y cada vez que exista nuevo proceso, cambio de tecnología, materiales o sustancias? (Art.15 inc.1). '+
+      'Verificar proceso Derecho a Saber para cargos: '+e.cargos+'.\n'+
+      'Ítem 22: ¿La información de riesgos entregada a trabajadores considera: a) características mínimas del lugar de trabajo; b) riesgos de exposición y medidas preventivas, incluidos derivados de emergencias/catástrofes; c) procedimientos de trabajo seguro; d) características de productos y sustancias ('+e.sustancias+'); e) riesgos de emergencias del Plan de Gestión y procedimiento de evacuación? (Art.15 inc.3, Art.19 inc.1).\n'+
+      'Ítem 23: ¿Se efectuó capacitación teórica o práctica en SST a los trabajadores, y esta: a) fue realizada con la periodicidad del programa preventivo (no exceder 2 años); b) contiene principales medidas de SST; c) considera enfoque de género; d) tiene duración mínima 8 horas, preferentemente dentro de la jornada; e) considera metodologías de aprendizaje adecuadas? (Art.16 inc.1). '+
+      'Capacitación declarada: '+(e.capacitaciones||'no especificado')+'. Trabajadores: '+nt+' ('+e.mujeres+' mujeres).\n'+
+      'Ítem 24: ¿La capacitación aborda los siguientes temas: a) factores de riesgo del lugar de trabajo ('+e.rubro+'); b) efectos en la salud por exposición a factores de riesgo/EP; c) medidas preventivas de control; d) prestaciones médicas y económicas que tiene derecho el trabajador; e) establecimiento asistencial del OA ('+e.mutualidad+') al que concurrir en caso de AT/EP; f) plan de gestión de riesgos de emergencia; g) señalética en los lugares de trabajo; h) prevención de riesgos de incendio? (Art.16 inc.1).\n\n'+
+
+      '--- SECCIÓN 6: CONSULTA Y PARTICIPACIÓN (Art.17) ---\n'+
+      'Ítem 25: ¿Se promueve la consulta y participación de los representantes de los trabajadores en la gestión preventiva? Notas: se consulta al CPHS ante cambios en procesos de trabajo; el empleador promueve participación de trabajadores y representantes en investigación de AT/EP. (Art.17 inc.1, Art.37 inc.2 numeral 4, Art.71 inc.1). '+
+      (nt<10?'EMPRESA <10 TRABAJADORES: verificar mecanismo de participación directa (asambleas mensuales, canal de comunicación) que reemplaza al CPHS.':nt<25?'EMPRESA 10-24: verificar participación del Delegado SST.':'EMPRESA ≥25: verificar consulta al CPHS.')+'\n\n'+
+
+      '--- SECCIÓN 6B: RIESGO GRAVE E INMINENTE Y PLAN EMERGENCIAS (Art.18-19) ---\n'+
+      'Ítem 26: ¿La entidad empleadora ante un riesgo grave e inminente realizó: a) informar inmediatamente a trabajadores sobre el riesgo y medidas adoptadas; b) adoptar medidas para suspensión inmediata de faenas y evacuación si el riesgo no puede eliminarse o atenuarse? (Art.18 inc.1). Verificar existencia de procedimiento ante RGI.\n'+
+      'Ítem 27: ¿Se cuenta con uno o más planes de gestión, reducción y respuesta de riesgos en caso de emergencias, catástrofes o desastres u otros eventos conocidos, probables y previsibles de naturaleza interna o externa? (Art.19 inc.1). Plan de emergencia declarado: '+(e.extintores!=='No'?'extintores presentes':'sin extintores')+', alarma: '+e.alarma+', botiquín: '+e.botiquin+'. Riesgos específicos del rubro: '+
+      (e.sustancias!=='Ninguna'?'derrame/intoxicación '+e.sustancias+'; ':'')+
+      (e.trab_presion!=='No'?'falla equipo a presión; ':'')+
+      (e.trab_confinado!=='No'?'accidente espacio confinado; ':'')+'incendio, sismo.\n'+
+      'Ítem 28: ¿Se realiza al menos una vez al año pruebas de ensayo (simulacros) del o los planes de gestión, reducción y respuesta frente a riesgos de emergencias, catástrofes o desastres u otros eventos conocidos? (Art.19 inc.1). Verificar registro de simulacros realizados.\n\n'+
+      'Al terminar escribe exactamente: ===FUF_P1FIN===';
+    var p2 = I+'\nFUF DS 44/2024 PARTE 2 — Ítems 29 al 60 + Resumen Ejecutivo para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+      'INSTRUCCIÓN: Evalúa EXACTAMENTE los siguientes 32 ítems del FUF oficial. Para cada ítem indica CUMPLE / NO CUMPLE / NO APLICA con justificación específica basada en los datos reales del cliente. NO omitas ningún ítem.\n\n'+
+      '--- SECCIÓN 7: COORDINACIÓN (Art.20) ---\n'+
+      'Ítem 29: ¿Existe coordinación, cooperación e información mutua cuando presten servicios más de una entidad empleadora en el mismo lugar de trabajo? (Art.20 inc.1). '+(e.lugar_trabajo&&e.lugar_trabajo.indexOf('cliente')>=0?'ALERTA: '+e.razon+' trabaja en instalaciones de clientes — verificar acuerdos formales con empresa principal.':'Verificar si trabajan junto a otras empresas.')+'\n\n'+
+      '--- SECCIÓN 8: COMITÉS PARITARIOS (Art.23-66) ---\n'+
+      'Nota dotación: '+nt+' trabajadores → '+cphs_txt+'\n'+
+      'Ítem 30: ¿Se encuentra constituido el CPHS en empresa/faena con más de 25 personas? (Art.23 inc.1). '+(nt>=25?'APLICA — verificar constitución':'NO APLICA — '+nt+' trabajadores < 25')+'\n'+
+      'Ítem 31: ¿Los integrantes del CPHS sin curso de orientación lo realizan en primer semestre? (Art.32 inc.1). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 32: ¿Se registró acta de constitución en web DT dentro de 15 días hábiles? (Art.36). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 33: ¿El empleador otorga facilidades para el funcionamiento del CPHS? (Art.37). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 34: ¿El CPHS efectúa reuniones mensuales ordinarias y extraordinarias ante accidente grave o riesgo inminente? (Art.39 inc.1 y 2). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 35: ¿Se cuenta con actas del CPHS con materias tratadas, acuerdos y plazos? (Art.39 inc.4, Art.42 inc.1). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 36: ¿Los acuerdos del CPHS se comunican por escrito al empleador? (Art.42 inc.2). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 37: ¿Se proporciona toda la documentación preventiva al CPHS? (Art.46 inc.3). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 38: ¿El CPHS cumple funciones mínimas: asesorar EPP, vigilar cumplimiento, investigar accidentes, indicar medidas, promover capacitación, informar riesgo grave? (Art.47). '+(nt>=25?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 39: ¿En empresas 10-24 trabajadores, cuenta con Delegado SST que participe en SGSST? (Art.66 inc.1, Art.64, Art.37). '+(nt>=10&&nt<25?'APLICA — '+nt+' trabajadores requiere Delegado SST':nt<10?'NO APLICA — '+nt+' trabajadores < 10':'NO APLICA — tiene CPHS')+'\n'+
+      'Ítem 40: ¿El Delegado SST es elegido cada 2 años mediante asamblea con acta? (Art.66 inc.2). '+(nt>=10&&nt<25?'APLICA':'NO APLICA')+'\n\n'+
+      '--- SECCIÓN 9: DEPARTAMENTO PREVENCIÓN RIESGOS (Art.50-65) ---\n'+
+      'Ítem 41: ¿Cuenta con DPR si tiene más de 100 trabajadores, dirigido por experto inscrito en SEREMI? (Art.50, Art.55 inc.2). '+(nt>100?'APLICA':'NO APLICA — '+nt+' trabajadores < 100')+'\n'+
+      'Ítem 42: ¿Se proporciona al DPR todos los medios y personal necesario? (Art.51 inc.1). '+(nt>100?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 43: ¿El DPR cumple sus funciones? (Art.52). '+(nt>100?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 44: ¿Categoría y tiempo de dedicación del DPR se determina según dotación y cotización? (Art.54, Art.55 inc.1). '+(nt>100?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 45: ¿El encargado DPR registra asistencia conforme al tiempo definido? (Art.55 inc.1 y 3). '+(nt>100?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 46: ¿El DPR mantiene registros de incidentes, accidentes trabajo/trayecto/EP, vigilancia salud, tasas accidentabilidad/frecuencia/gravedad diferenciadas por sexo? (Art.73, Art.74). '+(nt>100?'APLICA':'NO APLICA')+'\n'+
+      'Ítem 47: ¿Sin DPR obligatorio, registra tasa anual accidentabilidad, accidentes del trabajo/trayecto y EP? (Art.75). '+(nt<=100?'APLICA — verificar si '+e.razon+' mantiene estos registros':'NO APLICA')+'\n'+
+      'Ítem 48: ¿Si tiene hasta 100 trabajadores y designó encargado de Gestión del Riesgo, fue capacitado por el OA? (Art.65 inc.1). '+(nt<=100?'APLICA si hay encargado designado — verificar':'NO APLICA')+'\n\n'+
+      '--- SECCIÓN 10: REGLAMENTO INTERNO (Art.56-58) ---\n'+
+      'Ítem 49: ¿Cuenta y mantiene al día un RIHS, entregado gratuitamente a trabajadores e ingresado a web DT? (Art.56 inc.1, Art.57 inc.1). RIOHS declarado por cliente: '+(e.tiene_riohs||'no especificado')+'. Verificar ingreso en plataforma web DT.\n'+
+      'Ítem 50: ¿El RI se envía con 30 días de anticipación a trabajadores, CPHS/Delegado SST y sindicatos? (Art.57 inc.2). Verificar procedimiento de comunicación previa.\n'+
+      'Ítem 51: ¿Se revisa el RI con periodicidad no inferior a un año con participación de DPR, CPHS/Delegado y sindicatos? (Art.57 inc.5). Verificar revisión anual documentada.\n'+
+      'Ítem 52: ¿El RI contiene como mínimo: preámbulo, disposiciones generales, obligaciones, prohibiciones y sanciones? (Art.58). Verificar estructura completa.\n\n'+
+      '--- SECCIÓN 11: MAPAS DE RIESGO (Art.62) ---\n'+
+      'Ítem 53: ¿Mantiene mapas de riesgo visibles en dependencias con dibujo/esquema del lugar e indicación de principales riesgos? (Art.62 inc.1 y 2). Verificar presencia física en instalaciones de '+e.razon+'.\n\n'+
+      '--- SECCIÓN 12: VIGILANCIA AMBIENTE Y SALUD (Art.67-68) ---\n'+
+      'Ítem 54: ¿Los lugares de trabajo con exposición a agentes de riesgo están en programa de vigilancia ambiental conforme protocolos MINSAL y OA? (Art.67 inc.1,3). Agentes declarados: '+(e.sustancias||'no especificado')+', ruido: '+(e.ruido||'no especificado')+'.\n'+
+      'Ítem 55: ¿Los trabajadores expuestos a agentes de riesgo están en programa de vigilancia a la salud conforme protocolos MINSAL y OA? (Art.67 inc.1,3,5). Verificar protocolos aplicables al rubro '+(e.rubro||'')+'.\n'+
+      'Ítem 56: ¿El empleador autoriza asistir a citaciones para exámenes del OA considerando ese tiempo como trabajado? (Art.68). Verificar procedimiento interno.\n\n'+
+      '--- SECCIÓN 13: TRASLADO Y PRESCRIPCIÓN (Art.69-70) ---\n'+
+      'Ítem 57: ¿El trabajador afectado por EP fue trasladado a puesto sin exposición al riesgo causante, sin detrimento de remuneraciones? (Art.69). Verificar si ha habido EP diagnosticadas.\n'+
+      'Ítem 58: ¿El empleador implementa medidas ordenadas por fiscalizadores, OA, DPR o CPHS? (Art.70). Verificar prescripciones pendientes.\n\n'+
+      '--- SECCIÓN 14: INVESTIGACIÓN ACCIDENTES (Art.71) ---\n'+
+      'Ítem 59: ¿El empleador investiga con enfoque de género las causas de accidentes del trabajo y EP, usando metodología del OA? (Art.71). Accidentes últimos 12 meses: '+(e.accidentes||'ninguno declarado')+'.\n\n'+
+      '--- SECCIÓN 15: REGISTRO ACTIVIDAD PREVENTIVA (Art.72) ---\n'+
+      'Ítem 60: ¿El empleador registra y respalda documentalmente toda la información de gestión de riesgos y la mantiene disponible para fiscalizadores y OA? (Art.72 inc.1). Verificar archivo de documentación preventiva.\n\n'+
+      '---\nRESUMEN EJECUTIVO FUF DS 44/2024\n---\n'+
+      'CONTEO TOTAL (sobre 60 ítems): Cumple: X | No Cumple: X | No Aplica: X\n'+
+      'NIVEL RIESGO LEGAL: ALTO si >10 NC / MEDIO si 5-10 NC / BAJO si <5 NC\n'+
+      'MULTA ESTIMADA: Entre X y X UTM (CT Art.154 N°7 — 1 UTM ≈ $68.000 jun-2026)\n'+
+      'TOP 5 INCUMPLIMIENTOS CRÍTICOS:\n'+
+      '1. Ítem N° — descripción — plazo recomendado\n'+
+      '2. Ítem N° — descripción — plazo recomendado\n'+
+      '3. Ítem N° — descripción — plazo recomendado\n'+
+      '4. Ítem N° — descripción — plazo recomendado\n'+
+      '5. Ítem N° — descripción — plazo recomendado\n'+
+      'PLAN DE ACCIÓN INMEDIATA: pasos prioritarios en orden cronológico.\n'+
+      'Elaborado por: Alan Bascur Montenegro | Ing. Prevención de Riesgos | RUT 17.658.387-8 | Plus Control SpA | Fecha: '+fecha+'.';
     return p1+'\n\n===FUF_INTERMEDIO===\n\n'+p2;
   }
 
@@ -964,7 +1074,7 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '## PROTOCOLO DE PREVENCIÓN Y SANCIÓN DE VIOLENCIA LABORAL\n'+
     '### Ley 21.643 vigente desde agosto 2024 + DS 2/2024 MINTRAB\n\n'+
     'Art.1 ÁMBITO: aplica a toda relación laboral de '+e.razon+', entre trabajadores, con clientes, proveedores y público.\n'+
-    'Art.2 DEFINICIONES LEGALES PRECISAS: acoso laboral (Ley 21.643 Art.2: agresión u hostigamiento, una sola vez O reiterada), acoso sexual (requerimiento sexual no consentido), violencia en el trabajo (física/psicológica/sexual), violencia por razón de género.\n'+
+    'Art.2 DEFINICIONES LEGALES PRECISAS (fuente: dt.gob.cl, modificadas por Ley 21.643 vigente agosto 2024):\nACOSO LABORAL (CT Art.2° inc.2° letra b): Conductas constitutivas de acoso laboral según la DT (fuente oficial dt.gob.cl): (1) violencia física sobre el trabajador o sus pertenencias; (2) intimidación, amenazas y conductas de violencia psicológica; (3) obligar a ejecutar tareas en contra de la conciencia del trabajador; (4) juzgar el desempeño del trabajador de manera ofensiva; (5) cuestionar injustificadamente decisiones del trabajador; (6) no asignar tareas, asignar tareas sin sentido, asignar tareas muy por debajo de las capacidades o sobrecargar de tareas; (7) aislar o ignorar al trabajador; (8) gritos y gestos agresivos o intimidatorios; (9) creación de ambiente de trabajo hostil y ofensivo. IMPORTANTE: basta UNA SOLA conducta grave para configurar acoso laboral (CT Art.2° inc.2° letra b) modificado por Ley 21.643 — eliminó el requisito de reiteración).\nACOSO SEXUAL (CT Art.2° inc.2° letra a): Conductas constitutivas de acoso sexual según la DT (fuente oficial dt.gob.cl): toda conducta realizada de forma indebida y por cualquier medio que implique requerimientos (imposiciones, exigencias, invitaciones, etc.) de carácter sexual por una persona contra otra que no consiente, y que amenacen o perjudiquen su situación laboral o sus oportunidades en el empleo (CT Art.2° inc.2° letra a), modificado por Ley 21.643). Incluye: insinuaciones verbales, comentarios de connotación sexual, mensajes digitales, contacto físico no consentido, exhibición de material sexual, promesas de beneficios laborales condicionadas a favores sexuales, amenazas ante negativa.\nVIOLENCIA POR TERCEROS (CT Art.2° inc.2° letra c): Violencia ejercida por terceros según la DT (fuente oficial dt.gob.cl): cualquier conducta dañina ejercida por personas ajenas a la empresa — clientes, proveedores, usuarios u otros — que afecte a las y los trabajadores CON OCASIÓN de la prestación de sus servicios, sea dentro o fuera del lugar de trabajo (CT Art.2° inc.2° letra c) modificado por Ley 21.643). Incluye: agresiones físicas, intimidación, amenazas verbales o escritas, insultos y trato denigrante.\nVIOLENCIA POR RAZÓN DE GÉNERO: violencia dirigida contra personas por su sexo o género, incluye acoso sexual.\n'+
     'Art.3 MEDIDAS PREVENTIVAS: identificación factores riesgo, capacitación anual (incluir en programa '+new Date().getFullYear()+'), evaluación clima laboral.\n'+
     'Art.4 CANAL DENUNCIA INTERNO: el responsable NOMINADO para recibir denuncias es '+e.rep_nombre+', '+e.rep_cargo+' (este nombre debe aparecer textualmente en el documento, conforme Ley 21.643). Formulario escrito o verbal. Plazo acuse recibo: 2 días hábiles.\n'+
     'Art.5 MEDIDAS CAUTELARES INMEDIATAS (máx. 5 días desde denuncia): separación física, redistribución horaria, otras medidas según caso.\n'+
@@ -994,40 +1104,134 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '\nREGISTROS: lista de asistencia firmada por capacitado, evaluación comprensión, certificado participación.\n'+
     'Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
 
-  if(tipo==='derechosaber') return I+'\nElabora DOCUMENTO DERECHO A SABER (DS 44/2024 Art.14-15) para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
-    'FUNDAMENTO: DS 44/2024 Art.14: el empleador debe informar a cada trabajador antes de iniciar labores sobre los riesgos específicos de su puesto.\n\n'+
+  if(tipo==='derechosaber') return I+'\nElabora DOCUMENTO DERECHO A SABER (DS 44/2024 Arts.14-15 + DS 40/1969 Art.21) para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
+    'FUNDAMENTO LEGAL — 3 ELEMENTOS OBLIGATORIOS (DS 44/2024 Art.15): el empleador debe informar a CADA trabajador ANTES de iniciar labores: '+
+    '(1) riesgos específicos de su puesto; (2) medidas preventivas y de control; (3) métodos de trabajo correctos. '+
+    'La DT define método de trabajo seguro (DS 40/1969 Art.21, fuente: dt.gob.cl) como: el modo de obrar o proceder en el trabajo, indicando CADA PASO a seguir y las medidas de seguridad a adoptar. '+
+    'Esto equivale a un Procedimiento de Trabajo Seguro (PTS). Omitir cualquiera de los 3 elementos es infracción fiscalizable por la DT.\n\n'+
     'TABLA DERECHO A SABER — una fila por cargo real (cargos: '+(e.cargos||'Ver ficha de cargos de la empresa')+'):\n'+
-    'Columnas: Cargo/Puesto|Tarea específica|Peligro real del rubro|Tipo peligro (físico/químico/biológico/ergonómico/psicosocial/mecánico)|Agente causal|Vía exposición|Consecuencia potencial|Probabilidad (1-5)|Consecuencia (1-5)|P×C|Nivel riesgo|Medida prevención|EPP obligatorio con norma NCh|Normativa aplicable.\n\n'+
-    'Mínimo 10 registros con datos REALES de '+e.subrubro+'.\n\n'+
-    'FORMULARIO DE ACUSE DE RECIBO (para firma de cada trabajador):\n'+
-    '- Nombre completo, RUT, cargo, fecha inicio labores.\n'+
-    '- Declaración de haber recibido información sobre riesgos de su puesto.\n'+
-    '- Declaración de haber recibido capacitación en uso de EPP.\n'+
-    '- Espacio para firma trabajador y firma empleador '+e.rep_nombre+'.\n\n'+
-    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+    'Columnas: N°|Cargo/Puesto|Tipo actividad (R=Rutinaria / NR=No rutinaria)|Tarea específica|Peligro — Fuente o Situación (origen físico)|Peligro — Acto o condición insegura (comportamiento que activa el riesgo)|Tipo peligro (seguridad/higiénico/ergonómico/psicosocial)|Incidente potencial / Consecuencia|P (1-5)|S (1-5)|VEP=P×S|Nivel riesgo (Trivial/Tolerable/Moderado/Importante/Intolerable)|Medida preventiva según jerarquía ISP (Eliminación→Sustitución→Ingeniería→Administrativo→EPP)|EPP obligatorio con norma NCh|Método de trabajo seguro / PTS asociado (nombre del PTS o pasos clave)|Normativa aplicable.\n\n'+
+    'Mínimo 10 registros con datos REALES de '+e.subrubro+'. Incluir actividades rutinarias Y no rutinarias (mantenimiento, emergencias, tareas esporádicas). '+
+    'Separar siempre Fuente/Situación del Acto en columnas distintas.\n'+
+    (e.sustancias&&e.sustancias!=='Ninguna'?'INSTRUCCIÓN ESPECIAL PARA SUSTANCIAS QUÍMICAS (DS 40/1969 Art.21 inc.2, ACHS): para cada sustancia declarada ('+e.sustancias+'), la columna de peligro debe incluir: (a) fórmula o nombre técnico, sinónimos, aspecto y olor según HDS (Hoja de Datos de Seguridad); (b) límites de exposición permisibles (valores LP según DS 594/1999 MINSAL); (c) peligros específicos para la salud (vía inhalatoria, dérmica, ocular); (d) medidas de control y prevención específicas de esa sustancia. La HDS de cada producto debe estar disponible en el lugar de trabajo y ser parte del proceso de inducción del trabajador. Si el cliente no tiene HDS, indicar en el documento como NO CUMPLE — obtener HDS del proveedor es obligación del empleador (DS 594/1999 Art.37).\n':'')+
+    '\n'+
+    'FORMULARIO DE ACUSE DE RECIBO — replicar para cada uno de los '+e.trabajadores+' trabajadores:\n'+
+    'Datos: Nombre completo | RUT | Cargo | Fecha inicio labores | Área.\n'+
+    'El trabajador declara haber recibido: (1) información sobre riesgos de su puesto; (2) información sobre medidas preventivas; (3) información sobre métodos de trabajo correctos y seguros (DS 44/2024 Art.15 + DS 40/1969 Art.21); (4) capacitación práctica en uso de EPP.\n'+
+    'Firmas: Trabajador | '+e.rep_nombre+' '+e.rep_cargo+' | Fecha.\n'+
+    'NOTA LEGAL (DS 44/2024 Art.15, DS 40/1969 Art.23, Dictamen SUSESO 1484/2004): '+
+    (nt<25?'Este documento es entregado directamente por el empleador '+e.rep_nombre+', '+e.rep_cargo+', dado que '+e.razon+' tiene '+e.trabajadores+' trabajadores y no cuenta con CPHS ni DPR obligatorio. Conforme al DS 40/1969 Art.23, cuando no existen dichos órganos, el empleador entrega la información en la forma más conveniente y adecuada. ':'Este documento es entregado a través del '+(nt>=25&&nt<=100?'Delegado SST o CPHS ('+nt+' trabajadores)':'CPHS y DPR ('+nt+' trabajadores)')+' conforme DS 40/1969 Art.23. ')+'Entregar al inicio de labores, ante cambio de puesto, nuevas sustancias/tecnologías o procesos, y al menos anualmente. '+'La capacitación en prevención NO puede ser exigida como requisito previo a la contratación — es obligación del empleador (Dictamen SUSESO 1484/2004).\n\n'+
+    'Elaborado por: Alan Bascur Montenegro | Ing. Prevención de Riesgos | RUT 17.658.387-8 | Plus Control SpA | Fecha: '+fecha+'.';
 
   // Plan de Emergencia
+  var escenarios_list = ['Incendio en instalaciones o vehículos'];
+  if(e.sustancias && e.sustancias!=='Ninguna') escenarios_list.push('Derrame o fuga de sustancias químicas ('+e.sustancias+')');
+  if(e.trab_presion && e.trab_presion!=='No') escenarios_list.push('Explosión o fuga de equipo a presión ('+e.trab_presion+')');
+  if(e.trab_confinado && e.trab_confinado!=='No') escenarios_list.push('Accidente en espacio confinado');
+  if(e.trab_vehiculos && e.trab_vehiculos!=='No') escenarios_list.push('Accidente de tránsito con carga ('+e.trab_vehiculos+')');
+  escenarios_list.push('Sismo de gran magnitud');
+  escenarios_list.push('Accidente grave o fatal de trabajador');
+  escenarios_list.push('Emergencia médica súbita');
+  escenarios_list.push('Temporal de lluvia, viento e inundación');
+  escenarios_list.push('Robo o asalto en instalaciones o en terreno');
+  var escenarios_str = escenarios_list.map(function(s,i){return (i+1)+'. '+s;}).join(' | ');
+
   return I+'\nElabora PLAN DE EMERGENCIA Y EVACUACIÓN para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
-    '1. Objetivo, alcance, vigencia.\n'+
-    '2. Descripción instalaciones: '+e.superficie+'m², '+e.pisos+' piso(s), atiende público: '+e.publico+'.\n'+
-    '3. ESCENARIOS DE EMERGENCIA ESPECÍFICOS para '+e.rubro+'/'+e.subrubro+': NO solo incendio genérico. '+
-    (e.alarma==='No' && tiene_plaguicidas?'ATENCIÓN: sin sistema de alarma y con almacenamiento de sustancias inflamables/tóxicas, incluir MEDIDAS COMPENSATORIAS OBLIGATORIAS: (1) detector de humo autónomo en bodega de plaguicidas; (2) extintor ABC a máx. 15 m de bodega; (3) prohibición fumar y fuentes de ignición en radio 10 m; (4) revisión visual bodega al inicio y cierre de jornada; (5) cartilla emergencia química visible en bodega; (6) rondas inspección cada 2 hrs; (7) protocolo verificación telefónica para trabajadora sola en sucursal. ':'')+
-    'Incluir: '+
-      (e.trab_presion!=='No'?'explosión/fuga equipo a presión, ':'')+
-      (e.sustancias!=='Ninguna'?'derrame/intoxicación '+e.sustancias+', ':'')+
-      (e.trab_confinado!=='No'?'accidente en espacio confinado, ':'')+
-      (e.trab_vehiculos!=='No'?'accidente de tránsito con carga, ':'')+
-      'incendio, accidente grave, sismo.\n'+
-    '4. ORGANIGRAMA proporcional a '+e.trabajadores+' personas: cargos reales: '+(e.cargos||'Ver ficha de cargos de la empresa')+'.\n'+
-    '5. PROTOCOLOS DETALLADOS: procedimiento paso a paso para cada escenario.\n'+
-    '6. VÍAS EVACUACIÓN y punto de encuentro.\n'+
-    '7. RECURSOS: extintores '+e.extintores+', alarma '+e.alarma+', botiquín '+e.botiquin+', persona primeros auxilios: '+e.primeros_auxilios+'.\n'+
-    '8. DIRECTORIO DE EMERGENCIAS (Bomberos 132 | SAMU 131 | Carabineros 133 | SENAPRED 1424): '+
-    (e.sucursales_txt?'Generar tabla DIFERENCIADA por sede con hospital específico de cada una. '+e.sucursales_txt:' Hospital: '+(e.hospital||'más cercano'))+
-    ' | '+getTelMutualidad(e.mutualidad)+' | '+getSEREMI(e.region)+'.'+'\n'+
-    '9. SIMULACROS: mínimo 1 anual obligatorio (DS 44/2024 Art.19), se recomienda 2 anuales; registrar participantes, fecha, evaluación y acciones de mejora.\n'+
-    '10. Normativa: DS 594/1999 Art.44-54, NCh 934 Of.2008, DS 44/2024 Art.19.\n'+
-    '11. Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+    '--- SECCIÓN 1: OBJETIVO, ALCANCE Y VIGENCIA ---\n'+
+    'Art.1 Objetivo general: proteger vida e integridad de '+e.trabajadores+' trabajadores de '+e.razon+'. Fundamento: DS 594/1999 Arts.44-54, DS 44/2024 Art.19, Ley 16.744.\n'+
+    'Art.2 Alcance: aplica a instalaciones '+e.direccion+', '+e.ciudad+', Región de '+e.region+
+    (e.sucursales_txt?', y sucursales: '+e.sucursales_txt:'')+
+    '; vehículos '+e.trab_vehiculos+'; operaciones en terreno; contratistas y visitas.\n'+
+    'Art.3 Vigencia: desde '+fecha+' hasta '+new Date(new Date().setFullYear(new Date().getFullYear()+1)).toLocaleDateString('es-CL')+'. Actualizar ante cambios de instalaciones, dotación, procesos o tras emergencia real.\n\n'+
+    '--- SECCIÓN 2: DESCRIPCIÓN DE INSTALACIONES Y CROQUIS NARRATIVO ---\n'+
+    'Art.4 Características físicas: '+e.superficie+'m² distribuidos en '+e.pisos+' piso(s). Atiende público: '+e.publico+'. Maquinaria y equipos: '+(e.maquinaria||'no especificado')+'. Sustancias almacenadas: '+e.sustancias+'.\n'+
+    'Art.4b CROQUIS NARRATIVO DE INSTALACIONES (requerido por ACHS y Bomberos como orientación ante emergencias): '+
+    'Elabora una TABLA DESCRIPTIVA de zonas con las siguientes columnas: '+
+    'Zona/Área | Piso | Descripción de contenido y actividad | Riesgos específicos de esa zona | Vía de evacuación asignada | Extintor más cercano. '+
+    'Basarse en los datos reales del cliente: '+e.superficie+'m², '+e.pisos+' piso(s), rubro '+e.rubro+', actividad '+e.subrubro+
+    (e.sucursales_txt?', sedes adicionales: '+e.sucursales_txt:'')+'. '+
+    'Incluir todas las zonas relevantes: acceso/recepción, área de trabajo principal, zona de almacenamiento '+
+    (e.sustancias!=='Ninguna'?'de '+e.sustancias+' ':'')+
+    (e.trab_vehiculos!=='No'?', zona de vehículos/estacionamiento ':'')+
+    ', servicios higiénicos, oficina administrativa, y cualquier otra zona del rubro. '+
+    'Al final de la tabla agregar NOTA OBLIGATORIA: "El empleador debe elaborar el plano físico o digital de las instalaciones a escala, '+
+    'identificando gráficamente todas las zonas, vías de evacuación (flechas verdes), punto de reunión (círculo verde), '+
+    'ubicación de extintores (ícono rojo), botiquín (cruz verde) y tablero eléctrico (ícono amarillo), '+
+    'conforme NCh 2120/1 señalética de emergencia. Este plano debe exhibirse en lugar visible y entregarse a Bomberos '+
+    'ante cualquier emergencia para facilitar las labores de rescate (recomendación ACHS)."\n'+
+    'Art.5 Riesgos estructurales y ambientales específicos de '+e.rubro+': incendio, '+(e.sustancias!=='Ninguna'?'fuga/derrame químico ('+e.sustancias+'), ':'')+
+    (e.trab_presion!=='No'?'explosión equipo a presión ('+e.trab_presion+'), ':'')+'sismo, colapso estructural, riesgo eléctrico.\n\n'+
+    '--- SECCIÓN 2B: VULNERABILIDADES ESPECÍFICAS ---\n'+
+    'Art.5b Vulnerabilidades identificadas para '+e.razon+' en '+e.ciudad+', Región de '+e.region+': '+
+    'listá y describí mínimo 4 vulnerabilidades reales de la empresa considerando: vías de evacuación (ancho, obstrucciones), '+
+    'sistema de alarma ('+e.alarma+'), '+
+    'capacitación en emergencias ('+e.primeros_auxilios+'), '+
+    (e.sustancias!=='Ninguna'?'almacenamiento de sustancias peligrosas ('+e.sustancias+'), ':'')+
+    (e.trab_vehiculos!=='No'?'vehículos con carga peligrosa en vía pública, ':'')+
+    'distribución del personal en instalaciones ('+e.superficie+'m², '+e.pisos+' piso(s)).'+
+    ' Para cada vulnerabilidad indicar la medida correctiva recomendada y plazo sugerido.\n\n'+
+    '--- SECCIÓN 2C: NIVELES DE ALERTA ---\n'+
+    'Art.5c Sistema de tres niveles de alerta, basado en plan de emergencias del Servicio de Salud Metropolitano Sur Oriente (referencia técnica)::\n'+
+    'ALERTA VERDE (preventiva): cuando existe información de un fenómeno EXTERNO que podría afectar la empresa '+
+    '(ej: incendio forestal cercano en Región de '+e.region+', alerta de tsunami emitida por SENAPRED, tormenta eléctrica anunciada, información de corte eléctrico programado, manifestaciones en la zona). '+
+    'Acción: el Jefe de Emergencia convoca a los roles asignados a estar atentos y disponibles. Se suspenden permisos de personal clave. Se verifica operatividad de equipos.\n'+
+    'ALERTA AMARILLA (evento creciente): cuando un evento INTERNO amenaza crecer en extensión y no puede controlarse con recursos habituales '+
+    '(ej: principio de incendio que no se extingue en 60 segundos, fuga de sustancia química sin control, trabajador lesionado grave). '+
+    'Acción: activar roles de emergencia, llamar servicios externos, evaluar evacuación parcial, el Jefe de Emergencia asume mando.\n'+
+    'ALERTA ROJA (emergencia declarada): cuando el evento crece y amenaza la vida, salud o bienes, más del 50% de la empresa involucrada, o hay víctimas. '+
+    'Acción: evacuación total, llamada inmediata Bomberos 132 / SAMU 131 / Carabineros 133, notificar a '+e.mutualidad+' si hay lesionados, Jefe de Emergencia en sesión permanente.\n\n'+
+    '--- SECCIÓN 3: ESCENARIOS DE EMERGENCIA ---\n'+
+    'ESCENARIOS IDENTIFICADOS PARA ESTE RUBRO/EMPRESA: '+escenarios_str+'\n\n'+
+    'Para CADA escenario listado arriba, desarrollar obligatoriamente las 3 fases siguientes:\n\n'+
+    escenarios_list.map(function(esc, idx){
+      return 'ESCENARIO '+(idx+1)+': '+esc+'\n'+
+        'ANTES (prevención y preparación): medidas preventivas específicas para este escenario, inspecciones periódicas, capacitación del personal, verificación de equipos de control.\n'+
+        'DURANTE (respuesta inmediata): protocolo paso a paso — quién hace qué en los primeros 5 minutos, cuándo llamar a servicios externos (Bomberos 132 / SAMU 131 / Carabineros 133), cuándo evacuar, restricciones (qué NO hacer).\n'+
+        'DESPUÉS (recuperación y documentación): evaluación de daños, informe post-emergencia, notificación a '+e.mutualidad+' si hay lesionados (Ley 16.744 Art.76 — dentro de 24 hrs), medidas correctivas, actualización del plan.';
+    }).join('\n\n')+'\n\n'+
+    'INSTRUCCIONES ESPECÍFICAS PARA ESCENARIO TEMPORAL/LLUVIA/VIENTO:\n'+
+    'ANTES: revisar techumbre y canaletas antes de temporada de lluvias (Región de '+e.region+' — alta pluviometría), asegurar objetos que puedan caer por viento, verificar que vehículos '+(e.trab_vehiculos!=='No'?e.trab_vehiculos:'de la empresa')+' tengan neumáticos en buen estado para rutas mojadas, identificar zonas de inundación en accesos. DURANTE: alejarse de ventanas y objetos que puedan caer, si hay contacto agua-electricidad cortar suministro desde tablero general, evitar conducir en condiciones extremas — postergar servicios en terreno si hay alerta de viento sobre 80 km/h. DESPUÉS: verificar daños en techumbre y estructura antes de reanudar labores, inspeccionar vehículos, reportar daños materiales a empleador y aseguradora.\n\n'+
+    'INSTRUCCIONES ESPECÍFICAS PARA ESCENARIO ROBO/ASALTO:\n'+
+    'DURANTE: NO oponer resistencia física — la vida del trabajador es lo primero. Obedecer instrucciones del asaltante de forma lenta y calmada. No realizar movimientos bruscos ni acercarse a objetos sin autorización. Observar características del asaltante (contextura, vestimenta, voz) sin ser evidente. Si hay disparos, acostarse en el piso alejado de ventanas. DESPUÉS: llamar a Carabineros 133 apenas sea seguro hacerlo. Notificar inmediatamente al Gerente/empleador. No tocar ni mover objetos del lugar hasta que llegue la policía (preservar evidencias). Brindar apoyo psicológico al trabajador afectado — derivar a psicólogo de '+e.mutualidad+' si hay impacto emocional. Para trabajadores en terreno en instalaciones de clientes: retirarse del lugar de forma segura y comunicar el hecho al empleador. El empleador debe evaluar si continúa prestando servicios en esa instalación.\n\n'+
+    (e.alarma==='No' && (e.sustancias!=='Ninguna' || tiene_plaguicidas)?
+      'MEDIDAS COMPENSATORIAS POR AUSENCIA DE SISTEMA DE ALARMA: detector de humo autónomo en zona de almacenamiento de '+e.sustancias+'; extintor ABC máx. 15 m de bodega; prohibición fumar y fuentes ignición en radio 10 m; revisión visual al inicio y cierre de jornada; cartilla de emergencia química visible; rondas inspección cada 2 hrs durante jornada.\n\n':'')+
+    '--- SECCIÓN 4: ORGANIGRAMA DE EMERGENCIA ---\n'+
+    'Art.6 Estructura proporcional a '+e.trabajadores+' trabajadores ('+cphs_txt+'). Cargos reales: '+(e.cargos||'ver ficha de cargos de la empresa')+'.\n'+
+    'Roles mínimos a asignar a personas nominadas (nombre y cargo real):\n'+
+    '- Jefe de Emergencia (titular y suplente): evalúa magnitud, ordena evacuación, contacta servicios externos, autoriza reingreso.\n'+
+    '- Coordinador de Evacuación: guía personal por vías señalizadas, verifica que no queden personas, realiza conteo en punto de reunión.\n'+
+    '- Responsable de Primeros Auxilios: atiende lesionados con protocolo ABC (vía aérea / respiración / circulación), NO administrar medicamentos, solicitar SAMU 131.\n'+
+    '- Responsable de Comunicaciones: realiza llamadas a servicios de emergencia, informa a familiares previa autorización, mantiene directorio actualizado.\n'+
+    (e.trab_vehiculos!=='No'?'- Conductor de emergencia: traslada lesionados a '+e.hospital+' si SAMU no llega a tiempo.\n':'')+
+    '\n--- SECCIÓN 5: VÍAS DE EVACUACIÓN Y PUNTO DE REUNIÓN ---\n'+
+    'Art.7 Vías de evacuación: señalizadas con pictogramas fotoluminiscentes NCh 2120/1, libres de obstáculos permanentemente, ancho mínimo 1,10 m, iluminación de emergencia autónoma 60 min mínimo. Escaleras: superficie antideslizante, pasamanos en ambos lados.\n'+
+    'Art.8 Punto de reunión exterior: mínimo 15 m de la edificación, fuera de vías de tráfico, señalizado, accesible para vehículos de emergencia. Jefe de Emergencia realiza conteo nominal de los '+e.trabajadores+' trabajadores.\n\ \n'+
+    '--- SECCIÓN 6: RECURSOS DE EMERGENCIA ---\n'+
+    'Art.9 Extintores: '+e.extintores+'. Distribución conforme NCh 934 Of.2008: distancia máxima 23 m (clase A) / 15 m (clase B). Revisión mensual visual, anual técnica.\n'+
+    'Art.10 Sistema de alarma: '+e.alarma+'.\n'+
+    'Art.11 Botiquín de primeros auxilios: '+e.botiquin+'. Inspección mensual, reposición insumos usados dentro de 48 hrs.\n'+
+    'Art.12 Personal primeros auxilios: '+(e.primeros_auxilios==='Si'?'Sí, personal capacitado. Mantener certificado vigente.':'Sin personal capacitado actualmente — PRIORIDAD: capacitar mínimo 2 trabajadores en curso certificado SENCE.')+'.\n\ \n'+
+    '--- SECCIÓN 7: DIRECTORIO DE EMERGENCIAS ---\n'+
+    'Bomberos: 132 | SAMU: 131 | Carabineros: 133 | SENAPRED: 1424\n'+
+    e.mutualidad+': '+getTelMutualidad(e.mutualidad)+'\n'+
+    getSEREMI(e.region)+'\n'+
+    (e.sucursales_txt?
+      'TABLA POR SEDE (incluir hospital específico más cercano a cada una):\n'+e.sucursales_txt:
+      'Hospital/Centro asistencial más cercano: '+(e.hospital||'No especificado')
+    )+'\n'+
+    'Teléfono empresa: '+e.telefono+'\n\ \n'+
+    '--- SECCIÓN 8: SIMULACROS Y EVALUACIÓN ---\n'+
+    'Art.13 Mínimo 1 simulacro anual obligatorio (DS 44/2024 Art.19). Se recomienda 2 anuales para rubro '+e.rubro+'. Programar para el '+(new Date().getMonth()<6?'segundo semestre '+new Date().getFullYear():'primer semestre '+(new Date().getFullYear()+1))+'.\n'+
+    'Tipos de simulacro: (a) AVISADO — primera vez, para familiarizar al personal con el procedimiento; (b) SIN AVISO — una vez internalizado el plan, para evaluar respuesta real.\n'+
+    'CRITERIOS DE EVALUACIÓN DEL SIMULACRO (basados en estándar hospitalario SSMSO):\n'+
+    '1. Tiempo total de evacuación desde la señal de alarma hasta el conteo completo en punto de reunión.\n'+
+    '2. Cumplimiento de roles: verificar que cada rol (Jefe de Emergencia, Coordinador Evacuación, Primeros Auxilios, Comunicaciones) ejecutó sus funciones según el plan.\n'+
+    '3. Comportamiento del personal: orden durante la evacuación, ausencia de carreras o pánico, no uso de ascensores, cierre de puertas tras el paso.\n'+
+    '4. Estado y uso de equipos: extintores accesibles y operativos, botiquín disponible, directorio de emergencias actualizado.\n'+
+    '5. Problemas y fallas observadas: identificar causas y proponer soluciones con responsable y plazo.\n'+
+    'REGISTRO OBLIGATORIO: fecha, tipo de emergencia simulada, participantes con firma, tiempo de evacuación, observaciones detalladas por criterio, plan de mejora con responsable y plazo de corrección.\n\ \n'+
+    'Normativa: DS 594/1999 Arts.44-54 | DS 44/2024 Art.19 | NCh 934 Of.2008 | NCh 2120/1 señalética.\n'+
+    'Elaborado por: Alan Bascur Montenegro | Ing. Prevención de Riesgos | RUT 17.658.387-8 | Plus Control SpA | Fecha: '+fecha+'.';
 }
 
 async function callClaude(prompt, intentos, onChunk){
