@@ -470,7 +470,7 @@ document.getElementById('btn-guardar').addEventListener('click',function(){
     email:v('n-email'),telefono:v('n-tel'),
     cargos:v('n-cargos','No especificado'),sindicato:v('n-sindicato','No'),
     embarazo:v('n-embarazo','No'),menores:v('n-menores','No'),discapacidad:v('n-discapacidad','No'),
-    horario:v('n-horario','Lunes a Viernes 08:00-18:00'),horas_semanales:v('n-horas','42'),
+    horario:v('n-horario','Lunes a Viernes 08:00-18:00'),horas_semanales:(parseInt(v('n-horas','42'))||42).toString(),
     jornada:v('n-jornada','Ordinaria'),horas_extra:v('n-horas-extra','No'),
     superficie:v('n-superficie',''),pisos:v('n-pisos','1'),publico:v('n-publico','No'),
     maquinaria:v('n-maquinaria','No especificado'),sustancias:v('n-sustancias','Ninguna'),
@@ -1273,7 +1273,7 @@ async function callClaude(prompt, intentos, onChunk){
   return new Promise(function(resolve, reject){
     var fullText = '';
     var ctrl = new AbortController();
-    var tmt = setTimeout(function(){ ctrl.abort(); }, 300000);
+    var tmt = setTimeout(function(){ ctrl.abort(); }, 720000); // 12 min — cubre RIOHS 8 partes
 
     fetch('/api/claude', {
       method:'POST',
@@ -1365,7 +1365,7 @@ async function startGen(){
   var lbl=document.getElementById('ai-lbl');
   var btn=document.getElementById('btn-gp3');
   var acts=document.getElementById('gp3-acts');
-  gTexto='';btn.disabled=true;acts.style.display='none';
+  gTexto='';btn.disabled=true;acts.style.display='none'; // gTexto limpiado aquí — evita PDF de generación anterior
 
   // Área de streaming — muestra texto en tiempo real
   out.innerHTML='<div id="stream-box" style="font-family:Georgia,serif;font-size:11px;line-height:1.7;color:var(--txt);white-space:pre-wrap;padding:10px;min-height:60px"></div>';
@@ -1431,6 +1431,9 @@ async function startGen(){
       lbl.textContent='Claude · FUF Parte 1/2 — Ítems 1-28...';
       var fuf_prompt=buildPrompt(e,'fuf',normas,rStr,fecha);
       var parts_fuf=fuf_prompt.split('===FUF_INTERMEDIO===');
+      if(parts_fuf.length<2||!parts_fuf[1]||!parts_fuf[1].trim()){
+        throw new Error('Error interno: no se encontró el separador FUF_INTERMEDIO. Recargue e intente nuevamente.');
+      }
       var fp1=await callClaude(parts_fuf[0].trim(),0,onChunk);
       bannerParte('Claude · FUF Parte 2/2 — Ítems 29-60 + Resumen...');
       var fp2=await callClaude(parts_fuf[1].trim(),0,onChunk);
@@ -1679,6 +1682,16 @@ function generarPDF(){
   var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+tipo+' - '+gEmp.razon+'</title><style>'+CSS+'</style></head><body>'+portada+pagCuerpo+pagFirma+'<script>window.onload=function(){setTimeout(function(){window.print();},900);}<\/script></body></html>';
 
   var win=window.open('','_blank');
+  if(!win){
+    // iOS Safari bloquea window.open si no es desde un click directo
+    // Fallback: descargar como archivo HTML
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='PlusControl_'+gTipo+'_'+(gEmp.razon||'doc').replace(/\s+/g,'_')+'.html';
+    a.click();
+    return;
+  }
   win.document.write(html);
   win.document.close();
 }
