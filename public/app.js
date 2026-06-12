@@ -697,71 +697,207 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     ''
   ].filter(function(x){return x!=='';}).join('\n');
 
-  if(tipo==='riohs_p1a') return I+'\nElabora RIOHS PARTE 1 (Caps. I-III) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-    'CAP.I PREÁMBULO, VIGENCIA Y POLÍTICA SST:\n'+
-    '- Art.1 Fundamento legal completo: DS 44/2024, Ley 16.744, CT Arts.153-157 y 184, Ley 21.643, DS 2/2024.\n'+
-    '- Art.2 Ámbito de aplicación: todos los trabajadores, contratistas, visitas. Dotación: '+e.trabajadores+' trabajadores ('+e.cargos+'). Domicilio: '+e.direccion+', '+e.ciudad+'. Horario: '+e.horario+' = '+e.horas_semanales+' hrs/semana (máx. legal 42 hrs Ley 21.561).\n'+
-    '- Art.3 Vigencia y revisión anual.\n'+
-    '- Art.4 Política SST firmada: compromiso dirección, objetivos medibles 2026-2027, responsabilidades.\n'+
-    '- Art.5 Difusión y entrega gratuita (CT Art.156).\n\n'+
-    'CAP.II DEFINICIONES (DS 44/2024 + Ley 21.643): mínimo 20 definiciones completas. OBLIGATORIAS: acoso laboral (UNA SOLA VEZ O reiterada Ley 21.643 Art.2), acoso sexual (CT Art.2 inc.2), violencia en el trabajo, peligro (DS 44/2024 Art.4 N°12), riesgo (Art.4 N°19), lugar de trabajo (Art.4 N°9), medida de control (Art.4 N°10), MIPER, OAL, EPP, incidente, accidente del trabajo (Ley 16.744 Art.5), enfermedad profesional (Ley 16.744 Art.7), perspectiva de género, Delegado SST, CPHS, Derecho a Saber.\n\n'+
-    'CAP.III ADMISIÓN Y CONTRATACIÓN: exámenes según cargo y riesgo (no exigibles como condición CT Art.2), inducción SST mínimo 2 hrs primer día, entrega RIOHS + MIPER + PTS, firma acuse recibo, Derecho a Saber (DS 44/2024 Art.14-15).\n\nAl terminar escribe exactamente: ===P1aFIN===';
+  // ══════════════════════════════════════════════════════
+  // RIOHS — 8 PARTES (distribución por tokens, máx 7.500/parte)
+  // p1(2.500) p2(6.300) p3(4.700) p4(7.500) p5(6.500) p6(7.500) p7(7.500) p8(6.800)
+  // ══════════════════════════════════════════════════════
 
-  if(tipo==='riohs_p1b') return I+'\nElabora RIOHS PARTE 2 (Caps. IV-VI) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-    'CAP.IV JORNADA LABORAL (CT Art.22, Ley 21.561):\n'+
-    '- Jornada ordinaria: '+e.horario+' = '+e.horas_semanales+' hrs/semana. Colación mínima 30 min (CT Art.34) NO imputable a jornada.\n'+
-    '- Jornada máxima legal vigente desde 26-abr-2026: 42 hrs/semana (Ley 21.561/2023). Próxima reducción: 40 hrs en abr-2028.\n'+
-    '- Horas extraordinarias: máx. 2 hrs/día, pacto escrito CT Art.32, recargo 50%.\n'+
-    '- '+cphs_txt+'\n'+
-    '- Trabajo nocturno, feriados, descanso dominical y semanal según CT.\n\n'+
-    'CAP.V OBLIGACIONES DEL EMPLEADOR (CT Art.184, DS 44/2024):\n'+
-    '- Proporcionar EPP gratuitos certificados ISP.\n'+
-    '- Elaborar y mantener MIPER actualizada (DS 44/2024 Art.7).\n'+
-    '- Capacitar mínimo 8 hrs anuales con enfoque género (DS 44/2024 Art.16).\n'+
-    '- Investigar accidentes e incidentes.\n'+
-    '- Informar riesgos (Derecho a Saber DS 44/2024 Art.14-15).\n'+
-    '- Mantener registros documentales disponibles para DT y Mutual.\n'+
-    '- Implementar Protocolo Ley Karin.\n\n'+
-    'CAP.VI RIESGOS ESPECÍFICOS DEL RUBRO '+e.rubro+' — '+e.subrubro+':\n'+
-    '- Mínimo 12 peligros REALES de la actividad con sus medidas de control específicas.\n'+
-    '- Riesgos físicos, químicos, ergonómicos, de seguridad y psicosociales del rubro.\n'+
-    '- Agentes específicos: '+e.sustancias+'.\n'+
-    '- Maquinaria: '+e.maquinaria+'.\n\nAl terminar escribe exactamente: ===P1bFIN===';
+  // PARTE 1 — Cap.I solo (2.500 tokens)
+  if(tipo==='riohs_p1') return I+'\nElabora RIOHS PARTE 1 — CAPÍTULO I para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO I: PREÁMBULO, VIGENCIA Y POLÍTICA DE SEGURIDAD Y SALUD EN EL TRABAJO\n\n'+
+    'Art.1 Fundamento Legal y Objeto: DS 44/2024 (vigente 01-feb-2025, reemplaza DS 40/1969 y DS 54/1969), Ley 16.744, CT Arts.153-157 y 184, Ley 21.643 Ley Karin, DS 2/2024. Objeto: proteger vida e integridad de '+e.trabajadores+' trabajadores.\n\n'+
+    'Art.2 Ámbito de Aplicación: aplica a TODOS los trabajadores de '+e.razon+' ('+e.cargos+'), contratistas, subcontratistas, visitas. Domicilio: '+e.direccion+', '+e.ciudad+', Región de '+e.region+'. Jornada: '+e.horario+' = '+e.horas_semanales+' hrs/semana (máx. legal 42 hrs desde 26-abr-2026, Ley 21.561/2023).\n\n'+
+    'Art.3 Vigencia y Actualización: vigencia desde '+fecha+'. Revisión anual obligatoria. Modificaciones con 30 días anticipación y aprobación DT (CT Art.156).\n\n'+
+    'Art.4 Política de Seguridad y Salud en el Trabajo: desarrollar política completa firmada por '+e.rep_nombre+', con compromiso de la dirección, objetivos medibles 2026-2027 (accidentabilidad cero, 100% capacitación, EPP certificados, cumplimiento legal), responsabilidades de cada cargo ('+e.cargos+'), '+cphs_txt+', mejora continua.\n\n'+
+    'Art.5 Difusión y Entrega: entrega gratuita a cada trabajador (CT Art.156), acuse de recibo firmado, carga en portal DT dentro de 5 días hábiles, exhibición en lugar visible.\n\nAl terminar escribe exactamente: ===R1FIN===';
 
-  if(tipo==='riohs_p2a') return I+'\nElabora RIOHS PARTE 3 (Caps. VII-IX) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-    'CAP.VII OBLIGACIONES DE LOS TRABAJADORES (DS 44/2024 Art.5, CT Art.184):\n'+
-    'Mínimo 15 artículos numerados, específicos para '+e.rubro+'. Incluir obligatoriamente: uso EPP, reporte condiciones inseguras, asistencia capacitaciones, participación simulacros, cumplimiento PTS, prohibición alcohol/drogas, orden y aseo, cuidado herramientas y vehículos, reporte accidentes, participación asambleas mensuales.\n\n'+
-    'CAP.VIII PROHIBICIONES (CT Art.154 bis, DS 44/2024):\n'+
-    'Mínimo 12 prohibiciones concretas para '+e.rubro+'. Incluir: alcohol/drogas en trabajo, fumar en zonas de riesgo, desactivar dispositivos seguridad, uso EPP ajeno, modificar equipos sin autorización, transporte personas no autorizadas, uso celular conducción, fotografiar instalaciones sin autorización, otras específicas del rubro.\n\n'+
-    'CAP.IX DERECHO A SABER (DS 44/2024 Art.14-15):\n'+
-    'Tabla por cada cargo real ('+e.cargos+'). Columnas: Cargo | Tarea | Riesgo | Medida preventiva | EPP obligatorio | Normativa. Mínimo 3 filas por cargo. Formato tabla markdown. Al final: protocolo entrega, firma trabajador, actualización ante cambios.\n\nAl terminar escribe exactamente: ===P2aFIN===';
+  // PARTE 2 — Cap.II + III (6.300 tokens)
+  if(tipo==='riohs_p2') return I+'\nElabora RIOHS PARTE 2 — CAPÍTULOS II y III para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO II: DEFINICIONES Y GLOSARIO (DS 44/2024 + Ley 21.643)\n'+
+    'Desarrollar MÍNIMO 20 definiciones completas, mínimo 3 oraciones cada una. OBLIGATORIAS:\n'+
+    '1. Acoso laboral (Ley 21.643 Art.2: agresión u hostigamiento, UNA SOLA VEZ O reiterada, que menoscabe o humille)\n'+
+    '2. Acoso sexual (CT Art.2 inc.2: requerimiento sexual no consentido que amenace situación laboral)\n'+
+    '3. Violencia en el trabajo (Ley 21.643: fuerza física o psicológica de terceros con resultado de daño)\n'+
+    '4. Peligro (DS 44/2024 Art.4 N°12: fuente con potencial de causar daño)\n'+
+    '5. Riesgo (DS 44/2024 Art.4 N°19: combinación probabilidad y severidad)\n'+
+    '6. Lugar de trabajo (DS 44/2024 Art.4 N°9: sitio bajo control directo o indirecto del empleador)\n'+
+    '7. Medida de control (DS 44/2024 Art.4 N°10: acción para eliminar o reducir riesgo — jerarquía 5 niveles Art.11)\n'+
+    '8. MIPER (DS 44/2024 Art.7: identificación peligros, evaluación riesgos, medidas control)\n'+
+    '9. Derecho a Saber (DS 44/2024 Art.14-15: derecho trabajador a ser informado de riesgos de su puesto)\n'+
+    '10. EPP (DS 44/2024 Art.4 N°5 y Art.13: dispositivo protección individual, gratuito, certificado ISP)\n'+
+    '11. Incidente (DS 44/2024 Art.4 N°8: evento sin lesión o con primeros auxilios solamente)\n'+
+    '12. Accidente del trabajo (Ley 16.744 Art.5: lesión a causa o con ocasión del trabajo)\n'+
+    '13. Accidente de trayecto (Ley 16.744 Art.5 inc.2: trayecto directo entre domicilio y trabajo)\n'+
+    '14. Enfermedad profesional (Ley 16.744 Art.7: causada directamente por el ejercicio de la profesión)\n'+
+    '15. Perspectiva de género (DS 44/2024 Art.16: diferencias biológicas y sociales en riesgos laborales)\n'+
+    '16. '+cphs_txt+'\n'+
+    '17. Programa de trabajo preventivo (DS 44/2024 Art.8: planificación actividades preventivas anuales)\n'+
+    '18. OAL / Organismo Administrador Ley 16.744: '+e.mutualidad+' — entidad que administra el seguro de accidentes\n'+
+    '19. DIAT (Denuncia Individual Accidente del Trabajo: formulario que presenta el empleador ante la mutual)\n'+
+    '20. PTS (Procedimiento de Trabajo Seguro: instrucción paso a paso para tarea de alto riesgo)\n\n'+
+    'CAPÍTULO III: ADMISIÓN, CONTRATACIÓN E INDUCCIÓN\n'+
+    'Art.6 Proceso de ingreso: exámenes médicos según cargo y riesgo (NO exigibles como condición de contratación CT Art.2). Inducción SST mínimo 2 horas el primer día hábil.\n'+
+    'Art.7 Documentos de ingreso: entrega RIOHS + MIPER + PTS específicos del cargo. Firma acuse recibo en registro de inducción.\n'+
+    'Art.8 Derecho a Saber (DS 44/2024 Art.14-15): informar por escrito riesgos del puesto de '+e.rubro+', medidas preventivas, EPP obligatorio, procedimientos de emergencia. El trabajador firma el documento de Derecho a Saber.\n'+
+    'Art.9 Contratistas y visitas: obligación de cumplir normas SST de '+e.razon+' mientras permanezcan en dependencias.\n\nAl terminar escribe exactamente: ===R2FIN===';
 
-  if(tipo==='riohs_p2b') return I+'\nElabora RIOHS PARTE 4 (Caps. X-XII) para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
-    'CAP.X EQUIPOS DE PROTECCIÓN PERSONAL (DS 44/2024 Art.13, Ley 16.744 Art.68):\n'+
-    'Tabla por cargo: Cargo | EPP | Norma NCh | Certificación ISP | Cuándo usar | Responsable entrega. Incluir todos los cargos ('+e.cargos+'). EPP específicos para '+e.rubro+'. Procedimiento entrega, reposición, registro.\n\n'+
-    'CAP.XI ACCIDENTES DEL TRABAJO Y ENFERMEDADES PROFESIONALES (Ley 16.744):\n'+
-    '- Definiciones: accidente del trabajo (Art.5), accidente de trayecto (Art.5 inc.2), enfermedad profesional (Art.7).\n'+
-    '- Procedimiento ante accidente: primeros auxilios → SAMU 131 → DIAT ante mutualidad dentro de 24 horas siguientes (Ley 16.744 Art.76) → investigación OAL.\n'+
-    '- Accidente de trayecto: trabajador presenta personalmente DIAT ante mutual.\n'+
-    '- Investigación interna: metodología árbol de causas, medidas correctivas, plazos.\n'+
-    '- Estadísticas de accidentabilidad.\n\n'+
-    'CAP.XII RIESGOS PSICOSOCIALES (DS 44/2024, Protocolo CEAL-SM-SUSESO):\n'+
-    '- Evaluación CEAL-SM-SUSESO: dimensiones, frecuencia (cada 2 años mínimo), medidas organizacionales.\n'+
-    '- NOTA: El Protocolo Ley Karin completo (canales denuncia, plazos, investigación) está en Cap.XX.\n'+
-    '- Protocolo alcohol y drogas: prohibición DS 44/2024 Art.9, indicios razonables, test por profesional de salud acreditado, cadena de custodia, segunda muestra, consecuencias.\n\nAl terminar escribe exactamente: ===P2bFIN===';
+  // PARTE 3 — Cap.IV + V + VI (4.700 tokens)
+  if(tipo==='riohs_p3') return I+'\nElabora RIOHS PARTE 3 — CAPÍTULOS IV, V y VI para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO IV: JORNADA LABORAL, REMUNERACIONES Y DESCANSOS (CT Arts.22 y ss, Ley 21.561)\n'+
+    'Art.10 Jornada ordinaria: '+e.horario+'. Horas semanales: '+e.horas_semanales+'. Colación: mínimo 30 min (CT Art.34), no imputable a jornada.\n'+
+    'Art.11 Jornada máxima legal: 42 hrs/semana vigente desde 26-abr-2026 (Ley 21.561/2023). Próxima reducción: 40 hrs en abr-2028. '+((parseInt(e.horas_semanales||42)>42)?'⚠️ ALERTA: las '+e.horas_semanales+' hrs declaradas EXCEDEN el máximo legal de 42 hrs — corregir de inmediato.':'')+'\n'+
+    'Art.12 Horas extraordinarias: máx. 2 hrs/día, pacto escrito previo CT Art.32, recargo 50% sobre hora ordinaria, máx. 2 semanas continuas, límite 12 hrs semanales adicionales.\n'+
+    'Art.13 '+cphs_txt+'\n'+
+    'Art.14 Descansos legales: semanal (CT Art.35), feriados legales (CT Art.35), feriado proporcional (CT Art.67).\n\n'+
+    'CAPÍTULO V: OBLIGACIONES DEL EMPLEADOR (CT Art.184, DS 44/2024)\n'+
+    'Desarrollar mínimo 10 obligaciones específicas con base legal para '+e.rubro+'. Incluir obligatoriamente:\n'+
+    '- Proporcionar EPP gratuitos certificados ISP sin costo para el trabajador\n'+
+    '- Elaborar y mantener MIPER actualizada anualmente (DS 44/2024 Art.7)\n'+
+    '- Capacitar mínimo 8 hrs anuales con enfoque género (DS 44/2024 Art.16)\n'+
+    '- Investigar accidentes e incidentes (DS 44/2024 Art.18)\n'+
+    '- Implementar Protocolo Ley Karin (Ley 21.643 + DS 2/2024)\n'+
+    '- Mantener registros disponibles para DT, SEREMI Salud y '+e.mutualidad+'\n'+
+    '- Notificar accidentes graves y fatales a SEREMI Salud y DT dentro de 24 hrs\n\n'+
+    'CAPÍTULO VI: IDENTIFICACIÓN DE RIESGOS ESPECÍFICOS DEL RUBRO\n'+
+    'Desarrollar mínimo 12 riesgos REALES de '+e.rubro+' / '+e.subrubro+' con sus medidas de control. Agrupar en:\n'+
+    '- Riesgos físicos: ruido='+e.ruido+', temperatura='+e.temperatura+', vibraciones='+e.vibracion+', radiación='+e.radiacion+'\n'+
+    '- Riesgos químicos: '+e.sustancias+'\n'+
+    '- Riesgos ergonómicos: MMC (Ley 20.949: 25 kg hombres, 15 kg mujeres), posturas, repetitividad\n'+
+    '- Riesgos de seguridad: altura='+e.trab_altura+', caliente='+e.trab_caliente+', confinado='+e.trab_confinado+', presión='+e.trab_presion+', vehículos='+e.trab_vehiculos+'\n'+
+    '- Riesgos psicosociales: CEAL-SM-SUSESO, Ley Karin, fatiga, nocturno='+e.trab_nocturno+'\n\nAl terminar escribe exactamente: ===R3FIN===';
 
-  if(tipo==='riohs_p3') return I+'\nElabora RIOHS 2025 PARTE 3 (Caps. XIII-XVII) para el siguiente cliente:\n\n'+base+'\n\n'+cphs_txt+' Fecha: '+fecha+'.\n\n'+
-    'CAP.XIII REPRESENTACIÓN PREVENTIVA: '+cphs_txt+' Desarrollo completo según corresponda al tamaño de la empresa.\n\n'+
-    'CAP.XIV GESTIÓN PREVENTIVA: MIPER (metodología PxC 1-5, enfoque género, revisión anual), Programa Trabajo Preventivo (30 días desde MIPER), capacitación 8 hrs enfoque género DS 44/2024 Art.16, evaluación anual programa, vigilancia ambiental y salud.\n\n'+
-    'CAP.XV ORDEN, HIGIENE Y CONDICIONES SANITARIAS (DS 594/1999): condiciones específicas para '+e.rubro+'. Servicios higiénicos segun DS 594 Art.25-28 para '+e.trabajadores+' trabajadores ('+(e.mujeres||0)+' mujeres). Agua, comedor, vestuarios. Iluminación, ventilación, temperatura. Almacenamiento de: '+e.sustancias+'. Manipulación manual de carga (Ley 20.949/2016, DS 63/2005 MINTRAB — límites Ley 20.949/2016: 25 kg hombre adulto, 15 kg mujer adulta (en condiciones ideales de levantamiento — reducir ante postura, frecuencia o distancia)).\n\n'+
-    'CAP.XVI EMERGENCIAS Y EVACUACIÓN (DS 594 Art.44-54, DS 44/2024 Art.19): escenarios específicos para '+e.rubro+'/'+e.subrubro+'. Roles proporcionales a '+e.trabajadores+' trabajadores. Extintores: '+e.extintores+'. Alarma: '+e.alarma+'. Botiquín: '+e.botiquin+'. Simulacros: mínimo 1 anual obligatorio (DS 44/2024 Art.19), se recomienda 2 por año. Directorio: Bomberos 132, SAMU 131, Carabineros 133, SENAPRED 1424, '+getTelMutualidad(e.mutualidad)+', '+getSEREMI(e.region)+', hospital: '+(e.hospital||'más cercano')+'.\n\n'+
-    'CAP.XVII INVESTIGACIÓN DE ACCIDENTES (DS 44/2024 y Ley 16.744 Art.76): metodología OAL enfoque género, plazos (DIAT ante la mutualidad dentro de las 24 horas siguientes al accidente (Ley 16.744 Art.76)), informe accidente, medidas correctivas, comunicación trabajadores. Estadísticas: tasa accidentabilidad, frecuencia, gravedad, diferenciadas por género.\n\nAl terminar escribe exactamente: ===P3FIN===';
+  // PARTE 4 — Cap.VII + VIII (7.500 tokens)
+  if(tipo==='riohs_p4') return I+'\nElabora RIOHS PARTE 4 — CAPÍTULOS VII y VIII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO VII: OBLIGACIONES DE LOS TRABAJADORES (DS 44/2024 Art.5, CT Art.184)\n'+
+    'Desarrollar MÍNIMO 15 artículos numerados, específicos para '+e.rubro+' / '+e.subrubro+'. Cada artículo mínimo 3 oraciones. Incluir OBLIGATORIAMENTE:\n'+
+    '- Conocer y cumplir el RIOHS (inducción, firma acuse recibo)\n'+
+    '- Usar correctamente EPP asignados durante toda la exposición al riesgo\n'+
+    '- Reportar inmediatamente condiciones inseguras, incidentes y accidentes\n'+
+    '- Asistir a capacitaciones y simulacros obligatorios\n'+
+    '- Cumplir estrictamente los PTS de '+e.rubro+'\n'+
+    '- Prohibición absoluta de trabajar bajo efectos de alcohol o drogas (DS 44/2024 Art.9)\n'+
+    '- Mantener orden y aseo en puesto de trabajo (DS 594/1999)\n'+
+    '- Cuidar herramientas, equipos y vehículos de la empresa\n'+
+    '- Reportar todo accidente del trabajo dentro de las 24 horas (Ley 16.744 Art.76)\n'+
+    '- Participar en asambleas mensuales de seguridad\n'+
+    '- Respetar señalética de seguridad\n'+
+    '- Conducción segura de vehículos (si aplica para '+e.trab_vehiculos+')\n'+
+    '- Informar enfermedades o impedimentos que afecten trabajo seguro\n'+
+    '- Cooperar en investigaciones de accidentes y denuncias Ley Karin\n\n'+
+    'CAPÍTULO VIII: PROHIBICIONES (CT Art.154 bis, DS 44/2024)\n'+
+    'Desarrollar MÍNIMO 12 prohibiciones, específicas para '+e.rubro+'. Incluir:\n'+
+    '- Presentarse bajo efectos de alcohol o drogas\n'+
+    '- Fumar en zonas de riesgo o no habilitadas\n'+
+    '- Desactivar o neutralizar dispositivos de seguridad\n'+
+    '- Usar EPP en mal estado o de otro trabajador\n'+
+    '- Modificar o reparar equipos sin autorización\n'+
+    '- Transportar personas no autorizadas en vehículos empresa\n'+
+    '- Usar celular durante conducción o tareas de alto riesgo\n'+
+    '- Ejecutar trabajos de alto riesgo sin PTS y EPP\n'+
+    '- Retirar o dañar señalética de seguridad\n'+
+    '- Acoso laboral o sexual (Ley 21.643)\n'+
+    '- Falsificar registros, certificados o documentos\n'+
+    '- Trabajar sobre 42 hrs/semana sin pacto escrito (CT Art.32)\n\nAl terminar escribe exactamente: ===R4FIN===';
 
-  if(tipo==='riohs_p4a') return I+'\nElabora RIOHS 2025 PARTE 4 (Caps. XVIII-XIX) para el siguiente cliente:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+'CAP.XVIII INFRACCIONES Y SANCIONES (CT Art.154 N°7 (sanciones RIOHS) y CT Art.157 (destino multas)):\nDesarrollar con artículos numerados completos:\nArt.1 Fundamento legal y ámbito de aplicación.\nArt.2 Clasificación detallada: infracciones LEVES con mínimo 6 ejemplos específicos del rubro '+e.rubro+'; infracciones GRAVES con mínimo 6 ejemplos específicos; infracciones GRAVÍSIMAS con mínimo 6 ejemplos específicos.\nArt.3 Escala de sanciones completa: amonestación verbal (primera vez infracción leve) → amonestación escrita (segunda vez) → multa máx.25% remuneración diaria (CT Art.154 N°7) → término contrato Art.160 N°1 CT. Destino multas: fondos bienestar personal (CT Art.157).\nArt.4 Procedimiento sancionatorio con 7 fases: constatación 24 hrs → comunicación 3 días hábiles → descargos 5 días hábiles → investigación complementaria → resolución 10 días hábiles → notificación → registro.\nArt.5 Circunstancias atenuantes (mínimo 5 ejemplos).\nArt.6 Circunstancias agravantes (mínimo 5 ejemplos).\nArt.7 Non bis in idem: prohibición de doble sanción por mismo hecho.\nArt.8 Prescripción: leves 6 meses, graves y gravísimas 12 meses.\nArt.9 Registro Centralizado de Sanciones: libro físico foliado, datos mínimos que debe contener.\nArt.10 INFRACCIÓN LEY 21.561: trabajar sobre 42 hrs/semana sin pacto escrito CT Art.32 = infracción grave (multa CT Art.506).\n\nCAP.XIX CANALES DE DENUNCIA Y RECLAMO:\nArt.11 Canales internos: superior jerárquico, correo '+(e.email||'(ver datos empresa)')+'  o comunicación verbal directa al representante legal.\nArt.12 Canal DT externo: dt.gob.cl, tel. 600 4500 247, oficina DT Región de '+e.region+'.\nArt.13 Canal SUSESO (600 4200 400) y SEREMI Salud '+getSEREMI(e.region)+'.\nArt.14 Plazos: acuse recibo interno 2 días hábiles; resolución interna 30 días hábiles.\nArt.15 Protección del denunciante: confidencialidad, prohibición represalias, no puede ser despedido sin autorización DT.\n\nAl terminar escribe exactamente: ===P4aFIN===\n';
+  // PARTE 5 — Cap.IX + X + XI (6.500 tokens)
+  if(tipo==='riohs_p5') return I+'\nElabora RIOHS PARTE 5 — CAPÍTULOS IX, X y XI para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO IX: DERECHO A SABER — INFORMACIÓN DE RIESGOS POR PUESTO (DS 44/2024 Art.14-15)\n'+
+    'Tabla en formato markdown por cada cargo real ('+e.cargos+'). Columnas: Cargo | Tarea específica | Peligro | Riesgo potencial | Medida preventiva | EPP obligatorio | Norma aplicable. Mínimo 4 filas por cargo. Protocolo de entrega con firma del trabajador. Actualización ante cambios en el puesto.\n\n'+
+    'CAPÍTULO X: EQUIPOS DE PROTECCIÓN PERSONAL — EPP (DS 44/2024 Art.13, Ley 16.744 Art.68)\n'+
+    'Tabla en formato markdown. Columnas: Cargo | EPP específico | Norma NCh | Certificación ISP | Situación de uso | Frecuencia reposición | Responsable entrega. Incluir todos los cargos de '+e.razon+'. EPP específicos para '+e.rubro+'. Procedimiento entrega con registro firmado, reposición inmediata sin costo, responsabilidad del trabajador de informar deterioro.\n\n'+
+    'CAPÍTULO XI: ACCIDENTES DEL TRABAJO Y ENFERMEDADES PROFESIONALES (Ley 16.744)\n'+
+    'Art.X+1 Definiciones: accidente del trabajo (Art.5), accidente de trayecto (Art.5 inc.2 — trayecto directo, trabajador presenta DIAT personalmente), enfermedad profesional (Art.7), incidente o cuasi-accidente.\n'+
+    'Art.X+2 Procedimiento ante accidente: primeros auxilios → SAMU 131 si necesario → traslado a '+e.hospital+' → DIAT ante '+e.mutualidad+' dentro de las 24 horas siguientes al accidente (Ley 16.744 Art.76) → investigación interna.\n'+
+    'Art.X+3 Investigación: metodología árbol de causas, informe escrito, medidas correctivas con plazo y responsable, comunicación a todos los trabajadores.\n'+
+    'Art.X+4 Enfermedades profesionales: procedimiento denuncia DEP ante '+e.mutualidad+', vigilancia médica, reubicación si procede.\n'+
+    'Art.X+5 Registro y estadísticas: libro de accidentes, tasas accidentabilidad, frecuencia y gravedad diferenciadas por género, reporte anual.\n\nAl terminar escribe exactamente: ===R5FIN===';
 
-  if(tipo==='riohs_p4b') return I+'\nElabora RIOHS 2025 PARTE 5 — FINAL (Caps. XX-XXII) para el siguiente cliente:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+'CAP.XX PROTOCOLO PREVENCIÓN Y SANCIÓN VIOLENCIA LABORAL — LEY KARIN (Ley 21.643 + DS 2/2024):\nDesarrollar COMPLETAMENTE con artículos numerados. NO resumir. Cada artículo mínimo 3 oraciones.\nArt.16 Ámbito: aplica a '+e.razon+', incluye conductas entre trabajadores y de clientes/proveedores/público hacia trabajadores.\nArt.17 Definición ACOSO LABORAL: conducta que constituya agresión u hostigamiento (puede ser una sola vez, Ley 21.643 Art.2), que menoscabe, maltrate o humille al trabajador.\nArt.18 Definición ACOSO SEXUAL: requerimiento sexual no consentido (CT Art.2 inc.2) que amenace situación laboral.\nArt.19 Definición VIOLENCIA EN EL TRABAJO: ejercicio de fuerza física o psicológica con resultado de daño.\nArt.20 Medidas preventivas: capacitación anual obligatoria (DS 44/2024 Art.16), evaluación clima laboral CEAL-SM-SUSESO, difusión trimestral.\nArt.21 Responsable nominado de recibir denuncias: '+e.rep_nombre+', '+e.rep_cargo+' | correo: '+(e.email||'(ver correo empresa en datos de contacto)')+'. Este nombre debe aparecer textualmente.\nArt.22 Procedimiento denuncia: formulario escrito o verbal → acuse recibo 2 días hábiles → medidas cautelares DENTRO DE 5 DÍAS HÁBILES (separación física obligatoria, redistribución tareas).\nArt.23 Investigación interna: investigador imparcial designado en 3 días hábiles. Para empresas <10 trabajadores, el empleador PUEDE derivar la investigación directamente a la Inspección del Trabajo. Informe con conclusiones DENTRO DE 30 DÍAS HÁBILES.\nArt.24 Sanciones al infractor: escala amonestación → multa → término contrato Art.160 N°1 CT letra f).\nArt.25 Protección denunciante: confidencialidad, no represalias, no despido sin autorización DT durante investigación.\nArt.26 Canal externo: Inspección del Trabajo (dt.gob.cl / 600 4500 247). Plazo: 90 días CORRIDOS desde hecho.\nArt.27 Registro libro denuncias reservado, estadísticas anuales.\n\nPROTOCOLO ALCOHOL Y DROGAS (DS 44/2024 Art.9):\nArt.28 Prohibición absoluta con base legal (DS 44/2024 Art.9 y CT Art.184).\nArt.29 Indicios razonables que habilitan el test: aliento alcohólico, conducta alterada, coordinación deteriorada, ojos enrojecidos, habla incoherente.\nArt.30 Procedimiento test: aplicado por profesional de salud o institución acreditada; cadena de custodia; derecho trabajador a solicitar segunda muestra.\nArt.31 Consecuencias positivo: suspensión inmediata, proceso disciplinario, causal Art.160 N°1 CT en reiteración.\nArt.32 Consecuencias negativa: se considera positivo según criterio DT.\n\nCAP.XXI DISPOSICIONES FINALES:\nArt.33 Este RIOHS entra en vigencia el '+fecha+' y se revisará anualmente.\nArt.34 Distribución gratuita: copia a cada trabajador con acuse de recibo firmado.\nArt.35 Ingreso portal DT dentro de 15 días hábiles desde aprobación (CT Art.156).\nArt.36 Modificaciones: comunicar 30 días anticipación, aprobación previa Inspección DT.\n\nCAP.XXII CONTROL DOCUMENTAL Y FIRMAS:\n'+ctrl+'\n\nAUTORIZACIÓN Y FIRMA DEL DOCUMENTO:\n\nElaborado por:\nAlan Bascur Montenegro\nIngeniero en Prevención de Riesgos | Plus Control SpA\nLastarrias 602, Osorno, Los Lagos\n\nAprobado por:\n'+e.rep_nombre+'\n'+e.rep_cargo+'\nRUT: '+e.rep_rut+'\n'+e.razon+(e.rep2_nombre?'\n\nFirma y timbre: '+e.rep2_nombre+' (Representante Legal) | RUT: '+(e.rep2_rut||'---')+'.':'')+'\n\nFecha: '+fecha+'.';
+  // PARTE 6 — Cap.XII + XIII + XIV + XV (7.500 tokens)
+  if(tipo==='riohs_p6') return I+'\nElabora RIOHS PARTE 6 — CAPÍTULOS XII, XIII, XIV y XV para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO XII: RIESGOS PSICOSOCIALES Y PROTOCOLO ALCOHOL/DROGAS (DS 44/2024, CEAL-SM-SUSESO)\n'+
+    '- Evaluación CEAL-SM-SUSESO: 6 dimensiones (carga laboral, desarrollo tareas, liderazgo, relaciones sociales, doble presencia, compensaciones), aplicación cada 2 años, medidas organizacionales.\n'+
+    '- NOTA: Protocolo Ley Karin completo en Capítulo XX.\n'+
+    '- Protocolo alcohol y drogas (DS 44/2024 Art.9): prohibición absoluta con base legal. Indicios razonables: aliento alcohólico, conducta alterada, coordinación deteriorada, ojos enrojecidos. Test por profesional de salud o institución acreditada, cadena de custodia, derecho a segunda muestra. Resultado positivo: suspensión inmediata + proceso disciplinario. Negativa al test: se considera positivo (criterio DT).\n\n'+
+    'CAPÍTULO XIII: REPRESENTACIÓN PREVENTIVA Y PARTICIPACIÓN (DS 44/2024 Arts.23-37)\n'+
+    cphs_txt+'. Desarrollar completamente: '+
+    (e.trabajadores<10 ? 'mecanismo de participación directa, asambleas mensuales obligatorias (fecha, hora, lugar, temario mínimo, acta firmada), canales de comunicación, derecho a información (DS 44/2024 Art.5), derecho a consulta (Art.6), derecho a paralización faenas riesgo grave e inminente (CT Art.184 + DS 44/2024 Art.12).' :
+     e.trabajadores<25 ? 'Delegado SST: elección democrática, funciones, mandato, protección. Asambleas mensuales. Derechos de los trabajadores.' :
+     'CPHS: constitución, representantes, funciones DS 44/2024 Art.23, reuniones mensuales, actas, facultades.')+'\n\n'+
+    'CAPÍTULO XIV: SISTEMA DE GESTIÓN PREVENTIVA (DS 44/2024 Arts.7-22)\n'+
+    '- MIPER: metodología PxC 1-5 con enfoque género, identificación sistemática todos los peligros de '+e.rubro+', revisión anual o ante cambios, disponible para consulta de trabajadores.\n'+
+    '- Programa de Trabajo Preventivo: elaborar dentro de 30 días de la MIPER, mínimo: capacitaciones, inspecciones, evaluaciones ambientales, simulacros.\n'+
+    '- Vigilancia de la salud: exámenes según riesgo del cargo, coordinación con '+e.mutualidad+'.\n'+
+    '- Jerarquía de controles (DS 44/2024 Art.11): eliminación → sustitución → ingeniería → administrativos → EPP.\n\n'+
+    'CAPÍTULO XV: ORDEN, HIGIENE Y CONDICIONES SANITARIAS (DS 594/1999 MINSAL)\n'+
+    '- Servicios higiénicos según DS 594 Art.25-28: requerimientos para '+e.trabajadores+' trabajadores, '+(e.mujeres||0)+' mujeres.\n'+
+    '- Agua potable, comedor (DS 594 Art.28), vestuarios si corresponde.\n'+
+    '- Iluminación mínima según tipo de tarea (DS 594 Art.103).\n'+
+    '- Ventilación y temperatura (DS 594 Arts.32-35).\n'+
+    '- Almacenamiento de sustancias: '+e.sustancias+' — condiciones específicas DS 594.\n'+
+    '- Manipulación manual de cargas (Ley 20.949/2016, DS 63/2005): límites 25 kg hombres adultos / 15 kg mujeres adultas en condiciones ideales; reducir ante postura inadecuada, frecuencia alta o distancia.\n\nAl terminar escribe exactamente: ===R6FIN===';
 
-  if(tipo==='iper_p1') return I+'\nElabora MATRIZ IPER DS 44/2024 PARTE 1 para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
+  // PARTE 7 — Cap.XVI + XVII + XVIII (7.500 tokens)
+  if(tipo==='riohs_p7') return I+'\nElabora RIOHS PARTE 7 — CAPÍTULOS XVI, XVII y XVIII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO XVI: PLAN DE EMERGENCIA Y EVACUACIÓN (DS 594 Art.44-54, DS 44/2024 Art.19)\n'+
+    '- Escenarios de emergencia específicos para '+e.rubro+'/'+e.subrubro+': incendio, derrame químico ('+e.sustancias+'), sismo, accidente grave, emergencia médica.\n'+
+    '- Roles y responsabilidades proporcionales a '+e.trabajadores+' trabajadores ('+e.cargos+').\n'+
+    '- Vías de evacuación, puntos de reunión, señalética.\n'+
+    '- Equipos: extintores='+e.extintores+', alarma='+e.alarma+', botiquín='+e.botiquin+'.\n'+
+    '- Simulacros: mínimo 1 anual obligatorio (DS 44/2024 Art.19), registro asistencia y evaluación.\n'+
+    '- DIRECTORIO DE EMERGENCIAS (incluir TODOS):\n'+
+    '  Bomberos 132 | SAMU 131 | Carabineros 133 | SENAPRED 1424\n'+
+    '  '+getTelMutualidad(e.mutualidad)+'\n'+
+    '  '+getSEREMI(e.region)+'\n'+
+    '  Hospital más cercano: '+e.hospital+'\n'+
+    '  Contacto empresa: '+e.telefono+'\n\n'+
+    'CAPÍTULO XVII: INVESTIGACIÓN DE ACCIDENTES E INCIDENTES (DS 44/2024 Art.18, Ley 16.744 Art.76)\n'+
+    '- Obligación de investigar todo accidente del trabajo y cuasi-accidente.\n'+
+    '- Metodología: árbol de causas o 5-Por qué, causas inmediatas y básicas, factores contribuyentes.\n'+
+    '- DIAT: presentar ante '+e.mutualidad+' dentro de las 24 horas siguientes al accidente (Ley 16.744 Art.76).\n'+
+    '- Informe de investigación: descripción, causas, medidas correctivas con responsable y plazo.\n'+
+    '- Comunicación a trabajadores de los resultados y medidas adoptadas.\n'+
+    '- Estadísticas: tasa accidentabilidad, frecuencia, gravedad. Diferenciadas por género.\n\n'+
+    'CAPÍTULO XVIII: INFRACCIONES Y SANCIONES (CT Art.154 N°7, CT Art.157)\n'+
+    'Desarrollar con artículos numerados completos. Mínimo 6 ejemplos específicos de '+e.rubro+' en cada categoría:\n'+
+    'Art.1 Fundamento legal y ámbito — Art.2 INFRACCIONES LEVES: mínimo 8 ejemplos específicos del rubro — Art.3 INFRACCIONES GRAVES: mínimo 8 ejemplos específicos — Art.4 INFRACCIONES GRAVÍSIMAS: mínimo 6 ejemplos específicos — Art.5 ESCALA DE SANCIONES: amonestación verbal → amonestación escrita → multa máx.25% remuneración diaria (CT Art.154 N°7) → término contrato Art.160 N°1 CT. Destino multas: fondos bienestar (CT Art.157) — Art.6 PROCEDIMIENTO SANCIONATORIO: 7 fases (constatación 24hrs / comunicación 3 días hábiles / descargos 5 días hábiles / investigación / resolución 10 días hábiles / notificación / registro) — Art.7 Non bis in idem — Art.8 Prescripción: leves 6 meses, graves 12 meses — Art.9 Registro Centralizado de Sanciones — Art.10 Infracción Ley 21.561: trabajar sobre 42 hrs sin pacto escrito CT Art.32 = infracción grave.\n\nAl terminar escribe exactamente: ===R7FIN===';
+
+  // PARTE 8 — Cap.XIX + XX + XXI + XXII (6.800 tokens)
+  if(tipo==='riohs_p8') return I+'\nElabora RIOHS PARTE 8 FINAL — CAPÍTULOS XIX, XX, XXI y XXII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+    'CAPÍTULO XIX: CANALES DE DENUNCIA Y RECLAMO\n'+
+    'Art.1 Canal interno: '+e.rep_nombre+', '+e.rep_cargo+', correo: '+(e.email||'ver datos de contacto')+'. Acuse recibo 2 días hábiles.\n'+
+    'Art.2 Canal DT externo: dt.gob.cl, fono 600 4500 247, oficina DT Región de '+e.region+'.\n'+
+    'Art.3 Canal SUSESO: 600 4200 400. '+getSEREMI(e.region)+'.\n'+
+    'Art.4 Plazos: resolución interna 30 días hábiles.\n'+
+    'Art.5 Protección denunciante: confidencialidad, prohibición represalias.\n\n'+
+    'CAPÍTULO XX: PROTOCOLO LEY KARIN — PREVENCIÓN Y SANCIÓN VIOLENCIA LABORAL (Ley 21.643 + DS 2/2024)\n'+
+    'Desarrollar COMPLETAMENTE. Mínimo 3 oraciones por artículo:\n'+
+    'Art.6 Ámbito: '+e.razon+', incluyendo conductas de clientes/proveedores/público hacia trabajadores.\n'+
+    'Art.7 Acoso laboral (Ley 21.643 Art.2): agresión u hostigamiento, UNA SOLA VEZ O reiterada, que menoscabe o humille.\n'+
+    'Art.8 Acoso sexual (CT Art.2 inc.2): requerimiento sexual no consentido que amenace situación laboral.\n'+
+    'Art.9 Violencia en el trabajo: fuerza física o psicológica por terceros con resultado de daño.\n'+
+    'Art.10 Medidas preventivas: capacitación anual, CEAL-SM-SUSESO, difusión trimestral protocolo.\n'+
+    'Art.11 Responsable nominado: '+e.rep_nombre+', '+e.rep_cargo+', '+( e.email||'ver contacto empresa')+'. Acuse recibo DENTRO DE 2 DÍAS HÁBILES.\n'+
+    'Art.12 Medidas cautelares DENTRO DE 5 DÍAS HÁBILES: separación física obligatoria, redistribución tareas.\n'+
+    'Art.13 Investigación: investigador imparcial en 3 días hábiles. Empresas <10 trabajadores pueden derivar a IT. Informe DENTRO DE 30 DÍAS HÁBILES.\n'+
+    'Art.14 Sanciones al infractor: amonestación → multa → término contrato Art.160 N°1 CT letra f).\n'+
+    'Art.15 Protección denunciante: confidencialidad, no represalias, no despido sin autorización DT durante investigación.\n'+
+    'Art.16 Canal externo DT: dt.gob.cl / 600 4500 247. Plazo: 90 DÍAS CORRIDOS desde el hecho.\n'+
+    'Art.17 Registro de denuncias reservado y estadísticas anuales.\n\n'+
+    'CAPÍTULO XXI: DISPOSICIONES FINALES\n'+
+    'Art.18 Vigencia desde '+fecha+', revisión anual obligatoria.\n'+
+    'Art.19 Entrega gratuita con acuse de recibo firmado (CT Art.156).\n'+
+    'Art.20 Carga en portal DT dentro de 15 días hábiles desde aprobación (CT Art.156).\n'+
+    'Art.21 Modificaciones: 30 días anticipación, aprobación Inspección del Trabajo.\n\n'+
+    'CAPÍTULO XXII: CONTROL DOCUMENTAL Y FIRMAS\n'+
+    ctrl+'\n\n'+
+    'AUTORIZACIÓN Y FIRMA DEL DOCUMENTO\n'+
+    'Documento elaborado conforme a normativa chilena vigente. Queda sujeto a la aprobación de los firmantes.\n\n'+
+    'Elaborado por: Alan Bascur Montenegro | Ingeniero en Prevención de Riesgos | RUT: 17.658.387-8 | Plus Control SpA | Lastarrias 602, Osorno, Los Lagos | Fecha: '+fecha+'\n\n'+
+    'Aprobado por: '+e.rep_nombre+' | '+e.rep_cargo+' | RUT: '+e.rep_rut+' | '+e.razon+
+    (e.rep2_nombre?'\n\nFirma y timbre: '+e.rep2_nombre+' | Representante Legal | RUT: '+(e.rep2_rut||'---')+' | '+e.razon:'')+
+    '\n\nFecha de aprobación: '+fecha+'.';
+
+    if(tipo==='iper_p1') return I+'\nElabora MATRIZ IPER DS 44/2024 PARTE 1 para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
     'ENCABEZADO FORMAL completo con datos del cliente arriba.\n\n'+
     'METODOLOGÍA P×C CON ENFOQUE DE GÉNERO (DS 44/2024 Art.7):\n'+
     'Probabilidad 1-5: 1=Muy poco probable, 2=Poco probable, 3=Posible, 4=Probable, 5=Muy probable.\n'+
@@ -1023,27 +1159,30 @@ async function startGen(){
   try {
     var texto='';
     if(gTipo==='riohs'){
-      lbl.textContent='Claude · Parte 1/8 — Preámbulo y Definiciones...';
-      var p1a=await callClaude(buildPrompt(e,'riohs_p1a',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 2/8 — Jornada y Riesgos del Rubro...');
-      var p1b=await callClaude(buildPrompt(e,'riohs_p1b',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 3/8 — Obligaciones y Derecho a Saber...');
-      var p2a=await callClaude(buildPrompt(e,'riohs_p2a',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 4/8 — EPP, Accidentes y Psicosocial...');
-      var p2b=await callClaude(buildPrompt(e,'riohs_p2b',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 5/8 — Representación y Gestión Preventiva...');
-      var p3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 6/8 — Infracciones y Sanciones...');
-      var p4a=await callClaude(buildPrompt(e,'riohs_p4a',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 7/8 — Protocolo Ley Karin...');
-      var p4b=await callClaude(buildPrompt(e,'riohs_p4b',normas,rStr,fecha),0,onChunk);
-      texto=p1a.replace('===P1aFIN===','').trim()+'\n\n'+
-            p1b.replace('===P1bFIN===','').trim()+'\n\n'+
-            p2a.replace('===P2aFIN===','').trim()+'\n\n'+
-            p2b.replace('===P2bFIN===','').trim()+'\n\n'+
-            p3.replace('===P3FIN===','').trim()+'\n\n'+
-            p4a.replace('===P4aFIN===','').trim()+'\n\n'+
-            p4b;
+      lbl.textContent='Claude · Parte 1/8 — Preámbulo y Política SST...';
+      var r1=await callClaude(buildPrompt(e,'riohs_p1',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 2/8 — Definiciones y Admisión...');
+      var r2=await callClaude(buildPrompt(e,'riohs_p2',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 3/8 — Jornada, Obligaciones Empleador y Riesgos...');
+      var r3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 4/8 — Obligaciones Trabajadores y Prohibiciones...');
+      var r4=await callClaude(buildPrompt(e,'riohs_p4',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 5/8 — Derecho a Saber, EPP y Accidentes...');
+      var r5=await callClaude(buildPrompt(e,'riohs_p5',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 6/8 — Psicosocial, Representación y Gestión...');
+      var r6=await callClaude(buildPrompt(e,'riohs_p6',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 7/8 — Emergencias, Investigación e Infracciones...');
+      var r7=await callClaude(buildPrompt(e,'riohs_p7',normas,rStr,fecha),0,onChunk);
+      bannerParte('Claude · Parte 8/8 — Ley Karin, Disposiciones Finales y Firmas...');
+      var r8=await callClaude(buildPrompt(e,'riohs_p8',normas,rStr,fecha),0,onChunk);
+      texto=r1.replace('===R1FIN===','').trim()+'\n\n'+
+            r2.replace('===R2FIN===','').trim()+'\n\n'+
+            r3.replace('===R3FIN===','').trim()+'\n\n'+
+            r4.replace('===R4FIN===','').trim()+'\n\n'+
+            r5.replace('===R5FIN===','').trim()+'\n\n'+
+            r6.replace('===R6FIN===','').trim()+'\n\n'+
+            r7.replace('===R7FIN===','').trim()+'\n\n'+
+            r8;
     } else if(gTipo==='iper'){
       lbl.textContent='Claude · IPER Parte 1/2...';
       var ip1=await callClaude(buildPrompt(e,'iper_p1',normas,rStr,fecha),0,onChunk);
