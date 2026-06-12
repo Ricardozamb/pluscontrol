@@ -709,7 +709,7 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     'Art.2 Ámbito de Aplicación: aplica a TODOS los trabajadores de '+e.razon+' ('+e.cargos+'), contratistas, subcontratistas, visitas. Domicilio: '+e.direccion+', '+e.ciudad+', Región de '+e.region+'. Jornada: '+e.horario+' = '+e.horas_semanales+' hrs/semana (máx. legal 42 hrs desde 26-abr-2026, Ley 21.561/2023).\n\n'+
     'Art.3 Vigencia y Actualización: vigencia desde '+fecha+'. Revisión anual obligatoria. Modificaciones con 30 días anticipación y aprobación DT (CT Art.156).\n\n'+
     'Art.4 Política de Seguridad y Salud en el Trabajo: desarrollar política completa firmada por '+e.rep_nombre+', con compromiso de la dirección, objetivos medibles 2026-2027 (accidentabilidad cero, 100% capacitación, EPP certificados, cumplimiento legal), responsabilidades de cada cargo ('+e.cargos+'), '+cphs_txt+', mejora continua.\n\n'+
-    'Art.5 Difusión y Entrega: entrega gratuita a cada trabajador (CT Art.156), acuse de recibo firmado, carga en portal DT dentro de 5 días hábiles, exhibición en lugar visible.\n\nAl terminar escribe exactamente: ===R1FIN===';
+    'Art.5 Difusión y Entrega: entrega gratuita a cada trabajador (CT Art.156), acuse de recibo firmado, carga en portal DT dentro de 15 días hábiles desde aprobación (CT Art.156 — NO 5 días), exhibición en lugar visible. TABLA ACUSE DE RECIBO obligatoria: Nombre | RUT | Cargo | Fecha recepción | Firma.\n\nAl terminar escribe exactamente: ===R1FIN===';
 
   // PARTE 2 — Cap.II + III (6.300 tokens)
   if(tipo==='riohs_p2') return I+'\nElabora RIOHS PARTE 2 — CAPÍTULOS II y III para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
@@ -806,7 +806,7 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
   // PARTE 5 — Cap.IX + X + XI (6.500 tokens)
   if(tipo==='riohs_p5') return I+'\nElabora RIOHS PARTE 5 — CAPÍTULOS IX, X y XI para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
     'CAPÍTULO IX: DERECHO A SABER — INFORMACIÓN DE RIESGOS POR PUESTO (DS 44/2024 Art.14-15)\n'+
-    'Tabla en formato markdown por cada cargo real ('+e.cargos+'). Columnas: Cargo | Tarea específica | Peligro | Riesgo potencial | Medida preventiva | EPP obligatorio | Norma aplicable. Mínimo 4 filas por cargo. Protocolo de entrega con firma del trabajador. Actualización ante cambios en el puesto.\n\n'+
+    'Tabla en formato markdown por cada cargo real ('+e.cargos+'). Columnas OBLIGATORIAS: Cargo | Tarea específica (R/NR) | Peligro — Fuente/Situación | Peligro — Acto/condición insegura | Tipo peligro | Consecuencia potencial | P(1-5) | S(1-5) | VEP | Nivel riesgo | Medida preventiva (jerarquía ISP) | EPP obligatorio con norma NCh | Método de trabajo seguro/PTS asociado | Norma aplicable. Mínimo 4 filas por cargo. Protocolo de entrega con firma del trabajador. Actualización ante cambios en el puesto.\n\n'+
     'CAPÍTULO X: EQUIPOS DE PROTECCIÓN PERSONAL — EPP (DS 44/2024 Art.13, Ley 16.744 Art.68)\n'+
     'Tabla en formato markdown. Columnas: Cargo | EPP específico | Norma NCh | Certificación ISP | Situación de uso | Frecuencia reposición | Responsable entrega. Incluir todos los cargos de '+e.razon+'. EPP específicos para '+e.rubro+'. Procedimiento entrega con registro firmado, reposición inmediata sin costo, responsabilidad del trabajador de informar deterioro.\n\n'+
     'CAPÍTULO XI: ACCIDENTES DEL TRABAJO Y ENFERMEDADES PROFESIONALES (Ley 16.744)\n'+
@@ -845,12 +845,13 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
   // PARTE 7 — Cap.XVI + XVII + XVIII (7.500 tokens)
   if(tipo==='riohs_p7') return I+'\nElabora RIOHS PARTE 7 — CAPÍTULOS XVI, XVII y XVIII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
     'CAPÍTULO XVI: PLAN DE EMERGENCIA Y EVACUACIÓN (DS 594 Art.44-54, DS 44/2024 Art.19)\n'+
-    '- Escenarios de emergencia específicos para '+e.rubro+'/'+e.subrubro+': incendio, derrame químico ('+e.sustancias+'), sismo, accidente grave, emergencia médica.\n'+
-    '- Roles y responsabilidades proporcionales a '+e.trabajadores+' trabajadores ('+e.cargos+').\n'+
-    '- Vías de evacuación, puntos de reunión, señalética.\n'+
-    '- Equipos: extintores='+e.extintores+', alarma='+e.alarma+', botiquín='+e.botiquin+'.\n'+
-    '- Simulacros: mínimo 1 anual obligatorio (DS 44/2024 Art.19), registro asistencia y evaluación.\n'+
-    '- DIRECTORIO DE EMERGENCIAS (incluir TODOS):\n'+
+    '⚠️ INSTRUCCIÓN: Este capítulo es el RESUMEN ejecutivo del Plan de Emergencia dentro del RIOHS. Desarrollar con artículos completos (mínimo 3 oraciones c/u), NO en bullets.\n'+
+    '- Art.XVI.1 Marco legal y relación con Plan de Emergencia autónomo: este capítulo complementa el Plan de Emergencia y Evacuación independiente de '+e.razon+'. Fundamento: DS 594/1999 Arts.44-54, DS 44/2024 Art.19, Ley 16.744.\n'+
+    '- Art.XVI.2 Escenarios identificados para '+e.rubro+'/'+e.subrubro+': incendio, derrame químico ('+e.sustancias+'), sismo, accidente grave/fatal, emergencia médica. Procedimiento de 3 fases (antes/durante/después) para cada escenario.\n'+
+    '- Art.XVI.3 Roles nominados: Jefe de Emergencia ('+e.rep_nombre+'), Coordinador Evacuación, Primeros Auxilios, Comunicaciones. Una persona puede tener más de un rol en empresa de '+e.trabajadores+' trabajadores.\n'+
+    '- Art.XVI.4 Recursos disponibles: extintores='+e.extintores+', alarma='+e.alarma+', botiquín='+e.botiquin+', primeros auxilios capacitado='+e.primeros_auxilios+'.\n'+
+    '- Art.XVI.5 Simulacros: mínimo 1 anual obligatorio (DS 44/2024 Art.19). REGISTRO OBLIGATORIO: fecha | escenario simulado | tiempo evacuación | N° participantes con firma | observaciones | plan mejora con responsable y plazo.\n'+
+    '- DIRECTORIO DE EMERGENCIAS (incluir TODOS con número verificado):\n'+
     '  Bomberos 132 | SAMU 131 | Carabineros 133 | SENAPRED 1424\n'+
     '  '+getTelMutualidad(e.mutualidad)+'\n'+
     '  '+getSEREMI(e.region)+'\n'+
@@ -1082,8 +1083,8 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     'Art.7 SANCIONES AL INFRACTOR: amonestación escrita → multa hasta 25% remuneración diaria → término contrato Art.160 N°1 CT.\n'+
     'Art.8 PROTECCIÓN DENUNCIANTE: confidencialidad, prohibición absoluta de represalias, no puede ser despedido durante investigación sin autorización DT.\n'+
     'Art.9 CANAL EXTERNO: Inspección del Trabajo (dt.gob.cl / 600 4500 247 / Oficina DT Región de '+e.region+'). Plazo denuncia: 90 días CORRIDOS (calendarios) desde ocurrencia del hecho.\n'+
-    'Art.10 REGISTRO: libro de denuncias reservado, estadísticas anuales, reporte a mutualidad.\n'+
-    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+    'Art.10 REGISTRO Y DIFUSIÓN: libro de denuncias reservado, estadísticas anuales diferenciadas por tipo y género, reporte a '+e.mutualidad+'. Difusión trimestral del protocolo a todos los trabajadores. TABLA ACUSE DE RECIBO obligatoria: Nombre | RUT | Cargo | Fecha | Firma — para cada uno de los '+e.trabajadores+' trabajadores.\n'+
+    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. '+e.rep_nombre+', '+e.rep_cargo+'. Fecha: '+fecha+'.';
 
   if(tipo==='capacitacion') return I+'\nElabora PROGRAMA DE CAPACITACIÓN ANUAL EN SST para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
     'FUNDAMENTO LEGAL: DS 44/2024 Art.16 (mínimo 8 horas anuales, enfoque género obligatorio).\n\n'+
@@ -1101,8 +1102,13 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '8. Perspectiva de género en SST (DS 44/2024 enfoque género).\n'+'9. Ley 21.561 — Nueva jornada laboral 42 hrs (vigente 26-abr-2026): derechos de los trabajadores, reducción progresiva hasta 40 hrs en 2028, pacto de horas extras, consecuencias de infracción (CT Art.22 y Art.506).\n'+
     (e.trab_altura!=='No'?'10. Trabajo en altura seguro (DS 594/1999, NCh 1357).\n':'')+
     (e.sustancias!=='Ninguna'?'11. Manejo seguro de '+e.sustancias+' (NCh 382, DS 57/2024 MINSAL SGA).\n':'')+
-    '\nREGISTROS: lista de asistencia firmada por capacitado, evaluación comprensión, certificado participación.\n'+
-    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. Fecha: '+fecha+'.';
+    '\nREGISTROS OBLIGATORIOS (DS 44/2024 Art.16 inc.4):\n'+
+    '1. Lista de asistencia: Nombre | RUT | Cargo | Firma — obligatoria en CADA sesión.\n'+
+    '2. Evaluación de aprendizaje: nota o porcentaje de respuestas correctas por participante.\n'+
+    '3. Certificado de participación: emitido por Plus Control SpA / relator, con horas y contenidos.\n'+
+    '4. Registro de actividades de reforzamiento ante evaluación insatisfactoria (<60%).\n'+
+    'TABLA PROGRAMA ANUAL: N° | Módulo | Contenido | Horas | Fecha programada | Relator | Participantes | Metodología (presencial/e-learning/taller práctico) | Indicador éxito | Estado (pendiente/realizado/reprogramado).\n'+
+    'Firma: Alan Bascur Montenegro IPR Plus Control SpA. '+e.rep_nombre+', '+e.rep_cargo+'. Fecha: '+fecha+'.';
 
   if(tipo==='derechosaber') return I+'\nElabora DOCUMENTO DERECHO A SABER (DS 44/2024 Arts.14-15 + DS 40/1969 Art.21) para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
     'FUNDAMENTO LEGAL — 3 ELEMENTOS OBLIGATORIOS (DS 44/2024 Art.15): el empleador debe informar a CADA trabajador ANTES de iniciar labores: '+
@@ -1197,20 +1203,23 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
       'MEDIDAS COMPENSATORIAS POR AUSENCIA DE SISTEMA DE ALARMA: detector de humo autónomo en zona de almacenamiento de '+e.sustancias+'; extintor ABC máx. 15 m de bodega; prohibición fumar y fuentes ignición en radio 10 m; revisión visual al inicio y cierre de jornada; cartilla de emergencia química visible; rondas inspección cada 2 hrs durante jornada.\n\n':'')+
     '--- SECCIÓN 4: ORGANIGRAMA DE EMERGENCIA ---\n'+
     'Art.6 Estructura proporcional a '+e.trabajadores+' trabajadores ('+cphs_txt+'). Cargos reales: '+(e.cargos||'ver ficha de cargos de la empresa')+'.\n'+
-    'Roles mínimos a asignar a personas nominadas (nombre y cargo real):\n'+
-    '- Jefe de Emergencia (titular y suplente): evalúa magnitud, ordena evacuación, contacta servicios externos, autoriza reingreso.\n'+
-    '- Coordinador de Evacuación: guía personal por vías señalizadas, verifica que no queden personas, realiza conteo en punto de reunión.\n'+
-    '- Responsable de Primeros Auxilios: atiende lesionados con protocolo ABC (vía aérea / respiración / circulación), NO administrar medicamentos, solicitar SAMU 131.\n'+
-    '- Responsable de Comunicaciones: realiza llamadas a servicios de emergencia, informa a familiares previa autorización, mantiene directorio actualizado.\n'+
-    (e.trab_vehiculos!=='No'?'- Conductor de emergencia: traslada lesionados a '+e.hospital+' si SAMU no llega a tiempo.\n':'')+
+    '⚠️ INSTRUCCIÓN CRÍTICA — TABLA NOMINADA OBLIGATORIA: Elaborar una TABLA con nombre completo, cargo y teléfono de cada rol asignado. Con '+e.trabajadores+' trabajadores los roles se distribuyen entre las personas reales de la empresa — una persona puede tener más de un rol. El Representante Legal '+e.rep_nombre+' queda como Jefe de Emergencia titular por defecto. NUNCA dejar celdas en blanco ni usar [NOMBRE] como placeholder — si hay pocos trabajadores, el suplente puede ser la misma persona en otro rol o el Representante Legal.\n'+
+    'TABLA ROLES: Rol | Titular (Nombre / Cargo / Teléfono) | Suplente (Nombre / Cargo / Teléfono) | Funciones principales.\n'+
+    'Roles mínimos obligatorios:\n'+
+    '- Jefe de Emergencia: evalúa magnitud, declara nivel de alerta (Verde/Amarilla/Roja), ordena evacuación, contacta servicios externos, autoriza reingreso, notifica a '+e.mutualidad+' si hay lesionados.\n'+
+    '- Coordinador de Evacuación: guía personal por vías señalizadas, barrido de todas las zonas para verificar que no queden personas, conteo nominal en punto de reunión, informa al Jefe.\n'+
+    '- Responsable de Primeros Auxilios: atiende lesionados con protocolo ABC, NO administra medicamentos, activa SAMU 131, acompaña al lesionado hasta entrega al servicio médico.\n'+
+    '- Responsable de Comunicaciones: llama a Bomberos 132 / SAMU 131 / Carabineros 133, registra hora de cada llamada, informa a familiares previa autorización, mantiene directorio actualizado.\n'+
+    (e.trab_vehiculos!=='No'?'- Conductor de emergencia: traslada lesionados a '+e.hospital+' si SAMU no llega en tiempo prudente, conoce ruta más rápida.\n':'')+
     '\n--- SECCIÓN 5: VÍAS DE EVACUACIÓN Y PUNTO DE REUNIÓN ---\n'+
     'Art.7 Vías de evacuación: señalizadas con pictogramas fotoluminiscentes NCh 2120/1, libres de obstáculos permanentemente, ancho mínimo 1,10 m, iluminación de emergencia autónoma 60 min mínimo. Escaleras: superficie antideslizante, pasamanos en ambos lados.\n'+
-    'Art.8 Punto de reunión exterior: mínimo 15 m de la edificación, fuera de vías de tráfico, señalizado, accesible para vehículos de emergencia. Jefe de Emergencia realiza conteo nominal de los '+e.trabajadores+' trabajadores.\n\ \n'+
+    'Art.8 Punto de reunión exterior: mínimo 15 m de la edificación, fuera de vías de tráfico, señalizado con círculo verde de 1 m de diámetro (NCh 2120/1), accesible para vehículos de emergencia. Jefe de Emergencia realiza conteo nominal de los '+e.trabajadores+' trabajadores.\n'+
+    'Art.8b PLANO DE EVACUACIÓN OBLIGATORIO: El empleador debe elaborar el plano físico o digital de las instalaciones a escala 1:100 o 1:50, identificando: todas las zonas (según croquis narrativo), vías de evacuación con flechas verdes fotoluminiscentes, punto de reunión (círculo verde), ubicación de extintores (ícono rojo NCh 2120/1), botiquín (cruz verde), tablero eléctrico general (ícono amarillo de rayo). El plano debe: (a) imprimirse mínimo en formato A3, plastificado; (b) exhibirse en lugar visible en CADA piso; (c) enviarse en PDF al Cuerpo de Bomberos local; (d) mantenerse copia impresa disponible para entrega al oficial a cargo en emergencia real. La ausencia del plano físico constituye infracción al Art.184 del Código del Trabajo y es observación frecuente en fiscalizaciones DT/SEREMI.\n\ \n'+
     '--- SECCIÓN 6: RECURSOS DE EMERGENCIA ---\n'+
-    'Art.9 Extintores: '+e.extintores+'. Distribución conforme NCh 934 Of.2008: distancia máxima 23 m (clase A) / 15 m (clase B). Revisión mensual visual, anual técnica.\n'+
+    'Art.9 Extintores: '+e.extintores+'. Distribución conforme NCh 934 Of.2008: distancia máxima 23 m (clase A) / 15 m (clase B). Revisión mensual visual, anual técnica con empresa certificada.\n'+
     'Art.10 Sistema de alarma: '+e.alarma+'.\n'+
     'Art.11 Botiquín de primeros auxilios: '+e.botiquin+'. Inspección mensual, reposición insumos usados dentro de 48 hrs.\n'+
-    'Art.12 Personal primeros auxilios: '+(e.primeros_auxilios==='Si'?'Sí, personal capacitado. Mantener certificado vigente.':'Sin personal capacitado actualmente — PRIORIDAD: capacitar mínimo 2 trabajadores en curso certificado SENCE.')+'.\n\ \n'+
+    'Art.12 Personal primeros auxilios: '+(e.primeros_auxilios==='Si'?'Sí, personal capacitado. Mantener certificado vigente con renovación cada 2 años.':'Sin personal capacitado actualmente — PRIORIDAD: capacitar mínimo 2 trabajadores (50% dotación) en curso certificado SENCE mínimo 16 hrs, que incluya RCP, control hemorragias, quemaduras e intoxicaciones. Organismos disponibles: Cruz Roja, ACHS, Mutual de Seguridad, IST.')+'.\n\ \n'+
     '--- SECCIÓN 7: DIRECTORIO DE EMERGENCIAS ---\n'+
     'Bomberos: 132 | SAMU: 131 | Carabineros: 133 | SENAPRED: 1424\n'+
     e.mutualidad+': '+getTelMutualidad(e.mutualidad)+'\n'+
@@ -1220,16 +1229,41 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
       'Hospital/Centro asistencial más cercano: '+(e.hospital||'No especificado')
     )+'\n'+
     'Teléfono empresa: '+e.telefono+'\n\ \n'+
-    '--- SECCIÓN 8: SIMULACROS Y EVALUACIÓN ---\n'+
-    'Art.13 Mínimo 1 simulacro anual obligatorio (DS 44/2024 Art.19). Se recomienda 2 anuales para rubro '+e.rubro+'. Programar para el '+(new Date().getMonth()<6?'segundo semestre '+new Date().getFullYear():'primer semestre '+(new Date().getFullYear()+1))+'.\n'+
-    'Tipos de simulacro: (a) AVISADO — primera vez, para familiarizar al personal con el procedimiento; (b) SIN AVISO — una vez internalizado el plan, para evaluar respuesta real.\n'+
-    'CRITERIOS DE EVALUACIÓN DEL SIMULACRO (basados en estándar hospitalario SSMSO):\n'+
-    '1. Tiempo total de evacuación desde la señal de alarma hasta el conteo completo en punto de reunión.\n'+
-    '2. Cumplimiento de roles: verificar que cada rol (Jefe de Emergencia, Coordinador Evacuación, Primeros Auxilios, Comunicaciones) ejecutó sus funciones según el plan.\n'+
-    '3. Comportamiento del personal: orden durante la evacuación, ausencia de carreras o pánico, no uso de ascensores, cierre de puertas tras el paso.\n'+
-    '4. Estado y uso de equipos: extintores accesibles y operativos, botiquín disponible, directorio de emergencias actualizado.\n'+
-    '5. Problemas y fallas observadas: identificar causas y proponer soluciones con responsable y plazo.\n'+
-    'REGISTRO OBLIGATORIO: fecha, tipo de emergencia simulada, participantes con firma, tiempo de evacuación, observaciones detalladas por criterio, plan de mejora con responsable y plazo de corrección.\n\ \n'+
+    '--- SECCIÓN 8: PROTOCOLO DE EMERGENCIAS EN OPERACIONES EN TERRENO ---\n'+
+    'Art.13 Alcance externo: cuando trabajadores de '+e.razon+' presten servicios en instalaciones de clientes, quedan sujetos tanto a este plan como a los protocolos de emergencia de la empresa receptora.\n'+
+    'Art.13b Procedimiento ante emergencia en terreno:\n'+
+    '1. DETENER inmediatamente la tarea al detectar la emergencia o activarse la alarma del cliente.\n'+
+    '2. SEGUIR las instrucciones del Coordinador de Evacuación de la empresa receptora — no actuar en forma independiente dentro de instalaciones ajenas.\n'+
+    '3. EVACUAR al punto de reunión designado por la empresa receptora y reportarse al Jefe de Emergencia de dicho lugar.\n'+
+    '4. COMUNICAR al Jefe de Emergencia de '+e.razon+' ('+e.rep_nombre+', tel. '+e.telefono+') dentro de los primeros 10 minutos.\n'+
+    '5. Si hay lesionado: activar SAMU 131, NO mover al accidentado salvo riesgo vital inminente, notificar a '+e.mutualidad+' dentro de 24 hrs (Ley 16.744 Art.76).\n'+
+    '6. NO reingresar al lugar de trabajo hasta que lo autorice el Jefe de Emergencia de la empresa receptora.\n'+
+    '7. REPORTAR el incidente al empleador en el mismo día, por escrito o vía WhatsApp con confirmación de lectura, para inicio de investigación.\n'+
+    'Art.13c Trabajadores en ruta (vehículos '+e.trab_vehiculos+'):\n'+
+    '- Ante accidente de tránsito: encender baliza, señalizar con triángulo, llamar Carabineros 133, SAMU 131, informar al empleador.\n'+
+    '- Ante falla mecánica en ruta: estacionar fuera de la calzada, encender baliza, colocar triángulos reflectantes a 50 m, no permanecer dentro del vehículo si hay tráfico pesado.\n'+
+    '- Ante emergencia química en vehículo (si transporta sustancias): alejarse 50 m a favor del viento, llamar Bomberos 132, no intentar controlar el derrame sin EPP adecuado.\n\ \n'+
+    '--- SECCIÓN 9: SIMULACROS Y EVALUACIÓN ---\n'+
+    'Art.14 Mínimo 1 simulacro anual obligatorio (DS 44/2024 Art.19). Se recomienda 2 anuales para rubro '+e.rubro+'. Programar el próximo para: '+(new Date().getMonth()<6?'segundo semestre '+new Date().getFullYear():'primer semestre '+(new Date().getFullYear()+1))+'.\n'+
+    'Tipos: (a) AVISADO — primera vez, para familiarizar al personal; (b) SIN AVISO — una vez internalizado el plan, para evaluar respuesta real.\n'+
+    'CRITERIOS DE EVALUACIÓN:\n'+
+    '1. Tiempo total de evacuación (desde señal hasta conteo completo en punto de reunión) — meta: <3 min para instalaciones de 1-2 pisos.\n'+
+    '2. Cumplimiento de roles: cada rol ejecutó sus funciones según este plan.\n'+
+    '3. Comportamiento del personal: orden, ausencia de pánico, cierre de puertas tras el paso.\n'+
+    '4. Estado de equipos: extintores accesibles, botiquín disponible, directorio actualizado.\n'+
+    '5. Problemas y fallas: identificar causas, proponer correcciones con responsable y plazo.\n'+
+    'FORMATO DE REGISTRO OBLIGATORIO (acreditable ante DT/SEREMI):\n'+
+    'Tabla: Fecha | Tipo emergencia simulada | Escenario | Duración total | Observaciones por criterio | N° participantes | Firma coordinador.\n'+
+    'Lista de asistencia: Nombre | RUT | Cargo | Firma — firmada por CADA uno de los '+e.trabajadores+' trabajadores.\n'+
+    'Plan de mejora post-simulacro: Problema observado | Causa | Medida correctiva | Responsable | Plazo | Estado.\n\ \n'+
+    '--- SECCIÓN 10: REGISTRO DE ENTREGA Y DIFUSIÓN ---\n'+
+    'Art.15 Obligación de difusión (DS 44/2024 Art.19, CT Art.156): este plan debe ser entregado gratuitamente a cada trabajador y comunicado formalmente mediante capacitación específica.\n'+
+    'TABLA ACUSE DE RECIBO (completar para cada uno de los '+e.trabajadores+' trabajadores):\n'+
+    '| N° | Nombre completo | RUT | Cargo | Fecha recepción | Firma trabajador |\n'+
+    '|---|---|---|---|---|---|\n'+
+    (Array.from({length: Math.min(parseInt(e.trabajadores)||1, 6)}, function(_,i){ return '| '+(i+1)+' | | | | | |'; }).join('\n'))+'\n'+
+    'Firma Empleador: '+e.rep_nombre+' | '+e.rep_cargo+' | Fecha: ___/___/______\n'+
+    'Nota: Este registro debe conservarse en archivo de la empresa disponible para fiscalización de DT, SEREMI Salud y '+e.mutualidad+'.\n\ \n'+
     'Normativa: DS 594/1999 Arts.44-54 | DS 44/2024 Art.19 | NCh 934 Of.2008 | NCh 2120/1 señalética.\n'+
     'Elaborado por: Alan Bascur Montenegro | Ing. Prevención de Riesgos | RUT 17.658.387-8 | Plus Control SpA | Fecha: '+fecha+'.';
 }
