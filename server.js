@@ -116,8 +116,8 @@ app.post('/api/claude', (req, res) => {
   res.setHeader('X-Accel-Buffering', 'no'); // deshabilitar buffering en Nginx/Render
 
   const payload = JSON.stringify({
-    model: 'claude-sonnet-4-5',
-    max_tokens: 8000,
+    model: 'claude-sonnet-4-6',
+    max_tokens: 16000,
     stream: true,
     system: SYSTEM,
     messages: [{ role: 'user', content: prompt }]
