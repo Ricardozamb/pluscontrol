@@ -115,9 +115,20 @@ app.post('/api/claude', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('X-Accel-Buffering', 'no'); // deshabilitar buffering en Nginx/Render
 
+  // Heartbeat cada 20s — evita que Render Free e iOS Safari corten la conexión SSE
+  // por inactividad durante las partes largas del RIOHS (8 llamadas secuenciales).
+  // Los comentarios SSE (": ping") son ignorados por el cliente.
+  const keepAlive = setInterval(() => {
+    try { res.write(': ping\n\n'); } catch(e) {}
+  }, 20000);
+
+  // Limpiar heartbeat en cualquier cierre de conexión
+  res.on('close', () => clearInterval(keepAlive));
+  res.on('finish', () => clearInterval(keepAlive));
+
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-6',
-    max_tokens: 16000,
+    max_tokens: 8192,
     stream: true,
     system: SYSTEM,
     messages: [{ role: 'user', content: prompt }]
@@ -177,23 +188,27 @@ app.post('/api/claude', (req, res) => {
         }
       }
       // Señal de fin
+      clearInterval(keepAlive);
       res.write('data: ' + JSON.stringify({ done: true }) + '\n\n');
       res.end();
     });
 
     r.on('error', err => {
+      clearInterval(keepAlive);
       res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
       res.end();
     });
   });
 
   req2.setTimeout(300000, () => {
+    clearInterval(keepAlive);
     req2.destroy();
     res.write('data: ' + JSON.stringify({ error: 'La generación tardó más de 5 minutos. Intente nuevamente.' }) + '\n\n');
     res.end();
   });
 
   req2.on('error', err => {
+    clearInterval(keepAlive);
     res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
     res.end();
   });
