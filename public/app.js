@@ -842,8 +842,8 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '- Almacenamiento de sustancias: '+e.sustancias+' — condiciones específicas DS 594.\n'+
     '- Manipulación manual de cargas (Ley 20.949/2016, DS 63/2005): límites 25 kg hombres adultos / 15 kg mujeres adultas en condiciones ideales; reducir ante postura inadecuada, frecuencia alta o distancia.\n\nAl terminar escribe exactamente: ===R6FIN===';
 
-  // PARTE 7 — Cap.XVI + XVII + XVIII (7.500 tokens)
-  if(tipo==='riohs_p7') return I+'\nElabora RIOHS PARTE 7 — CAPÍTULOS XVI, XVII y XVIII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
+  // PARTE 7a — Cap.XVI + XVII (plan emergencia e investigación)
+  if(tipo==='riohs_p7a') return I+'\nElabora RIOHS PARTE 7a — CAPÍTULOS XVI y XVII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
     'CAPÍTULO XVI: PLAN DE EMERGENCIA Y EVACUACIÓN (DS 594 Art.44-54, DS 44/2024 Art.19)\n'+
     '⚠️ INSTRUCCIÓN: Este capítulo es el RESUMEN ejecutivo del Plan de Emergencia dentro del RIOHS. Desarrollar con artículos completos (mínimo 3 oraciones c/u), NO en bullets.\n'+
     '- Art.XVI.1 Marco legal y relación con Plan de Emergencia autónomo: este capítulo complementa el Plan de Emergencia y Evacuación independiente de '+e.razon+'. Fundamento: DS 594/1999 Arts.44-54, DS 44/2024 Art.19, Ley 16.744.\n'+
@@ -863,10 +863,22 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     '- DIAT: presentar ante '+e.mutualidad+' dentro de las 24 horas siguientes al accidente (Ley 16.744 Art.76).\n'+
     '- Informe de investigación: descripción, causas, medidas correctivas con responsable y plazo.\n'+
     '- Comunicación a trabajadores de los resultados y medidas adoptadas.\n'+
-    '- Estadísticas: tasa accidentabilidad, frecuencia, gravedad. Diferenciadas por género.\n\n'+
+    '- Estadísticas: tasa accidentabilidad, frecuencia, gravedad. Diferenciadas por género.\n\nAl terminar escribe exactamente: ===R7aFIN===';
+
+  // PARTE 7b — Cap.XVIII solo (infracciones y sanciones — parte propia para evitar truncamiento)
+  if(tipo==='riohs_p7b') return I+'\nElabora RIOHS PARTE 7b — CAPÍTULO XVIII completo para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
     'CAPÍTULO XVIII: INFRACCIONES Y SANCIONES (CT Art.154 N°7, CT Art.157)\n'+
     'Desarrollar con artículos numerados completos. Mínimo 6 ejemplos específicos de '+e.rubro+' en cada categoría:\n'+
-    'Art.1 Fundamento legal y ámbito — Art.2 INFRACCIONES LEVES: mínimo 8 ejemplos específicos del rubro — Art.3 INFRACCIONES GRAVES: mínimo 8 ejemplos específicos — Art.4 INFRACCIONES GRAVÍSIMAS: mínimo 6 ejemplos específicos — Art.5 ESCALA DE SANCIONES: amonestación verbal → amonestación escrita → multa máx.25% remuneración diaria (CT Art.154 N°7) → término contrato Art.160 N°1 CT. Destino multas: fondos bienestar (CT Art.157) — Art.6 PROCEDIMIENTO SANCIONATORIO: 7 fases (constatación 24hrs / comunicación 3 días hábiles / descargos 5 días hábiles / investigación / resolución 10 días hábiles / notificación / registro) — Art.7 Non bis in idem — Art.8 Prescripción: leves 6 meses, graves 12 meses — Art.9 Registro Centralizado de Sanciones — Art.10 Infracción Ley 21.561: trabajar sobre 42 hrs sin pacto escrito CT Art.32 = infracción grave.\n\nAl terminar escribe exactamente: ===R7FIN===';
+    'Art.1 Fundamento legal y ámbito de aplicación: el presente capítulo establece el régimen de infracciones y sanciones aplicables a los trabajadores de '+e.razon+' en materia de Orden, Higiene y Seguridad, en ejercicio de la potestad disciplinaria del empleador reconocida en el CT Art.154 N°7. Las sanciones son graduales, proporcionales a la gravedad de la infracción y al historial del trabajador, y nunca podrán afectar la integridad física o la dignidad del trabajador.\n'+
+    'Art.2 INFRACCIONES LEVES: desarrollar mínimo 8 ejemplos concretos y específicos del rubro '+e.rubro+'/'+e.subrubro+', con descripción de 2 oraciones cada uno. Incluir: omisión de uso de EPP sin riesgo inmediato, desorden en puesto de trabajo, no reportar incidente el mismo día, no firmar registros, consumir alimentos en zonas prohibidas, uso incorrecto del cinturón de seguridad, omitir check-list vehicular, no comunicar desperfecto de equipo.\n'+
+    'Art.3 INFRACCIONES GRAVES: desarrollar mínimo 8 ejemplos específicos del rubro '+e.rubro+', con descripción de 2 oraciones cada uno. Una infracción leve que se reitera por tercera vez en 12 meses también es grave. Incluir: presentarse bajo efectos de alcohol/drogas, conducir vehículos de la empresa en estado alterado, manipular equipos sin PTS, ingresar a espacio confinado sin protocolo, omitir denuncia de accidente del trabajo, retirar señalética de seguridad, negarse al test de alcohol/drogas, falsificar registros de seguridad.\n'+
+    'Art.4 INFRACCIONES GRAVÍSIMAS: mínimo 6 ejemplos incluyendo: ejercer acoso laboral o sexual (Ley 21.643), falsificar certificados o documentos con consecuencias para terceros, presentarse en estado de ebriedad con resultado de accidente, causar daño intencional a equipos o instalaciones, divulgar información confidencial de clientes, cometer robo o hurto.\n'+
+    'Art.5 ESCALA DE SANCIONES: (a) Amonestación verbal — infracciones leves primera vez, queda registrada en expediente del trabajador; (b) Amonestación escrita — infracciones leves segunda vez o infracción de mayor entidad, notificación formal; (c) Multa — máximo 25% de la remuneración diaria (CT Art.154 N°7), proporcional a la gravedad; destino de las multas: fondos de bienestar de los trabajadores o servicios de bienestar sindical (CT Art.157); (d) Término del contrato sin indemnización — infracciones gravísimas conforme Art.160 N°1 del CT.\n'+
+    'Art.6 PROCEDIMIENTO SANCIONATORIO — 7 fases obligatorias: (1) Constatación: el empleador registra los hechos dentro de las 24 hrs de conocidos; (2) Comunicación al trabajador: dentro de 3 días hábiles, por escrito, describiendo los hechos y la infracción imputada; (3) Descargos: el trabajador tiene 5 días hábiles para presentar sus descargos verbalmente o por escrito; (4) Investigación interna: el empleador analiza los antecedentes aportados por ambas partes; (5) Resolución fundada: dentro de 10 días hábiles de recibidos los descargos, el empleador emite resolución indicando si aplica o desestima la sanción y sus fundamentos; (6) Notificación escrita: la resolución se notifica al trabajador personalmente con acuse de recibo; (7) Registro: la sanción aplicada se registra en la carpeta personal del trabajador.\n'+
+    'Art.7 Non bis in idem: una misma conducta o infracción no puede ser objeto de más de una sanción. Si los mismos hechos pueden encuadrarse en más de una categoría, se aplica la calificación más grave.\n'+
+    'Art.8 Prescripción: las infracciones leves prescriben a los 6 meses desde su ocurrencia; las graves y gravísimas prescriben a los 12 meses. La prescripción se interrumpe desde que el empleador toma conocimiento formal de los hechos e inicia el procedimiento sancionatorio.\n'+
+    'Art.9 Registro Centralizado de Sanciones: el empleador mantendrá un registro confidencial de todas las sanciones aplicadas, con indicación de la fecha, infracción, sanción impuesta y estado (cumplida/impugnada). Este registro estará disponible para la Dirección del Trabajo cuando sea requerido.\n'+
+    'Art.10 Infracción Ley 21.561: trabajar en exceso de 42 horas semanales sin pacto escrito previo conforme al CT Art.32 constituye infracción grave tanto para el empleador como para quien induzca al trabajador a prestar servicios fuera de la jornada ordinaria sin el correspondiente pacto y pago de recargo legal.\n\nAl terminar escribe exactamente: ===R7bFIN===';
 
   // PARTE 8 — Cap.XIX + XX + XXI + XXII (6.800 tokens)
   if(tipo==='riohs_p8') return I+'\nElabora RIOHS PARTE 8 FINAL — CAPÍTULOS XIX, XX, XXI y XXII para:\n\n'+base+'\n\nFecha: '+fecha+'.\n\n'+
@@ -903,7 +915,7 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     'Elaborado por: Alan Bascur Montenegro | Ingeniero en Prevención de Riesgos | RUT: 17.658.387-8 | Plus Control SpA | Lastarrias 602, Osorno, Los Lagos | Fecha: '+fecha+'\n\n'+
     'Aprobado por: '+e.rep_nombre+' | '+e.rep_cargo+' | RUT: '+e.rep_rut+' | '+e.razon+
     (e.rep2_nombre?'\n\nFirma y timbre: '+e.rep2_nombre+' | Representante Legal | RUT: '+(e.rep2_rut||'---')+' | '+e.razon:'')+
-    '\n\nFecha de aprobación: '+fecha+'.';
+    '\n\nFecha de aprobación: '+fecha+'\n\n===R8FIN===';
 
     if(tipo==='iper_p1') return I+'\nElabora MATRIZ IPER DS 44/2024 PARTE 1 para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
     'ENCABEZADO FORMAL completo con datos del cliente arriba.\n\n'+
@@ -1394,24 +1406,52 @@ async function startGen(){
     lbl.textContent=msg;
   }
 
+  // Continuación automática si una parte se corta antes del marcador FIN
+  async function continuar(texto, marcador, partLabel, onChunk) {
+    var MAX_REINTENTOS = 2;
+    var intentosCont = 0;
+    while (!texto.includes(marcador) && intentosCont < MAX_REINTENTOS) {
+      intentosCont++;
+      lbl.textContent = '↩ ' + partLabel + ' — completando (intento ' + intentosCont + ')...';
+      var tail = texto.slice(-600); // últimas 600 chars como contexto
+      var contPrompt = 'Eres el mismo sistema que estaba redactando un documento legal de prevención de riesgos para Chile. ' +
+        'El texto se cortó antes de terminar. Continúa EXACTAMENTE desde donde quedaste, sin repetir nada, ' +
+        'siguiendo el mismo estilo y estructura. El texto terminó así:\n\n' + tail +
+        '\n\nContinúa y al terminar escribe exactamente: ' + marcador;
+      var cont = await callClaude(contPrompt, 0, onChunk);
+      texto = texto + cont;
+    }
+    return texto;
+  }
+
   try {
     var texto='';
     if(gTipo==='riohs'){
-      lbl.textContent='Claude · Parte 1/8 — Preámbulo y Política SST...';
+      lbl.textContent='Claude · Parte 1/9 — Preámbulo y Política SST...';
       var r1=await callClaude(buildPrompt(e,'riohs_p1',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 2/8 — Definiciones y Admisión...');
+      r1 = await continuar(r1,'===R1FIN===','Parte 1/9',onChunk);
+      bannerParte('Claude · Parte 2/9 — Definiciones y Admisión...');
       var r2=await callClaude(buildPrompt(e,'riohs_p2',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 3/8 — Jornada, Obligaciones Empleador y Riesgos...');
+      r2 = await continuar(r2,'===R2FIN===','Parte 2/9',onChunk);
+      bannerParte('Claude · Parte 3/9 — Jornada, Obligaciones Empleador y Riesgos...');
       var r3=await callClaude(buildPrompt(e,'riohs_p3',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 4/8 — Obligaciones Trabajadores y Prohibiciones...');
+      r3 = await continuar(r3,'===R3FIN===','Parte 3/9',onChunk);
+      bannerParte('Claude · Parte 4/9 — Obligaciones Trabajadores y Prohibiciones...');
       var r4=await callClaude(buildPrompt(e,'riohs_p4',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 5/8 — Derecho a Saber, EPP y Accidentes...');
+      r4 = await continuar(r4,'===R4FIN===','Parte 4/9',onChunk);
+      bannerParte('Claude · Parte 5/9 — Derecho a Saber, EPP y Accidentes...');
       var r5=await callClaude(buildPrompt(e,'riohs_p5',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 6/8 — Psicosocial, Representación y Gestión...');
+      r5 = await continuar(r5,'===R5FIN===','Parte 5/9',onChunk);
+      bannerParte('Claude · Parte 6/9 — Psicosocial, Representación y Gestión...');
       var r6=await callClaude(buildPrompt(e,'riohs_p6',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 7/8 — Emergencias, Investigación e Infracciones...');
-      var r7=await callClaude(buildPrompt(e,'riohs_p7',normas,rStr,fecha),0,onChunk);
-      bannerParte('Claude · Parte 8/8 — Ley Karin, Disposiciones Finales y Firmas...');
+      r6 = await continuar(r6,'===R6FIN===','Parte 6/9',onChunk);
+      bannerParte('Claude · Parte 7/9 — Emergencias e Investigación de Accidentes...');
+      var r7a=await callClaude(buildPrompt(e,'riohs_p7a',normas,rStr,fecha),0,onChunk);
+      r7a = await continuar(r7a,'===R7aFIN===','Parte 7/9',onChunk);
+      bannerParte('Claude · Parte 8/9 — Infracciones y Sanciones...');
+      var r7b=await callClaude(buildPrompt(e,'riohs_p7b',normas,rStr,fecha),0,onChunk);
+      r7b = await continuar(r7b,'===R7bFIN===','Parte 8/9',onChunk);
+      bannerParte('Claude · Parte 9/9 — Ley Karin, Disposiciones Finales y Firmas...');
       var r8=await callClaude(buildPrompt(e,'riohs_p8',normas,rStr,fecha),0,onChunk);
       texto=r1.replace('===R1FIN===','').trim()+'\n\n'+
             r2.replace('===R2FIN===','').trim()+'\n\n'+
@@ -1419,11 +1459,13 @@ async function startGen(){
             r4.replace('===R4FIN===','').trim()+'\n\n'+
             r5.replace('===R5FIN===','').trim()+'\n\n'+
             r6.replace('===R6FIN===','').trim()+'\n\n'+
-            r7.replace('===R7FIN===','').trim()+'\n\n'+
-            r8;
+            r7a.replace('===R7aFIN===','').trim()+'\n\n'+
+            r7b.replace('===R7bFIN===','').trim()+'\n\n'+
+            r8.replace('===R8FIN===','').trim();
     } else if(gTipo==='iper'){
       lbl.textContent='Claude · IPER Parte 1/2...';
       var ip1=await callClaude(buildPrompt(e,'iper_p1',normas,rStr,fecha),0,onChunk);
+      ip1 = await continuar(ip1,'===IPER1FIN===','IPER Parte 1/2',onChunk);
       bannerParte('Claude · IPER Parte 2/2 — Plan de acción...');
       var ip2=await callClaude(buildPrompt(e,'iper_p2',normas,rStr,fecha),0,onChunk);
       texto=ip1.replace('===IPER1FIN===','').trim()+'\n\n'+ip2;
