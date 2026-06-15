@@ -929,7 +929,8 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
     'JERARQUÍA DE CONTROLES (DS 44/2024 Art.11 — aplicar en este orden): 1°Eliminación del peligro → 2°Sustitución → 3°Controles de ingeniería → 4°Controles administrativos → 5°EPP (última opción).\n'+
     'NOTA EN ENCABEZADO MIPER: '+e.mutualidad+' tiene la obligación de otorgar asistencia técnica gratuita para la elaboración y actualización de esta MIPER (Compendio SUSESO Libro IV Letra C). '+(nt<=100?''+e.razon+' puede solicitar esta asistencia a su OA sin costo adicional.':'Empresa puede complementar con asistencia del OA.')+' Asimismo, la empresa tiene derecho a recibir del OA un informe formal con los resultados de la IPER (factor de riesgo, valoración, medidas, plazos y profesional responsable).\n\n'+
     'TABLA MIPER — primera mitad de puestos/procesos de '+e.rubro+'/'+e.subrubro+':\n'+
-    'Columnas: N°|Área/Proceso|Actividad (Rutinaria/No rutinaria — marcar R o NR)|Puesto de Trabajo|¿Por empresa propia o empresa de servicio/contratista? (marcar EP o ES)|Tarea específica|Peligro — Fuente o Situación (origen físico: equipo, material, ambiente)|Peligro — Acto o condición insegura (comportamiento o estado que activa el peligro)|Tipo peligro (seguridad/higiénico/ergonómico/psicosocial)|Incidente potencial / Consecuencia|N° trab. expuestos (máx. '+e.trabajadores+')|Género expuesto (H/M/Ambos)|P (1-5)|S (1-5)|VEP=P×S|Nivel riesgo (Trivial/Tolerable/Moderado/Importante/Intolerable)|Normativa aplicable|Control: Eliminación/Sustitución|Control: Ingeniería|Control: Administrativo/PTS asociado|EPP con norma NCh.\n'+
+    'Columnas (PLANILLA ISP v3 — usar EXACTAMENTE estas, en este orden): N°|Área/Proceso|Actividad (R/NR)|Puesto|EP/ES|Tarea|Peligro (Fuente/Situación)|Riesgo (Acto/Condición)|Tipo (seg/hig/ergo/psico)|Protocolo ISP (PLANESI/PREXOR/TMERT/Psicosocial/NA)|Consecuencia|N° exp. (máx '+e.trabajadores+')|Género (H/M/A)|P|S|VEP|Nivel|Medida control actual|Controles nuevos (jerarquía ISP + EPP NCh)|P res|S res|VEP residual|Nivel residual|Normativa|Resp. Ejecución|Resp. Seguimiento|Plazo.\n'+
+    'OBLIGATORIO: (a) VEP=P×S y VEP residual=P res×S res, verifica la aritmética en cada fila. (b) VEP residual SIEMPRE ≤ VEP actual (es el riesgo YA con los controles aplicados). (c) Para mantener la tabla legible, en «Controles nuevos» resume en una celda la jerarquía aplicable (eliminación/sustitución/ingeniería/administrativo) y el EPP con su NCh. (d) Incluye columna de personas especialmente sensibles SOLO si aplica, indicándolo en la celda de Género (ej: «M/gestante»).\n'+
     'INSTRUCCIÓN COLUMNAS NUEVAS: (1) Rutinaria=actividad regular del trabajo diario; No Rutinaria=mantenimiento, emergencias, tareas esporádicas o de inicio/cierre. (2) Separar siempre Fuente/Situación del Acto: Fuente=origen físico del peligro (ej: sustancia corrosiva sin rotular), Acto=comportamiento que lo activa (ej: manipular sin guantes). (3) EP=personal propio de '+e.razon+'; ES=contratistas o personal de empresas de servicio que operen en las mismas instalaciones.\n'+
     'Mínimo 15 registros con peligros REALES de: '+e.subrubro+'. '+
     (e.mujeres>0?'PERSPECTIVA DE GÉNERO OBLIGATORIA: generar filas específicas para los '+e.mujeres+' cargos femeninos con análisis diferencial de: exposición a plaguicidas (límites menores), carga manual (15 kg máx.), riesgo violencia/acoso de clientes (Ley Karin), ergonomía de pie (TMERT). ':'')+
@@ -1101,8 +1102,9 @@ function buildPrompt(e,tipo,normas,rStr,fecha){
   if(tipo==='capacitacion') return I+'\nElabora PROGRAMA DE CAPACITACIÓN ANUAL EN SST para:\n\n'+base+'\n\nControl: '+ctrl+'\n\n'+
     'FUNDAMENTO LEGAL: DS 44/2024 Art.16 (mínimo 8 horas anuales, enfoque género obligatorio).\n\n'+
     'DIAGNÓSTICO DE NECESIDADES: basado en riesgos identificados de '+e.rubro+'/'+e.subrubro+', accidentes: '+(e.accidentes||'Ninguno')+', cumplimiento actual: capacitaciones: '+(e.capacitaciones||'Ninguna registrada')+'.\n\n'+
-    'PROGRAMA ANUAL '+new Date().getFullYear()+' — tabla:\n'+
-    'N°|Módulo|Contenido específico del rubro|Horas|Mes|Responsable|Participantes (cargos)|Metodología|Indicador|Estado.\n\n'+
+    'PROGRAMA ANUAL '+new Date().getFullYear()+' — FORMATO CARTA GANTT (obligatorio DS 44/2024 Art.8). Genera DOS tablas:\n'+
+    'TABLA A (detalle): N°|Módulo|Contenido específico del rubro|Horas|Responsable|Participantes (cargos)|Metodología|Indicador|Estado.\n'+
+    'TABLA B (CARTA GANTT visual): una fila por módulo y una columna por mes. Columnas: Módulo|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic. Marca con X el mes en que se ejecuta cada módulo. Distribuye los módulos a lo largo del año (no todos el mismo mes).\n\n'+
     'MÓDULOS OBLIGATORIOS (mínimo 8):\n'+
     '1. Inducción SST y RIOHS (obligatorio nuevos trabajadores).\n'+
     '2. Riesgos específicos de '+e.subrubro+' y medidas control.\n'+
@@ -1723,6 +1725,10 @@ function generarPDF(){
 
   var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+tipo+' - '+gEmp.razon+'</title><style>'+CSS+'</style></head><body>'+portada+pagCuerpo+pagFirma+'<script>window.onload=function(){setTimeout(function(){window.print();},900);}<\/script></body></html>';
 
+  // HOOK pc-formato: inyectar índice + hojas de registro si el módulo está cargado
+  if(typeof window.PCFormato!=='undefined' && window.PCFormato.inyectarEnPDF){
+    try { html = window.PCFormato.inyectarEnPDF(html, gTipo, gEmp, gTexto); } catch(e){ console.warn('Hook PDF:',e); }
+  }
   var win=window.open('','_blank');
   if(!win){
     // iOS Safari bloquea window.open si no es desde un click directo
@@ -1842,3 +1848,895 @@ try {
     '<h2>Plus Control</h2><p>Error de carga: ' + e.message + '</p>' +
     '<button onclick="location.reload()" style="padding:10px 20px;margin-top:10px">Recargar</button></div>';
 }
+
+
+
+
+// ════════ MÓDULO: pc-validador.js ════════
+// ══════════════════════════════════════════════════════════════
+// PLUS CONTROL — VALIDADOR POST-GENERACIÓN  (módulo independiente)
+// Pegar al FINAL de public/app.js. No requiere modificar startGen().
+// Se auto-engancha sobre la función global startGen vía wrapper.
+// ══════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // ── Marcadores de fin que NUNCA deben quedar en el texto final ──
+  var MARCADORES = [
+    '===R1FIN===','===R2FIN===','===R3FIN===','===R4FIN===','===R5FIN===',
+    '===R6FIN===','===R7aFIN===','===R7bFIN===','===R8FIN===',
+    '===IPER1FIN===','===FUF_P1FIN===','===FUF_INTERMEDIO==='
+  ];
+
+  // ── Patrones de placeholder / texto sin rellenar ──
+  // (cuidado: "No especificado" es válido cuando un dato falta de verdad,
+  //  por eso solo lo marcamos como AVISO, no como ERROR)
+  var PLACEHOLDERS_ERROR = [
+    /\bXXX+\b/,                       // XXX, XXXX
+    /\[[^\]]{0,40}\]/,                // [texto entre corchetes]
+    /\{\{[^}]*\}\}/,                  // {{variable}}
+    /\b(lorem ipsum|placeholder|tbd|pendiente de completar|completar aquí|insertar aquí)\b/i,
+    /_{3,}/,                          // ____ (líneas de relleno fuera de tablas)
+    /\bnombre del (trabajador|empleador|representante)\b/i // textos guía no reemplazados
+  ];
+
+  // ── Helpers ──
+  function contar(texto, regex){
+    var m = texto.match(new RegExp(regex.source, regex.flags.indexOf('g')>=0?regex.flags:regex.flags+'g'));
+    return m ? m.length : 0;
+  }
+  function lineasConArticuloCorto(texto){
+    // Detecta "Art.N ..." con menos de 3 oraciones (heurística: < 2 puntos seguidos de espacio/fin)
+    var out = [];
+    var re = /^Art\.?\s*\d+[^\n]*$/gim;
+    var m;
+    while((m = re.exec(texto))){
+      var linea = m[0];
+      // contar oraciones aproximadas
+      var oraciones = (linea.match(/[\.\;:][\s)]|$/g)||[]).length;
+      if(linea.length < 120 && oraciones < 2){
+        out.push(linea.slice(0,80));
+      }
+    }
+    return out;
+  }
+
+  // ── Validación específica IPER: VEP = P × S y rango de nivel ──
+  // Busca filas de tabla con columnas P | S | VEP y verifica aritmética.
+  function validarIPER(texto){
+    var errores = [];
+    var lineas = texto.split('\n');
+    var filasRevisadas = 0;
+    for(var i=0;i<lineas.length;i++){
+      var l = lineas[i];
+      if(l.indexOf('|')<0) continue;
+      var celdas = l.split('|').map(function(c){return c.trim();});
+      // buscar tripletas numéricas 1-5,1-5,(P*S) consecutivas
+      for(var j=0;j<celdas.length-2;j++){
+        var p = parseInt(celdas[j]), s = parseInt(celdas[j+1]), vep = parseInt(celdas[j+2]);
+        if(p>=1&&p<=5&&s>=1&&s<=5&&!isNaN(vep)){
+          filasRevisadas++;
+          if(p*s !== vep){
+            errores.push('Fila IPER: P='+p+' × S='+s+' debería ser '+(p*s)+', pero dice VEP='+vep);
+          }
+          // verificar nivel de riesgo si la celda siguiente es texto de nivel
+          var nivel = (celdas[j+3]||'').toLowerCase();
+          var esperado = vepNivel(p*s);
+          if(nivel && esperado && nivel.indexOf(esperado)<0 && !nivelCompatible(nivel,esperado)){
+            errores.push('Fila IPER: VEP='+(p*s)+' corresponde a "'+esperado+'", pero el nivel dice "'+celdas[j+3]+'"');
+          }
+          break; // una tripleta por fila
+        }
+      }
+    }
+    return {errores:errores, filas:filasRevisadas};
+  }
+  function vepNivel(v){
+    if(v>=1&&v<=4) return 'trivial';
+    if(v>=5&&v<=8) return 'tolerable';
+    if(v>=9&&v<=16) return 'moderado';
+    if(v>=17&&v<=24) return 'importante';
+    if(v===25) return 'intolerable';
+    return null;
+  }
+  function nivelCompatible(declarado, esperado){
+    // tolera sinónimos comunes
+    var syn = {trivial:['bajo','aceptable'],tolerable:['bajo','aceptable'],moderado:['medio'],importante:['alto'],intolerable:['crítico','critico','muy alto']};
+    return (syn[esperado]||[]).some(function(s){return declarado.indexOf(s)>=0;});
+  }
+
+  // ── Validación principal de cualquier documento ──
+  function validarDoc(texto, tipo){
+    var hallazgos = []; // {nivel:'error'|'aviso', msg:''}
+    if(!texto || texto.length < 100){
+      hallazgos.push({nivel:'error', msg:'El documento está vacío o demasiado corto ('+(texto?texto.length:0)+' caracteres). Posible fallo de generación — regenerar.'});
+      return resumen(hallazgos, tipo);
+    }
+
+    // 1. Marcadores de fin sin limpiar
+    MARCADORES.forEach(function(m){
+      if(texto.indexOf(m)>=0){
+        hallazgos.push({nivel:'error', msg:'Quedó un marcador interno sin limpiar: '+m+' — el ensamblado falló en esa parte.'});
+      }
+    });
+
+    // 2. Placeholders prohibidos (deduplicando solapes entre patrones)
+    var phVistos = {};
+    PLACEHOLDERS_ERROR.forEach(function(rx){
+      var matches = texto.match(new RegExp(rx.source, rx.flags.indexOf('g')>=0?rx.flags:rx.flags+'g')) || [];
+      matches.forEach(function(ej){
+        var clave = ej.trim().toLowerCase().replace(/[\[\]\{\}]/g,'').trim();
+        if(phVistos[clave]) return;
+        phVistos[clave] = true;
+        hallazgos.push({nivel:'error', msg:'Placeholder sin reemplazar: "'+ej.slice(0,45)+'" — revisar y completar con el dato real.'});
+      });
+    });
+
+    // 3. "No especificado" — solo aviso, contar cuántos
+    var noEsp = contar(texto, /no especificado/gi);
+    if(noEsp > 6){
+      hallazgos.push({nivel:'aviso', msg:noEsp+' campos quedaron como "No especificado". Faltan muchos datos del cliente — completar la ficha mejora el documento.'});
+    }
+
+    // 4. Artículos truncados / demasiado cortos
+    var cortos = lineasConArticuloCorto(texto);
+    if(cortos.length > 0){
+      hallazgos.push({nivel:'aviso', msg:cortos.length+' artículo(s) podrían estar incompletos (menos de 3 oraciones). Revisar: '+cortos.slice(0,3).join(' / ')});
+    }
+
+    // 5. Corte abrupto al final (no termina en puntuación/firma)
+    var fin = texto.trim().slice(-1);
+    if('.)】»"'.indexOf(fin)<0 && !/firma|fecha|aprobado/i.test(texto.slice(-200))){
+      hallazgos.push({nivel:'aviso', msg:'El documento podría estar cortado al final (no termina en punto ni bloque de firma). Verificar última sección.'});
+    }
+
+    // 6. Validación numérica IPER
+    if(tipo==='iper'){
+      var vi = validarIPER(texto);
+      if(vi.filas === 0){
+        hallazgos.push({nivel:'aviso', msg:'No se detectaron filas IPER con columnas P|S|VEP para validar aritmética. Verificar formato de tabla.'});
+      } else {
+        vi.errores.forEach(function(e){ hallazgos.push({nivel:'error', msg:e}); });
+        if(vi.errores.length===0){
+          hallazgos.push({nivel:'ok', msg:vi.filas+' filas IPER validadas: VEP = P × S correcto en todas.'});
+        }
+      }
+    }
+
+    return resumen(hallazgos, tipo);
+  }
+
+  function resumen(hallazgos, tipo){
+    var errores = hallazgos.filter(function(h){return h.nivel==='error';});
+    var avisos  = hallazgos.filter(function(h){return h.nivel==='aviso';});
+    var oks     = hallazgos.filter(function(h){return h.nivel==='ok';});
+    var estado = errores.length>0 ? 'error' : (avisos.length>0 ? 'aviso' : 'ok');
+    return {estado:estado, errores:errores, avisos:avisos, oks:oks, total:hallazgos.length};
+  }
+
+  // ── Render del panel de validación (se inserta sobre #ai-out) ──
+  function renderPanel(res){
+    var color = res.estado==='error' ? '#c0392b' : res.estado==='aviso' ? '#b8860b' : '#1e8449';
+    var icono = res.estado==='error' ? '⛔' : res.estado==='aviso' ? '⚠️' : '✅';
+    var titulo = res.estado==='error'
+      ? 'Validación: '+res.errores.length+' error(es) que requieren corrección antes de firmar'
+      : res.estado==='aviso'
+        ? 'Validación: documento utilizable, '+res.avisos.length+' punto(s) a revisar'
+        : 'Validación aprobada: sin observaciones';
+
+    var html = '<div id="pc-valida" style="border:2px solid '+color+';border-radius:10px;padding:12px 14px;margin:0 0 12px;background:rgba(0,0,0,0.18);font-size:12px;line-height:1.55">'+
+      '<div style="font-weight:700;color:'+color+';margin-bottom:'+(res.total?'8px':'0')+'">'+icono+' '+titulo+'</div>';
+
+    function bloque(arr, c, label){
+      if(!arr.length) return '';
+      var s = '<div style="margin-top:6px"><span style="color:'+c+';font-weight:600">'+label+'</span><ul style="margin:4px 0 0;padding-left:18px">';
+      arr.forEach(function(h){ s += '<li style="margin:2px 0">'+escapeHtml(h.msg)+'</li>'; });
+      return s + '</ul></div>';
+    }
+    html += bloque(res.errores, '#e74c3c', 'Errores:');
+    html += bloque(res.avisos,  '#d4a017', 'A revisar:');
+    html += bloque(res.oks,     '#2ecc71', 'Verificado:');
+    html += '</div>';
+    return html;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Auto-enganche: envuelve startGen sin tocar su código ──
+  function instalar(){
+    if(typeof window.startGen !== 'function'){
+      // startGen aún no definido — reintentar
+      return setTimeout(instalar, 300);
+    }
+    if(window.__pcValidadorInstalado) return;
+    window.__pcValidadorInstalado = true;
+
+    var startGenOriginal = window.startGen;
+    window.startGen = async function(){
+      var r = await startGenOriginal.apply(this, arguments);
+      try {
+        // gTexto y gTipo son globales en app.js
+        if(typeof gTexto !== 'undefined' && gTexto && typeof gTipo !== 'undefined'){
+          var res = validarDoc(gTexto, gTipo);
+          var out = document.getElementById('ai-out');
+          if(out){
+            // insertar panel ARRIBA del documento renderizado
+            var prev = document.getElementById('pc-valida');
+            if(prev) prev.remove();
+            out.insertAdjacentHTML('afterbegin', renderPanel(res));
+          }
+          window.__ultimaValidacion = res; // accesible para depurar
+        }
+      } catch(err){
+        console.warn('Validador:', err);
+      }
+      return r;
+    };
+    console.log('✅ Validador Plus Control instalado.');
+  }
+
+  // exponer para uso manual / tests
+  window.PCValidador = { validar: validarDoc, validarIPER: validarIPER };
+
+  instalar();
+})();
+
+
+// ════════ MÓDULO: pc-normas.js ════════
+// ══════════════════════════════════════════════════════════════
+// PLUS CONTROL — REGISTRO DE VIGENCIA NORMATIVA  (módulo independiente)
+// Pegar al FINAL de public/app.js, DESPUÉS del validador.
+// No modifica código existente. Se auto-engancha sobre startGen.
+//
+// Qué hace:
+//  1. Mantiene un registro de las normas clave con su fecha de vigencia
+//     y la fecha en que Plus Control las revisó por última vez.
+//  2. Al generar un documento, detecta qué normas aparecen en el texto
+//     y muestra un AVISO EN PANTALLA (solo visible para el usuario) si
+//     alguna lleva más de N meses sin revisar.
+//  3. Permite a Alan/Ricardo (rol admin) marcar una norma como
+//     "revisada hoy" desde la consola: PCNormas.marcarRevisada('DS 44/2024')
+// ══════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // Cada cuántos meses una norma debería re-confirmarse
+  var MESES_ALERTA = 12;
+
+  // ── REGISTRO MAESTRO ──
+  // vigenteDesde: fecha oficial de entrada en vigencia (informativa)
+  // ultimaRevision: última vez que Plus Control confirmó que sigue vigente/correcta
+  // Las fechas de vigencia de las 3 críticas están verificadas en fuentes oficiales.
+  var REGISTRO_BASE = {
+    'DS 44/2024':   { nombre:'Reglamento SGSST y CPHS',                vigenteDesde:'2025-02-01', ultimaRevision:'2026-01-01' },
+    'Ley 21.643':   { nombre:'Ley Karin (acoso y violencia laboral)',  vigenteDesde:'2024-08-01', ultimaRevision:'2026-01-01' },
+    'Ley 21.561':   { nombre:'Reducción jornada (42h desde 26-04-2026)',vigenteDesde:'2026-04-26', ultimaRevision:'2026-01-01' },
+    'Ley 16.744':   { nombre:'Seguro accidentes y enf. profesionales', vigenteDesde:'1968-02-01', ultimaRevision:'2026-01-01' },
+    'DS 594/1999':  { nombre:'Condiciones sanitarias y ambientales',   vigenteDesde:'2000-04-29', ultimaRevision:'2026-01-01' },
+    'DS 2/2024':    { nombre:'Reglamento Ley Karin',                   vigenteDesde:'2024-08-01', ultimaRevision:'2026-01-01' },
+    'Ley 20.949':   { nombre:'Manejo manual de cargas',               vigenteDesde:'2017-02-17', ultimaRevision:'2026-01-01' },
+    'DS 63/2005':   { nombre:'Reglamento manejo manual de cargas',    vigenteDesde:'2005-09-12', ultimaRevision:'2026-01-01' },
+    'Res.327/2024': { nombre:'Protocolo TMERT (musculoesquelético)',  vigenteDesde:'2024-01-01', ultimaRevision:'2026-01-01' },
+    'NCh 934':      { nombre:'Extintores portátiles',                 vigenteDesde:'2008-01-01', ultimaRevision:'2026-01-01' },
+    'DS 157/2005':  { nombre:'Plaguicidas de uso sanitario',          vigenteDesde:'2005-01-01', ultimaRevision:'2026-01-01' },
+    'DS 57/2024':   { nombre:'SGA — fichas de seguridad',             vigenteDesde:'2024-01-01', ultimaRevision:'2026-01-01' }
+  };
+
+  // ── Persistencia: las revisiones se guardan en localStorage ──
+  // así sobreviven a recargas; el REGISTRO_BASE es solo el punto de partida.
+  function cargarRegistro(){
+    var reg = JSON.parse(JSON.stringify(REGISTRO_BASE)); // copia
+    try {
+      var guardado = JSON.parse(localStorage.getItem('pc_normas_revision')||'{}');
+      Object.keys(guardado).forEach(function(k){
+        if(reg[k]) reg[k].ultimaRevision = guardado[k];
+      });
+    } catch(e){}
+    return reg;
+  }
+  function guardarRevision(clave, fechaISO){
+    var g = {};
+    try { g = JSON.parse(localStorage.getItem('pc_normas_revision')||'{}'); } catch(e){}
+    g[clave] = fechaISO;
+    localStorage.setItem('pc_normas_revision', JSON.stringify(g));
+  }
+
+  function mesesDesde(fechaISO){
+    var d = new Date(fechaISO);
+    if(isNaN(d)) return 999;
+    var ahora = new Date();
+    return (ahora.getFullYear()-d.getFullYear())*12 + (ahora.getMonth()-d.getMonth());
+  }
+
+  // ── Detectar qué normas del registro aparecen en el documento ──
+  function normasEnTexto(texto){
+    var reg = cargarRegistro();
+    var encontradas = [];
+    Object.keys(reg).forEach(function(clave){
+      var limpia = clave.trim();
+      if(limpia.length<3) return;
+      // buscar la clave como substring (escapando puntos/barras)
+      var esc = limpia.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      if(new RegExp(esc).test(texto)){
+        encontradas.push({clave:limpia, info:reg[clave], meses:mesesDesde(reg[clave].ultimaRevision)});
+      }
+    });
+    return encontradas;
+  }
+
+  // ── Evaluar y devolver normas vencidas ──
+  function evaluar(texto){
+    var usadas = normasEnTexto(texto);
+    var vencidas = usadas.filter(function(n){ return n.meses >= MESES_ALERTA; });
+    return { usadas:usadas, vencidas:vencidas };
+  }
+
+  // ── Render del aviso en pantalla (solo el usuario lo ve) ──
+  function renderAviso(ev){
+    if(!ev.vencidas.length) return ''; // sin vencidas, sin ruido
+    var html = '<div id="pc-normas-aviso" style="border:2px dashed #b8860b;border-radius:10px;'+
+      'padding:10px 14px;margin:0 0 12px;background:rgba(184,134,11,0.10);font-size:12px;line-height:1.5">'+
+      '<div style="font-weight:700;color:#b8860b;margin-bottom:6px">⏰ Revisión normativa pendiente (aviso interno — no aparece en el PDF)</div>'+
+      '<div style="margin-bottom:6px">Estas normas citadas en el documento llevan ≥'+MESES_ALERTA+' meses sin confirmarse. Verifica que sigan vigentes antes de que Alan firme:</div>'+
+      '<ul style="margin:4px 0 0;padding-left:18px">';
+    ev.vencidas.forEach(function(n){
+      html += '<li style="margin:2px 0"><strong>'+n.clave+'</strong> — '+n.info.nombre+
+        ' <span style="color:#888">(última revisión hace '+n.meses+' meses)</span></li>';
+    });
+    html += '</ul>'+
+      '<div style="margin-top:8px;color:#888;font-size:11px">Para marcar como revisada, un admin abre la consola y escribe: '+
+      '<code style="background:#222;color:#9f9;padding:1px 4px;border-radius:3px">PCNormas.marcarRevisada(\'DS 44/2024\')</code></div>'+
+      '</div>';
+    return html;
+  }
+
+  // ── Control de permisos: solo admin marca revisada ──
+  function esAdmin(){
+    try {
+      // currentUser es global en app.js; rol admin = Ricardo, iper = Alan
+      // El usuario pidió que Alan Y Ricardo puedan marcar -> admin + iper
+      if(typeof currentUser === 'undefined' || !currentUser) return false;
+      return currentUser.rol === 'admin' || currentUser.rol === 'iper';
+    } catch(e){ return false; }
+  }
+
+  // ── Auto-enganche sobre startGen (encadenado tras el validador) ──
+  function instalar(){
+    if(typeof window.startGen !== 'function') return setTimeout(instalar, 300);
+    if(window.__pcNormasInstalado) return;
+    window.__pcNormasInstalado = true;
+
+    var prev = window.startGen;
+    window.startGen = async function(){
+      var r = await prev.apply(this, arguments);
+      try {
+        if(typeof gTexto !== 'undefined' && gTexto){
+          var ev = evaluar(gTexto);
+          var out = document.getElementById('ai-out');
+          if(out){
+            var viejo = document.getElementById('pc-normas-aviso');
+            if(viejo) viejo.remove();
+            var aviso = renderAviso(ev);
+            if(aviso){
+              // insertar bajo el panel del validador si existe, si no, arriba
+              var valida = document.getElementById('pc-valida');
+              if(valida) valida.insertAdjacentHTML('afterend', aviso);
+              else out.insertAdjacentHTML('afterbegin', aviso);
+            }
+          }
+          window.__ultimaEvalNormas = ev;
+        }
+      } catch(err){ console.warn('Registro normas:', err); }
+      return r;
+    };
+    console.log('✅ Registro de vigencia normativa instalado.');
+  }
+
+  // ── API pública ──
+  window.PCNormas = {
+    // Marca una norma como revisada HOY. Solo admin/iper.
+    marcarRevisada: function(clave){
+      if(!esAdmin()){
+        console.warn('⛔ Solo Alan o Ricardo (admin) pueden marcar normas como revisadas.');
+        return false;
+      }
+      var reg = cargarRegistro();
+      if(!reg[clave]){
+        console.warn('Norma "'+clave+'" no está en el registro. Disponibles:', Object.keys(reg).filter(function(k){return k.trim().length>2;}));
+        return false;
+      }
+      var hoy = new Date().toISOString().slice(0,10);
+      guardarRevision(clave, hoy);
+      console.log('✅ "'+clave+'" marcada como revisada el '+hoy+'.');
+      return true;
+    },
+    // Lista el estado actual de todas las normas
+    estado: function(){
+      var reg = cargarRegistro();
+      var filas = Object.keys(reg).filter(function(k){return k.trim().length>2;}).map(function(k){
+        var m = mesesDesde(reg[k].ultimaRevision);
+        return { norma:k, nombre:reg[k].nombre, vigenteDesde:reg[k].vigenteDesde,
+                 ultimaRevision:reg[k].ultimaRevision, mesesSinRevisar:m,
+                 estado: m>=MESES_ALERTA?'⏰ revisar':'✅ vigente' };
+      });
+      console.table(filas);
+      return filas;
+    },
+    evaluar: evaluar
+  };
+
+  instalar();
+})();
+
+
+// ════════ MÓDULO: pc-supabase.js ════════
+// ══════════════════════════════════════════════════════════════
+// PLUS CONTROL — RESPALDO REAL EN SUPABASE  (módulo independiente)
+// Pegar al FINAL de public/app.js, después de validador y normas.
+//
+// REEMPLAZA el falso syncToCloud()/loadFromCloud() (que solo copiaba
+// a otra key de localStorage) por sincronización real a la nube.
+//
+// ⚠️ REQUIERE CONFIGURACIÓN: pega tu URL y anon key abajo (paso 4 de
+//    la guía GUIA-SUPABASE.md). Sin eso, el módulo se desactiva solo
+//    y la app sigue funcionando igual que ahora (con localStorage).
+//
+// Modelo de datos: cada empresa y cada documento se guarda como una
+// fila con su id y un campo JSONB 'data' con el objeto completo. Así
+// no hay que mapear 40 columnas y resiste cambios de campos.
+// ══════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // ─────────────────────────────────────────────────────────────
+  // PASO 4 DE LA GUÍA — PEGA AQUÍ TUS CREDENCIALES DE SUPABASE
+  var SUPABASE_URL = '';   // ej: 'https://abcdxyz.supabase.co'
+  var SUPABASE_KEY = '';   // la "anon public" key (NO la service_role)
+  // ─────────────────────────────────────────────────────────────
+
+  var ACTIVO = !!(SUPABASE_URL && SUPABASE_KEY);
+
+  if(!ACTIVO){
+    console.log('ℹ️ Respaldo Supabase: sin configurar (la app sigue con localStorage). Pega tus credenciales en pc-supabase.js para activarlo.');
+    return;
+  }
+
+  // ── Cliente REST mínimo (sin SDK, solo fetch) ──
+  function headers(){
+    return {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates' // upsert
+    };
+  }
+
+  // Sube (upsert) un array de registros a una tabla
+  async function subir(tabla, registros){
+    if(!registros.length) return;
+    var rows = registros.map(function(r){
+      return { id: String(r.id), data: r, updated_at: new Date().toISOString() };
+    });
+    var res = await fetch(SUPABASE_URL + '/rest/v1/' + tabla + '?on_conflict=id', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(rows)
+    });
+    if(!res.ok){
+      var txt = await res.text();
+      throw new Error('Supabase '+tabla+' '+res.status+': '+txt.slice(0,120));
+    }
+  }
+
+  // Descarga todos los registros de una tabla -> array de objetos 'data'
+  async function bajar(tabla){
+    var res = await fetch(SUPABASE_URL + '/rest/v1/' + tabla + '?select=data', {
+      headers: headers()
+    });
+    if(!res.ok) throw new Error('Supabase GET '+tabla+' '+res.status);
+    var rows = await res.json();
+    return rows.map(function(r){ return r.data; }).filter(Boolean);
+  }
+
+  // ── Indicador visual de sincronización (discreto, esquina) ──
+  function indicador(estado, msg){
+    var el = document.getElementById('pc-sync-ind');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'pc-sync-ind';
+      el.style.cssText = 'position:fixed;bottom:10px;right:10px;z-index:9999;font-size:10px;'+
+        'padding:4px 9px;border-radius:12px;font-family:sans-serif;pointer-events:none;'+
+        'transition:opacity .4s;opacity:0';
+      document.body.appendChild(el);
+    }
+    var colores = { ok:'#1e8449', sync:'#2874a6', error:'#c0392b' };
+    var iconos  = { ok:'☁︎ ✓', sync:'☁︎ …', error:'☁︎ ✕' };
+    el.style.background = colores[estado] || '#555';
+    el.style.color = '#fff';
+    el.textContent = (iconos[estado]||'☁︎') + ' ' + (msg||'');
+    el.style.opacity = '1';
+    if(estado === 'ok'){
+      setTimeout(function(){ if(el) el.style.opacity = '0'; }, 2000);
+    }
+  }
+
+  // ── Sincronización con debounce: no satura en cada tecla ──
+  var syncTimer = null;
+  function programarSync(){
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(ejecutarSync, 1500);
+  }
+
+  async function ejecutarSync(){
+    try {
+      indicador('sync', 'guardando');
+      // emps y docs son globales en app.js
+      await subir('pc_empresas', (typeof emps!=='undefined'?emps:[]));
+      await subir('pc_documentos', (typeof docs!=='undefined'?docs:[]));
+      indicador('ok', 'respaldado');
+    } catch(err){
+      console.warn('Sync Supabase:', err.message);
+      indicador('error', 'sin conexión');
+    }
+  }
+
+  // ── Fusión nube → local al iniciar (no pierde datos locales nuevos) ──
+  async function fusionarDesdeNube(){
+    try {
+      indicador('sync', 'cargando');
+      var nubeEmps = await bajar('pc_empresas');
+      var nubeDocs = await bajar('pc_documentos');
+      var cambios = false;
+
+      nubeEmps.forEach(function(ne){
+        if(!emps.find(function(e){ return String(e.id)===String(ne.id); })){
+          emps.push(ne); cambios = true;
+        }
+      });
+      nubeDocs.forEach(function(nd){
+        if(!docs.find(function(d){ return String(d.id)===String(nd.id); })){
+          docs.push(nd); cambios = true;
+        }
+      });
+
+      if(cambios){
+        localStorage.setItem('pc_emps', JSON.stringify(emps));
+        localStorage.setItem('pc_docs', JSON.stringify(docs));
+      }
+      indicador('ok', 'sincronizado');
+      return cambios;
+    } catch(err){
+      console.warn('Carga Supabase:', err.message);
+      indicador('error', 'sin conexión');
+      return false;
+    }
+  }
+
+  // ── Enganche: envolver saveData para sincronizar tras cada guardado ──
+  function instalar(){
+    if(typeof window.saveData !== 'function') return setTimeout(instalar, 300);
+    if(window.__pcSupabaseInstalado) return;
+    window.__pcSupabaseInstalado = true;
+
+    var saveOriginal = window.saveData;
+    window.saveData = function(){
+      var r = saveOriginal.apply(this, arguments);
+      programarSync(); // sincroniza en segundo plano con debounce
+      return r;
+    };
+
+    // Carga inicial desde la nube
+    fusionarDesdeNube().then(function(cambios){
+      if(cambios && typeof renderDash==='function'){
+        try { renderDash(); if(typeof renderEmps==='function') renderEmps(); } catch(e){}
+      }
+    });
+
+    console.log('✅ Respaldo Supabase activo.');
+  }
+
+  // ── API pública ──
+  window.PCSupabase = {
+    sincronizarAhora: ejecutarSync,
+    cargarDesdeNube: fusionarDesdeNube,
+    estado: function(){
+      return { activo:ACTIVO, url:SUPABASE_URL,
+               empresas:(typeof emps!=='undefined'?emps.length:0),
+               documentos:(typeof docs!=='undefined'?docs.length:0) };
+    }
+  };
+
+  instalar();
+})();
+
+
+// ════════ MÓDULO: pc-formato.js ════════
+// ══════════════════════════════════════════════════════════════
+// PLUS CONTROL — MÓDULO DE FORMATO LEGAL  (pc-formato.js)
+// Pegar al FINAL de public/app.js, después de los otros módulos.
+//
+// Resuelve 3 prioridades de la auditoría de formato:
+//  (1) Exportar la IPER generada a Excel con planilla ISP v3 (VEP residual)
+//  (2) Botón de exportación que aparece tras generar una IPER
+//  (3) Hojas de registro/acuse anexas según tipo de documento
+//
+// No modifica generarPDF ni startGen del código original: se engancha
+// con un wrapper y agrega un botón nuevo en el panel de acciones.
+// ══════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // ── Cargar SheetJS (XLSX) bajo demanda desde CDN ──
+  var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  function cargarXLSX(){
+    return new Promise(function(resolve, reject){
+      if(window.XLSX) return resolve(window.XLSX);
+      var s = document.createElement('script');
+      s.src = XLSX_URL;
+      s.onload = function(){ window.XLSX ? resolve(window.XLSX) : reject(new Error('XLSX no cargó')); };
+      s.onerror = function(){ reject(new Error('No se pudo cargar la librería Excel (¿sin internet?)')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  // ── Parsear tablas markdown del texto generado a arrays ──
+  // Devuelve la tabla más ancha (la IPER suele ser la de más columnas)
+  function extraerTablas(texto){
+    var lineas = texto.split('\n');
+    var tablas = [];
+    var i = 0;
+    while(i < lineas.length){
+      if(/^\|.+\|/.test(lineas[i]) && i+1 < lineas.length && /^\|[\s\-:|]+\|/.test(lineas[i+1])){
+        var headers = celdas(lineas[i]);
+        i += 2;
+        var filas = [];
+        while(i < lineas.length && /^\|.+\|/.test(lineas[i])){
+          filas.push(celdas(lineas[i]));
+          i++;
+        }
+        tablas.push({ headers: headers, filas: filas });
+      } else { i++; }
+    }
+    return tablas;
+  }
+  function celdas(linea){
+    return linea.split('|').filter(function(c,j,a){ return j>0 && j<a.length-1; })
+                .map(function(c){ return c.trim().replace(/\*\*/g,''); });
+  }
+
+  // ── Exportar IPER a Excel con formato planilla ISP v3 ──
+  async function exportarIPERExcel(){
+    if(typeof gTexto==='undefined' || !gTexto || typeof gEmp==='undefined' || !gEmp){
+      alert('Genera primero una IPER antes de exportar a Excel.');
+      return;
+    }
+    var XLSX;
+    try { XLSX = await cargarXLSX(); }
+    catch(e){ alert(e.message); return; }
+
+    var tablas = extraerTablas(gTexto);
+    // la IPER es la tabla con más columnas (planilla ISP v3 ≈ 30 columnas)
+    var iper = tablas.sort(function(a,b){ return b.headers.length - a.headers.length; })[0];
+    if(!iper || iper.headers.length < 6){
+      alert('No se detectó una tabla IPER válida en el documento generado.');
+      return;
+    }
+
+    var wb = XLSX.utils.book_new();
+
+    // Hoja 1: encabezado de la empresa + metodología
+    var enc = [
+      ['MATRIZ DE IDENTIFICACIÓN DE PELIGROS Y EVALUACIÓN DE RIESGOS (IPER)'],
+      ['Metodología ISP v3 — DS 44/2024 (Res.Ex. E668/25)'],
+      [],
+      ['Empresa:', gEmp.razon || ''],
+      ['RUT:', gEmp.rut || ''],
+      ['Rubro:', (gEmp.rubro||'') + (gEmp.subrubro?' / '+gEmp.subrubro:'')],
+      ['Domicilio:', (gEmp.direccion||'') + ', ' + (gEmp.ciudad||'') + ', Región de ' + (gEmp.region||'')],
+      ['Mutualidad:', gEmp.mutualidad || ''],
+      ['N° Trabajadores:', gEmp.trabajadores || ''],
+      ['Elaborado por:', 'Alan Bascur Montenegro — Ingeniero en Prevención de Riesgos — Plus Control SpA'],
+      ['Fecha:', new Date().toLocaleDateString('es-CL')],
+      [],
+      ['ESCALA VEP (Valor Esperado de la Pérdida) = Probabilidad (P) × Severidad (S)'],
+      ['Trivial: 1-4', 'Tolerable: 5-8', 'Moderado: 9-16', 'Importante: 17-24', 'Intolerable: 25'],
+      ['Jerarquía de controles:', 'Eliminación → Sustitución → Ingeniería → Administrativo → EPP'],
+      ['Nota:', 'El VEP residual refleja el riesgo DESPUÉS de aplicar los controles. Siempre ≤ VEP actual.']
+    ];
+    var wsEnc = XLSX.utils.aoa_to_sheet(enc);
+    wsEnc['!cols'] = [{wch:22},{wch:30},{wch:18},{wch:18},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, wsEnc, 'Portada');
+
+    // Hoja 2: la matriz IPER
+    var aoa = [iper.headers].concat(iper.filas);
+    var wsIper = XLSX.utils.aoa_to_sheet(aoa);
+    // ancho de columnas automático razonable
+    wsIper['!cols'] = iper.headers.map(function(h){
+      var w = Math.min(Math.max(h.length, 10), 28);
+      return { wch: w };
+    });
+    // congelar fila de encabezado
+    wsIper['!freeze'] = { xSplit:0, ySplit:1 };
+    XLSX.utils.book_append_sheet(wb, wsIper, 'Matriz IPER');
+
+    var nombre = 'IPER_' + (gEmp.razon||'empresa').replace(/[^A-Za-z0-9]/g,'_').substring(0,30) + '_' +
+                 new Date().toISOString().slice(0,10) + '.xlsx';
+    XLSX.writeFile(wb, nombre);
+  }
+
+  // ── Hojas de registro/acuse según tipo (HTML para imprimir) ──
+  // Devuelve HTML que se inyecta como páginas extra en el PDF.
+  function hojasRegistro(tipo, e){
+    var nt = Math.min(parseInt(e.trabajadores)||1, 20);
+    var filasVacias = function(n){
+      var s = '';
+      for(var i=1;i<=n;i++){
+        s += '<tr><td>'+i+'</td><td></td><td></td><td></td><td></td><td></td></tr>';
+      }
+      return s;
+    };
+
+    var estilo = '<style>'+
+      '.reg-page{page-break-before:always;padding:1.8cm 2cm;font-family:Arial,sans-serif;}'+
+      '.reg-h{font-size:13pt;font-weight:700;color:#0d0d10;border-bottom:2pt solid #3d7a35;padding-bottom:4pt;margin-bottom:6pt;text-transform:uppercase;}'+
+      '.reg-sub{font-size:8.5pt;color:#666;margin-bottom:14pt;}'+
+      '.reg-tbl{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:14pt;}'+
+      '.reg-tbl th{background:#0d0d10;color:#fff;padding:6pt;border:1pt solid #333;font-size:8pt;text-align:left;}'+
+      '.reg-tbl td{padding:10pt 6pt;border:1pt solid #bbb;height:22pt;}'+
+      '.reg-firma{margin-top:24pt;font-size:9pt;color:#333;}'+
+      '</style>';
+
+    // Tabla de acuse nominada (común a varios docs)
+    function acuseTrab(titulo, sub){
+      return '<div class="reg-page">'+
+        '<div class="reg-h">'+titulo+'</div>'+
+        '<div class="reg-sub">'+sub+' — Empresa: '+(e.razon||'')+' · RUT: '+(e.rut||'')+'</div>'+
+        '<table class="reg-tbl"><thead><tr>'+
+        '<th style="width:6%">N°</th><th style="width:32%">Nombre completo</th>'+
+        '<th style="width:16%">RUT</th><th style="width:20%">Cargo</th>'+
+        '<th style="width:13%">Fecha</th><th style="width:13%">Firma</th>'+
+        '</tr></thead><tbody>'+filasVacias(nt)+'</tbody></table>'+
+        '<div class="reg-firma">Responsable de la entrega: ____________________________  '+
+        '(Alan Bascur Montenegro / '+(e.rep_nombre||'Representante Legal')+')</div>'+
+        '</div>';
+    }
+
+    if(tipo==='riohs'){
+      return estilo + acuseTrab('Constancia de Recepción del RIOHS',
+        'Declaro recibir un ejemplar del Reglamento Interno, conocerlo y comprometerme a cumplirlo (CT Art.156)');
+    }
+    if(tipo==='derechosaber'){
+      return estilo + acuseTrab('Registro Individual — Obligación de Informar (ODI)',
+        'Declaro haber sido informado de los riesgos de mi puesto, medidas preventivas y métodos de trabajo seguro (DS 44/2024 Art.15)');
+    }
+    if(tipo==='pts'){
+      return estilo + acuseTrab('Acuse de Recibo del Procedimiento de Trabajo Seguro',
+        'Declaro conocer y comprometerme a cumplir el PTS para la ejecución segura de la tarea');
+    }
+    if(tipo==='capacitacion'){
+      // Lista de asistencia a capacitación
+      return estilo + '<div class="reg-page">'+
+        '<div class="reg-h">Lista de Asistencia — Capacitación SST</div>'+
+        '<div class="reg-sub">DS 44/2024 Art.16 — Empresa: '+(e.razon||'')+' · Módulo: ____________________  Fecha: ______________  Relator: ____________________</div>'+
+        '<table class="reg-tbl"><thead><tr>'+
+        '<th style="width:6%">N°</th><th style="width:30%">Nombre</th><th style="width:16%">RUT</th>'+
+        '<th style="width:18%">Cargo</th><th style="width:15%">Nota evaluación</th><th style="width:15%">Firma</th>'+
+        '</tr></thead><tbody>'+filasVacias(nt)+'</tbody></table>'+
+        '<div class="reg-firma">Firma relator: __________________  ·  Horas: ______  ·  Resultado (aprobado ≥60%): ______</div>'+
+        '</div>';
+    }
+    if(tipo==='emergencia'){
+      // Registro de simulacro
+      return estilo + '<div class="reg-page">'+
+        '<div class="reg-h">Registro de Simulacro de Emergencia</div>'+
+        '<div class="reg-sub">DS 44/2024 Art.19 — mínimo 1 anual — Empresa: '+(e.razon||'')+'</div>'+
+        '<table class="reg-tbl"><tbody>'+
+        '<tr><td style="background:#f0f0f0;font-weight:700;width:35%">Fecha del simulacro</td><td></td></tr>'+
+        '<tr><td style="background:#f0f0f0;font-weight:700">Escenario simulado</td><td></td></tr>'+
+        '<tr><td style="background:#f0f0f0;font-weight:700">Tipo (avisado / sin aviso)</td><td></td></tr>'+
+        '<tr><td style="background:#f0f0f0;font-weight:700">Tiempo total de evacuación</td><td></td></tr>'+
+        '<tr><td style="background:#f0f0f0;font-weight:700">N° de participantes</td><td></td></tr>'+
+        '<tr><td style="background:#f0f0f0;font-weight:700">Observaciones</td><td></td></tr>'+
+        '<tr><td style="background:#f0f0f0;font-weight:700">Plan de mejora (responsable/plazo)</td><td></td></tr>'+
+        '</tbody></table>'+
+        acuseTrab('Lista de Asistencia al Simulacro','Participantes del ejercicio de evacuación').replace(estilo,'')+
+        '</div>';
+    }
+    return '';
+  }
+
+  // ── Generar índice (tabla de contenidos) desde los capítulos del texto ──
+  function generarIndice(texto){
+    var lineas = texto.split('\n');
+    var items = [];
+    lineas.forEach(function(l){
+      // capítulos: ## CAPÍTULO X: ... o ## Título
+      var m = l.match(/^#{1,2}\s+(CAP[ÍI]TULO\s+[IVXLC0-9]+.*|T[ÍI]TULO\s+.*)/i);
+      if(m){ items.push(m[1].trim()); }
+    });
+    if(items.length < 3) return ''; // no vale la pena un índice de 1-2 ítems
+    var html = '<div class="reg-page"><div class="reg-h">Índice de Contenidos</div>'+
+      '<div class="reg-sub">Documento estructurado conforme DS 44/2024</div>'+
+      '<table class="reg-tbl" style="font-size:9.5pt"><tbody>';
+    items.forEach(function(it, idx){
+      html += '<tr><td style="width:8%;text-align:center;font-weight:700">'+(idx+1)+'</td>'+
+              '<td style="height:auto;padding:6pt">'+it+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  // ── Inyectar índice + hojas de registro en el HTML del PDF ──
+  // Llamada directamente desde generarPDF vía el hook PCFormato.inyectarEnPDF.
+  // Es robusta: recibe el html y devuelve el html modificado.
+  function inyectarEnPDF(html, tipo, e, texto){
+    if(!html || !tipo || !e) return html;
+    try {
+      // 0. IPER/MIPER: forzar orientación horizontal (tabla ancha, legibilidad)
+      if(tipo==='iper'){
+        // sobrescribe el @page del documento para que las páginas internas vayan apaisadas
+        var landscapeCSS = '<style>@media print{@page{size:A4 landscape !important;}}'+
+          '.pag .tbl{font-size:7pt !important;}.pag .th{font-size:6.5pt !important;padding:3pt 4pt !important;}'+
+          '.pag .td{font-size:6.5pt !important;padding:3pt 4pt !important;}</style>';
+        html = html.replace('</head>', landscapeCSS + '</head>');
+      }
+      // 1. Índice después de la portada (docs con 3+ capítulos)
+      if(texto){
+        var indice = generarIndice(texto);
+        if(indice){
+          var marcaPortada = '<div class="bb"></div></div>';
+          if(html.indexOf(marcaPortada) >= 0){
+            html = html.replace(marcaPortada, marcaPortada + indice);
+          }
+        }
+      }
+      // 2. Hojas de registro/acuse antes del script de impresión
+      var hojas = hojasRegistro(tipo, e);
+      if(hojas){
+        html = html.replace('<script>', hojas + '<script>');
+      }
+    } catch(err){ console.warn('inyectarEnPDF:', err); }
+    return html;
+  }
+
+  // ── Agregar botón "Exportar IPER a Excel" tras generar ──
+  function instalarBotonExcel(){
+    if(typeof window.startGen !== 'function') return setTimeout(instalarBotonExcel, 300);
+    if(window.__pcBotonExcel) return;
+    window.__pcBotonExcel = true;
+
+    var prev = window.startGen;
+    window.startGen = async function(){
+      var r = await prev.apply(this, arguments);
+      try {
+        if(typeof gTipo!=='undefined' && gTipo==='iper'){
+          var acts = document.getElementById('gp3-acts');
+          if(acts && !document.getElementById('btn-iper-excel')){
+            var btn = document.createElement('button');
+            btn.id = 'btn-iper-excel';
+            btn.className = 'btn btn-primary';
+            btn.style.cssText = 'margin-top:8px;background:#1e7a45';
+            btn.textContent = '📊 Exportar IPER a Excel (planilla ISP v3)';
+            btn.addEventListener('click', exportarIPERExcel);
+            acts.appendChild(btn);
+          }
+        }
+      } catch(e){ console.warn('Botón Excel:', e); }
+      return r;
+    };
+    console.log('✅ Exportador IPER a Excel instalado.');
+  }
+
+  // API pública
+  window.PCFormato = {
+    exportarIPERExcel: exportarIPERExcel,
+    extraerTablas: extraerTablas,
+    inyectarEnPDF: inyectarEnPDF,
+    generarIndice: generarIndice,
+    hojasRegistro: hojasRegistro
+  };
+
+  instalarBotonExcel();
+})();
