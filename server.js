@@ -59,8 +59,8 @@ REGLA N°5 — LEY KARIN (Ley 21.643 + DS 2/2024)
 Todo RIOHS DEBE incluir el protocolo completo:
 - Definición acoso laboral: agresión u hostigamiento, UNA SOLA VEZ O reiterada (no requiere reiteración)
 - Canal denuncia interno: responsable nominado, acuse recibo 2 días hábiles
-- Medidas cautelares: DENTRO DE 5 DÍAS HÁBILES desde la denuncia (separación física obligatoria)
-- Investigación: designar investigador en 3 días hábiles, informe DENTRO DE 30 DÍAS HÁBILES
+- Medidas de resguardo: adoptarse en un plazo NO MAYOR A 3 DÍAS de recibida la denuncia (separación de espacios, redistribución de jornada, atención psicológica temprana). El empleador debe INFORMAR a la DT el inicio de la investigación y las medidas dentro de 3 DÍAS HÁBILES desde la recepción de la denuncia (Reglamento Ley Karin, circulares DT 2024)
+- Investigación interna: plazo de 30 DÍAS HÁBILES desde la recepción de la denuncia (DT dictamen Ord.386/10 de 2025; inhábiles = sábados, domingos y festivos). Concluida, el informe se remite a la DT dentro de 2 DÍAS; la DT tiene 30 DÍAS para pronunciarse; el empleador aplica medidas y sanciones en 15 DÍAS CORRIDOS
 - Canal externo DT: plazo 90 DÍAS CORRIDOS desde el hecho
 - Protección denunciante: confidencialidad, prohibición represalias
 
