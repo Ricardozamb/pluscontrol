@@ -154,6 +154,27 @@ app.post('/api/claude', (req, res) => {
   const req2 = https.request(options, r => {
     let buffer = '';
 
+    // Si la API no responde 200, el cuerpo NO es SSE: es JSON plano.
+    // Sin este control el flujo se cerraba vacío y el cliente recibía
+    // "Sin contenido" en vez del error real (429 rate limit, 529 overloaded).
+    if (r.statusCode !== 200) {
+      let errBody = '';
+      r.on('data', c => { errBody += c.toString(); });
+      r.on('end', () => {
+        let msg = 'Error API (HTTP ' + r.statusCode + ')';
+        try {
+          const j = JSON.parse(errBody);
+          if (j.error && j.error.message) msg = j.error.message;
+        } catch (e) {}
+        if (r.statusCode === 429) msg = 'RATE_LIMIT: demasiadas solicitudes seguidas. Espere unos segundos.';
+        if (r.statusCode === 529) msg = 'OVERLOADED: servicio saturado. Reintente en unos segundos.';
+        clearInterval(keepAlive);
+        res.write('data: ' + JSON.stringify({ error: msg, status: r.statusCode }) + '\n\n');
+        res.end();
+      });
+      return;
+    }
+
     r.on('data', chunk => {
       buffer += chunk.toString();
       const lines = buffer.split('\n');
