@@ -104,11 +104,16 @@ app.post('/api/claude', (req, res) => {
     res.status(500).json({ error: 'API key no configurada en variables de entorno' });
     return;
   }
-  const { prompt } = req.body || {};
+  const { prompt, system, maxTokens } = req.body || {};
   if (!prompt) {
     res.status(400).json({ error: 'Prompt vacío' });
     return;
   }
+  // SYSTEM alternativo: permite que módulos con marco legal distinto
+  // (ej. condominios — Ley 21.442) no hereden el SYSTEM de empresas,
+  // que declara normativa laboral (DS 44/2024, Ley Karin) no aplicable.
+  const SYSTEM_USADO = (typeof system === 'string' && system.trim()) ? system : SYSTEM;
+  const MAX_TOKENS = (Number.isInteger(maxTokens) && maxTokens > 0 && maxTokens <= 8192) ? maxTokens : 8192;
 
   // Responder como SSE para mantener la conexión viva en Render Free
   res.setHeader('Content-Type', 'text/event-stream');
@@ -128,9 +133,9 @@ app.post('/api/claude', (req, res) => {
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: MAX_TOKENS,
     stream: true,
-    system: SYSTEM,
+    system: SYSTEM_USADO,
     messages: [{ role: 'user', content: prompt }]
   });
 
