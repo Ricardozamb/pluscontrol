@@ -459,16 +459,19 @@
       'Genera SOLO estas secciones:\n' +
       '## PASO I — ORGANIZACIÓN ANTE UNA EMERGENCIA (comité de administración, administrador, coordinador de emergencia/seguridad, conserjería, líderes de evacuación por torre y piso, personal de apoyo; responsabilidades detalladas de cada rol). Si un cargo no está designado, describe la función y deja el responsable como pendiente de designación.\n' +
       '## PASO II — PLAN GENERAL DE EMERGENCIA Y EVACUACIÓN (detección; formas de dar la alerta; alarma; comunicación interna; evaluación; criterios de decisión de evacuación; evacuación parcial; evacuación total; vías de evacuación; zonas de seguridad; puntos de encuentro; control de acceso durante la emergencia; coordinación con organismos externos; condiciones para el retorno).' },
-    { label: 'Paso III — procedimientos', instr:
-      'Genera SOLO el PASO III con subsecciones desarrolladas:\n' +
+    { label: 'Incendio', instr:
+      'Genera SOLO esta sección, muy desarrollada:\n' +
       '## PASO III — PROCEDIMIENTOS POR EMERGENCIA ESPECÍFICA\n' +
-      '### 3.1 INCENDIO (el más desarrollado: detección, alerta temprana, aviso a conserjería, activación de alarma, llamado a Bomberos 132, evaluación inicial, decisión de evacuación, cierre de puertas cuando sea seguro, prohibición de ascensores cuando corresponda, desplazamiento por vías señalizadas, llegada a zona de seguridad, recuento, apoyo a personas con movilidad reducida, coordinación con Bomberos, condiciones de retorno; incluye uso de extintor SOLO como primera respuesta cuando las condiciones lo permitan, conforme NCh 934).\n' +
+      '### 3.1 INCENDIO (detección; alerta temprana; aviso a conserjería; activación de alarma; llamado a Bomberos 132; evaluación inicial; decisión de evacuación; cierre de puertas cuando sea seguro; prohibición de ascensores cuando corresponda; desplazamiento por vías señalizadas; llegada a zona de seguridad; recuento de personas; apoyo a personas con movilidad reducida; coordinación con Bomberos a su llegada; condiciones de retorno). Estructura en ANTES, DURANTE y DESPUÉS. Incluye el uso de extintor SOLO como primera respuesta cuando las condiciones de seguridad lo permitan, conforme NCh 934, con la secuencia de operación. NO instruyas a residentes a enfrentar un incendio desarrollado.\n' +
+      'No generes las demás subsecciones: se generan aparte.' },
+    { label: 'Sismo, gas, inundación', instr:
+      'Genera SOLO estas subsecciones (continúan el PASO III ya generado; NO repitas su encabezado principal):\n' +
       '### 3.2 SISMO O TERREMOTO (antes, durante, después).\n' +
       '### 3.3 TSUNAMI — desarrolla el procedimiento únicamente si la comuna es costera según los datos entregados; si NO lo es, escribe solo el título y la frase: "El riesgo de tsunami no se incorpora como escenario operativo para este condominio debido a su ubicación territorial."\n' +
-      '### 3.4 FUGA O ESCAPE DE GAS.\n' +
-      '### 3.5 INUNDACIÓN.\n' +
+      '### 3.4 FUGA O ESCAPE DE GAS (antes, durante, después).\n' +
+      '### 3.5 INUNDACIÓN (antes, durante, después).\n' +
       '### 3.6 OTRAS EMERGENCIAS IDENTIFICADAS.\n' +
-      'Cada procedimiento con: antes, durante, después, alerta, comunicación, evacuación, responsabilidades, coordinación externa y retorno.' },
+      'Cada procedimiento con alerta, comunicación, evacuación, responsabilidades, coordinación externa y retorno.' },
     { label: 'Evacuación asistida, Paso IV y organismos', instr:
       'Genera SOLO estas secciones:\n' +
       '## PASO III-B — EVACUACIÓN DE PERSONAS QUE REQUIEREN ASISTENCIA (identificación preventiva de necesidades de apoyo; asignación de acompañantes; comunicación; rutas accesibles cuando existan; alternativas cuando una ruta no sea utilizable; prioridad de evacuación según la emergencia; prohibición expresa de maniobras inseguras). No inventes nombres de responsables.\n' +
@@ -490,21 +493,34 @@
     intentos = intentos || 0;
     return new Promise(function (resolve, reject) {
       var full = '', ctrl = new AbortController();
-      var tmt = setTimeout(function () { ctrl.abort(); }, 290000); // por debajo de los 5 min del servidor
+      var tmt = setTimeout(function () { ctrl.abort(); }, 290000);
+
+      function reintentar(motivo, espera) {
+        if (intentos < 3) {
+          setTimeout(function () {
+            callAPI(prompt, onChunk, intentos + 1).then(resolve).catch(reject);
+          }, espera);
+        } else {
+          reject(new Error(motivo + ' (tras 4 intentos). Espere un minuto y reintente.'));
+        }
+      }
+
       fetch('/api/claude', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: prompt, system: SYSTEM_CONDO }), signal: ctrl.signal,
       }).then(function (res) {
-        if (!res.ok) {
-          clearTimeout(tmt);
-          if (intentos < 2) setTimeout(function () { callAPI(prompt, onChunk, intentos + 1).then(resolve).catch(reject); }, 5000);
-          else reject(new Error('Servidor no disponible (' + res.status + ').'));
-          return;
-        }
+        if (!res.ok) { clearTimeout(tmt); reintentar('Servidor no disponible (' + res.status + ')', 6000); return; }
         var reader = res.body.getReader(), dec = new TextDecoder(), buf = '';
         (function leer() {
           reader.read().then(function (r) {
-            if (r.done) { clearTimeout(tmt); if (full) resolve(full); else reject(new Error('Sin contenido.')); return; }
+            if (r.done) {
+              clearTimeout(tmt);
+              if (full) resolve(full);
+              // Flujo cerrado sin contenido: casi siempre es saturación o
+              // límite de velocidad. Se reintenta con espera creciente.
+              else reintentar('Respuesta vacía', 10000 + intentos * 8000);
+              return;
+            }
             buf += dec.decode(r.value, { stream: true });
             var lines = buf.split('\n'); buf = lines.pop();
             for (var i = 0; i < lines.length; i++) {
@@ -512,7 +528,13 @@
               try {
                 var o = JSON.parse(lines[i].slice(6));
                 if (o.chunk) { full += o.chunk; if (onChunk) onChunk(o.chunk); }
-                if (o.error) { clearTimeout(tmt); reject(new Error(o.error)); return; }
+                if (o.error) {
+                  clearTimeout(tmt);
+                  var esTemporal = /RATE_LIMIT|OVERLOADED|429|529|overload/i.test(o.error);
+                  if (esTemporal && !full) reintentar(o.error, 15000 + intentos * 10000);
+                  else reject(new Error(o.error));
+                  return;
+                }
               } catch (e) {}
             }
             leer();
@@ -537,7 +559,7 @@
       '<p class="cq-step" id="cq-step">Preparando…</p>' +
       '<div class="cq-progress"><div class="cq-bar" id="cq-bar"></div></div>' +
       '<pre class="cq-stream" id="cq-stream"></pre>' +
-      '<p class="cq-note">Son 5 partes. No cierres la aplicación durante el proceso.</p>' +
+      '<p class="cq-note">Son ' + PARTES.length + ' partes con pausas entre cada una. Puede tardar varios minutos. No cierres la aplicación durante el proceso.</p>' +
       '</div></div>';
 
     var datos = buildDatosCondo(c);
@@ -564,12 +586,30 @@
         stream.scrollTop = stream.scrollHeight;
       }).then(function (t) {
         acumulado.push(t.trim());
-        hacerParte(i + 1);
+        // Pausa entre partes: evita gatillar el límite de velocidad de la API.
+        step.textContent = 'Parte ' + (i + 1) + ' completada. Preparando la siguiente…';
+        setTimeout(function () { hacerParte(i + 1); }, 4000);
       }).catch(function (err) {
         host.innerHTML = '<div class="cq-wrap"><div class="cq-error">' +
-          '<h2>Error al generar</h2><p>Parte ' + (i + 1) + ': ' + esc(err.message || String(err)) + '</p>' +
-          '<button class="cq-btn cq-btn-p" id="cq-volver">Volver</button></div></div>';
+          '<h2>Error al generar</h2>' +
+          '<p>Parte ' + (i + 1) + ' (' + esc(p.label) + '): ' + esc(err.message || String(err)) + '</p>' +
+          '<p class="cq-sub">Las ' + i + ' parte(s) ya generadas no se perdieron. Puedes continuar desde donde quedó.</p>' +
+          '<div class="cq-actions" style="justify-content:center">' +
+          '<button class="cq-btn cq-btn-p" id="cq-seguir">Reintentar esta parte</button>' +
+          '<button class="cq-btn" id="cq-volver">Volver</button></div></div></div>';
         document.getElementById('cq-volver').addEventListener('click', renderLista);
+        document.getElementById('cq-seguir').addEventListener('click', function () {
+          host.innerHTML = '<div class="cq-wrap"><div class="cq-gen">' +
+            '<h2>Generando Plan de Emergencia</h2>' +
+            '<p class="cq-sub">' + esc(c.nombre) + '</p>' +
+            '<p class="cq-step" id="cq-step">Reanudando…</p>' +
+            '<div class="cq-progress"><div class="cq-bar" id="cq-bar"></div></div>' +
+            '<pre class="cq-stream" id="cq-stream"></pre></div></div>';
+          stream = document.getElementById('cq-stream');
+          bar = document.getElementById('cq-bar');
+          step = document.getElementById('cq-step');
+          hacerParte(i);
+        });
       });
     }
     hacerParte(0);
