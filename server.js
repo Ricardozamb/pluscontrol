@@ -132,7 +132,7 @@ app.post('/api/claude', (req, res) => {
   res.on('finish', () => clearInterval(keepAlive));
 
   const payload = JSON.stringify({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5',
     max_tokens: MAX_TOKENS,
     stream: true,
     system: SYSTEM_USADO,
