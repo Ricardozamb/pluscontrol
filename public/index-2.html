@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plus Control">
+<meta name="theme-color" content="#0a0a0c">
+<title>Plus Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0c;--bg2:#111114;--bg3:#18181d;--bg4:#222229;--bg5:#2a2a32;--line:rgba(255,255,255,0.07);--line2:rgba(255,255,255,0.04);--v:#3d7a35;--v2:#52a347;--v3:#6ec462;--paper:#e8e6de;--paper2:#c8c6be;--muted:#666672;--muted2:#3e3e48;--oro:#b8963a;--oro2:#d4ae58;--azul:#3558a0;--azul2:#5278c8;--rojo:#c04040;--rojo2:#e06060;--safe-top:env(safe-area-inset-top,44px);--safe-bot:env(safe-area-inset-bottom,34px);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:14px;height:100%;}
+body{background:var(--bg);color:var(--paper);font-family:'Sora',sans-serif;height:100%;overflow:hidden;-webkit-font-smoothing:antialiased;}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.status-bar{height:var(--safe-top);background:var(--bg2);flex-shrink:0;}
+.header{height:56px;background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0;}
+.h-logo{display:flex;align-items:center;gap:10px;}
+.h-brand{font-size:16px;font-weight:800;letter-spacing:-0.02em;}
+.h-brand em{font-style:normal;color:var(--v3);}
+.h-right{display:flex;gap:8px;}
+.icon-btn{width:36px;height:36px;border-radius:10px;background:var(--bg3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;}
+.icon-btn:active{background:var(--bg4);transform:scale(0.95);}
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.tab-bar{height:calc(58px + var(--safe-bot));background:rgba(17,17,20,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;align-items:flex-start;padding-top:8px;padding-bottom:var(--safe-bot);flex-shrink:0;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;position:relative;}
+.tab-item:active{transform:scale(0.92);}
+.tab-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s;}
+.tab-item.on .tab-ico{background:rgba(110,196,98,0.15);}
+.tab-lbl{font-size:9px;font-weight:600;color:var(--muted);}
+.tab-item.on .tab-lbl{color:var(--v3);}
+.tab-badge{position:absolute;top:2px;right:calc(50% - 22px);background:var(--oro);color:var(--bg);font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:100px;display:none;align-items:center;justify-content:center;padding:0 4px;}
+.page{display:none;padding:16px;animation:pgIn 0.22s ease;}
+.page.on{display:block;}
+@keyframes pgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.kpi{background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:14px 16px;}
+.kpi-lbl{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;line-height:1;}
+.kpi-val.green{color:var(--v3);}.kpi-val.amber{color:var(--oro2);}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.card{background:var(--bg3);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:10px;}
+.card-item{padding:13px 16px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:12px;cursor:pointer;}
+.card-item:last-child{border-bottom:none;}
+.card-item:active{background:rgba(255,255,255,0.04);}
+.ci-ico{width:38px;height:38px;border-radius:10px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ci-body{flex:1;min-width:0;}
+.ci-title{font-size:13px;font-weight:600;color:var(--paper);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ci-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.ci-arr{color:var(--muted2);font-size:16px;}
+.tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;}
+.tag-ok{background:rgba(110,196,98,0.18);color:var(--v3);}
+.tag-wait{background:rgba(212,174,88,0.18);color:var(--oro2);}
+.tag-no{background:rgba(192,64,64,0.15);color:var(--rojo2);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 20px;border-radius:12px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;width:100%;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--v);color:#fff;}
+.btn-ghost{background:var(--bg4);color:var(--paper2);border:1px solid var(--line);}
+.btn-blue{background:var(--azul);color:#fff;}
+.btn-row{display:flex;gap:10px;}.btn-row .btn{flex:1;}
+.btn:disabled{opacity:0.35;}
+.btn-sm{padding:8px 14px;font-size:11px;border-radius:8px;width:auto;}
+.f-group{margin-bottom:14px;}
+.f-lbl{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;}
+.f-lbl .req{color:var(--v3);}
+.f-in,.f-sel,.f-ta{background:var(--bg3);border:1px solid var(--line);border-radius:12px;color:var(--paper);font-family:'Sora',sans-serif;font-size:14px;padding:12px 14px;width:100%;outline:none;-webkit-appearance:none;}
+.f-in::placeholder{color:var(--muted2);}
+.f-in:focus,.f-sel:focus,.f-ta:focus{border-color:rgba(110,196,98,0.5);background:rgba(110,196,98,0.04);}
+.f-sel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;}
+.f-sel option{background:var(--bg3);}
+.f-ta{resize:none;min-height:80px;line-height:1.6;}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.f-sec{margin-bottom:22px;}
+.f-sec-title{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--v3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(110,196,98,0.15);}
+.prog-wrap{height:3px;background:var(--bg4);border-radius:100px;overflow:hidden;margin-bottom:18px;}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--v),var(--v3));border-radius:100px;transition:width .4s ease;}
+.norma-pill{display:inline-block;padding:4px 9px;border-radius:6px;font-size:9px;font-weight:700;background:rgba(110,196,98,0.1);color:var(--v3);border:1px solid rgba(110,196,98,0.2);margin:3px 3px 0 0;}
+.risk-card{background:var(--bg4);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;}
+.risk-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:6px;}
+.gen-steps{display:flex;margin-bottom:18px;border-radius:12px;overflow:hidden;border:1px solid var(--line);}
+.gs{flex:1;padding:10px 8px;background:var(--bg3);display:flex;flex-direction:column;align-items:center;gap:4px;border-right:1px solid var(--line);}
+.gs:last-child{border-right:none;}
+.gs.done{background:rgba(61,122,53,0.1);}
+.gs.active{background:rgba(61,122,53,0.2);}
+.gs-num{width:22px;height:22px;border-radius:50%;background:var(--bg5);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--muted);transition:all 0.2s;}
+.gs.done .gs-num{background:var(--v);color:#fff;}
+.gs.active .gs-num{background:rgba(110,196,98,0.25);color:var(--v3);}
+.gs-lbl{font-size:8px;font-weight:600;color:var(--muted);text-align:center;}
+.gs.active .gs-lbl{color:var(--v3);}
+.tipo-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.tipo-card{background:var(--bg3);border:2px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;}
+.tipo-card:active{transform:scale(0.98);}
+.tipo-card.sel{border-color:var(--v3);background:rgba(110,196,98,0.08);}
+.tipo-ico{font-size:28px;flex-shrink:0;}
+.tipo-name{font-size:13px;font-weight:700;color:var(--paper);margin-bottom:3px;}
+.tipo-desc{font-size:11px;color:var(--muted);line-height:1.4;}
+.tipo-check{font-size:18px;flex-shrink:0;opacity:0;transition:opacity 0.15s;}
+.tipo-card.sel .tipo-check{opacity:1;}
+.ai-box{background:var(--bg2);border:1px solid rgba(110,196,98,0.2);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.ai-head{background:rgba(110,196,98,0.07);padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(110,196,98,0.12);}
+.ai-pulse{width:8px;height:8px;border-radius:50%;background:var(--v3);flex-shrink:0;}
+.ai-pulse.live{animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.6);}}
+.ai-lbl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--v3);font-weight:500;flex:1;}
+.ai-timer{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.ai-body{padding:16px;max-height:320px;overflow-y:auto;font-size:12px;line-height:1.75;-webkit-overflow-scrolling:touch;}
+.ai-loading{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;}
+.dots{display:flex;gap:4px;}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--v3);animation:bounce 0.8s infinite;}
+.dots span:nth-child(2){animation-delay:.15s;}.dots span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.doc-content h1{font-size:14px;font-weight:700;color:var(--paper);margin:12px 0 5px;}
+.doc-content h2{font-size:12px;font-weight:700;color:var(--v3);margin:10px 0 4px;}
+.doc-content h3{font-size:11px;font-weight:700;margin:8px 0 3px;}
+.doc-content strong{font-weight:700;color:var(--paper);}
+.firma-box{background:var(--bg3);border:2px dashed rgba(110,196,98,0.22);border-radius:14px;padding:20px;text-align:center;margin-bottom:14px;}
+.firma-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--azul),#1e3a70);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;margin:0 auto 10px;}
+.firma-name{font-size:14px;font-weight:700;margin-bottom:2px;}
+.firma-role{font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:14px;}
+.firma-line{width:140px;height:1px;background:rgba(255,255,255,0.1);margin:0 auto 8px;}
+.firma-ok{display:inline-flex;align-items:center;gap:6px;background:rgba(110,196,98,0.12);border:1px solid rgba(110,196,98,0.28);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--v3);}
+.alert{padding:12px 14px;border-radius:12px;font-size:12px;margin-bottom:14px;display:flex;gap:10px;line-height:1.55;}
+.alert-green{background:rgba(110,196,98,0.1);border:1px solid rgba(110,196,98,0.22);color:var(--v3);}
+.alert-amber{background:rgba(212,174,88,0.1);border:1px solid rgba(212,174,88,0.22);color:var(--oro2);}
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;}
+.sheet-overlay.open{display:block;}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg3);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:8px 18px calc(var(--safe-bot) + 16px);z-index:101;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:sheetIn 0.28s cubic-bezier(0.32,0.72,0,1);}
+@keyframes sheetIn{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.sheet-handle{width:40px;height:4px;background:var(--bg5);border-radius:100px;margin:0 auto 16px;}
+.sheet-title{font-size:16px;font-weight:700;color:var(--paper);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;}
+.empty-ico{font-size:40px;margin-bottom:12px;opacity:0.5;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-size:13px;font-weight:700;color:var(--paper);}
+.sec-action{font-size:11px;color:var(--v3);font-weight:600;cursor:pointer;}
+::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE LOGIN -->
+<div id="login-screen" style="position:fixed;inset:0;background:#0a0a0c;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;">
+  <div style="width:100%;max-width:340px;">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:36px;">
+      <svg width="52" height="52" viewBox="0 0 40 40" fill="none" style="margin:0 auto 12px;display:block;">
+        <rect x="14" y="2" width="12" height="36" rx="2.5" fill="#111" stroke="white" stroke-width="1.8"/>
+        <rect x="2" y="14" width="36" height="12" rx="2.5" fill="#111" stroke="white" stroke-width="1.8"/>
+        <rect x="4" y="15.5" width="32" height="9" rx="2" fill="#111" stroke="white" stroke-width="1.5"/>
+        <text x="20" y="22.5" text-anchor="middle" font-family="Georgia" font-size="7.5" font-weight="900" fill="white">PluS</text>
+        <rect x="23" y="28" width="5" height="10" rx="1.5" fill="#3d7a35"/>
+        <rect x="19" y="32" width="13" height="5" rx="1.5" fill="#3d7a35"/>
+      </svg>
+      <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:white;letter-spacing:-0.02em;">Plus<span style="color:#6ec462;">Control</span></div>
+      <div style="font-family:'Sora',sans-serif;font-size:10px;color:#666;letter-spacing:0.18em;text-transform:uppercase;margin-top:4px;">Prevencion Integral de Riesgos</div>
+    </div>
+    <!-- Form login -->
+    <div style="background:#111114;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:24px;">
+      <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:#e8e6de;margin-bottom:16px;">Iniciar sesion</div>
+      <div style="margin-bottom:12px;">
+        <label style="font-family:'Sora',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#666;display:block;margin-bottom:6px;">Usuario</label>
+        <input id="login-user" class="f-in" placeholder="Ingresa tu usuario" autocomplete="username" autocapitalize="none" style="background:#18181d;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-family:'Sora',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#666;display:block;margin-bottom:6px;">Contrasena</label>
+        <input id="login-pass" class="f-in" type="password" placeholder="Ingresa tu contrasena" autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false" style="background:#18181d;" onkeypress="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-error" style="display:none;background:rgba(192,64,64,0.12);border:1px solid rgba(224,96,96,0.25);border-radius:8px;padding:10px 12px;font-family:'Sora',sans-serif;font-size:11px;color:#e06060;margin-bottom:14px;">
+        Usuario o contrasena incorrectos.
+      </div>
+      <button id="login-btn" class="btn btn-primary" style="width:100%;" onclick="doLogin()">Ingresar</button>
+    </div>
+    <div style="text-align:center;margin-top:20px;font-family:'Sora',sans-serif;font-size:9px;color:#333;letter-spacing:.1em;">PLUS CONTROL SpA &nbsp;·&nbsp; OSORNO, CHILE</div>
+  </div>
+</div>
+
+<div class="app" id="main-app" style="display:none;">
+  <div class="status-bar"></div>
+  <div class="header">
+    <div class="h-logo">
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <rect x="14" y="2" width="12" height="36" rx="2.5" fill="#111" stroke="white" stroke-width="1.8"/>
+        <rect x="2" y="14" width="36" height="12" rx="2.5" fill="#111" stroke="white" stroke-width="1.8"/>
+        <rect x="4" y="15.5" width="32" height="9" rx="2" fill="#111" stroke="white" stroke-width="1.5"/>
+        <text x="20" y="22.5" text-anchor="middle" font-family="Georgia" font-size="7.5" font-weight="900" fill="white">PluS</text>
+        <rect x="23" y="28" width="5" height="10" rx="1.5" fill="#3d7a35"/>
+        <rect x="19" y="32" width="13" height="5" rx="1.5" fill="#3d7a35"/>
+      </svg>
+      <div class="h-brand">Plus<em>Control</em></div>
+    </div>
+    <div class="h-right">
+      <div class="icon-btn" id="hbtn-nueva">＋</div>
+      <div class="icon-btn" id="hbtn-alan">🔔</div>
+      <div class="icon-btn" id="hbtn-logout" title="Cerrar sesion" style="font-size:13px;">&#x23FB;</div>
+    </div>
+  </div>
+  <div class="scroll-area" id="scroll-area">
+
+    <!-- DASHBOARD -->
+    <div class="page on" id="pg-dash">
+      <div style="padding-top:4px;margin-bottom:16px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Bienvenido,</div>
+        <div style="font-size:20px;font-weight:800"><span id="saludo-nombre">Usuario</span> 👋</div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-lbl">Empresas</div><div class="kpi-val" id="kv1">0</div><div class="kpi-sub">registradas</div></div>
+        <div class="kpi"><div class="kpi-lbl">Documentos</div><div class="kpi-val" id="kv2">0</div><div class="kpi-sub">generados</div></div>
+        <div class="kpi"><div class="kpi-lbl">Pendientes</div><div class="kpi-val amber" id="kv3">0</div><div class="kpi-sub">sin firma Alan</div></div>
+        <div class="kpi"><div class="kpi-lbl">Firmados</div><div class="kpi-val green" id="kv4">0</div><div class="kpi-sub">validez legal</div></div>
+      </div>
+      <div class="sec-hd"><div class="sec-title">Empresas recientes</div><div class="sec-action" id="link-ver-todas">Ver todas</div></div>
+      <div class="card" id="dash-list"></div>
+      <div class="empty" id="dash-empty" style="display:none"><div class="empty-ico">🏢</div>Sin empresas.<br><span style="color:var(--v3);cursor:pointer" id="link-reg-1">Registrar primera empresa →</span></div>
+      <div class="alert alert-amber" id="welcome-alert"><span>💡</span><div><strong>Sistema Plus Control listo.</strong> DS 44/2024 · Ley Karin 2024 · Normativa Chile 2025.</div></div>
+    </div>
+
+    <!-- EMPRESAS -->
+    <div class="page" id="pg-empresas">
+      <div style="margin-bottom:14px"><input class="f-in" id="srch" placeholder="Buscar empresa..."></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px" id="lbl-count">0 empresas</div>
+      <div class="card" id="emp-list"></div>
+      <div class="empty" id="emp-empty" style="display:none"><div class="empty-ico">🏢</div>Sin empresas.</div>
+    </div>
+
+    <!-- NUEVA EMPRESA -->
+    <div class="page" id="pg-nueva">
+      <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:0%"></div></div>
+
+      <!-- 1. IDENTIFICACIÓN -->
+      <div class="f-sec">
+        <div class="f-sec-title">🏢 Identificacion Legal</div>
+        <div class="f-group"><label class="f-lbl">Razon Social <span class="req">*</span></label><input class="f-in" id="n-razon" placeholder="Nombre legal completo de la empresa"></div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">RUT Empresa <span class="req">*</span></label><input class="f-in" id="n-rut" placeholder="12.345.678-9"></div>
+          <div class="f-group"><label class="f-lbl">Telefono</label><input class="f-in" id="n-tel" placeholder="+56 9..."></div>
+        </div>
+        <div class="f-group"><label class="f-lbl">Email corporativo</label><input class="f-in" id="n-email" type="email" placeholder="contacto@empresa.cl"></div>
+      </div>
+
+      <!-- 2. UBICACIÓN -->
+      <div class="f-sec">
+        <div class="f-sec-title">📍 Ubicacion</div>
+        <div class="f-group"><label class="f-lbl">Direccion <span class="req">*</span></label><input class="f-in" id="n-dir" placeholder="Calle, numero, comuna"></div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">Ciudad <span class="req">*</span></label><input class="f-in" id="n-ciudad" placeholder="Ej: Osorno"></div>
+          <div class="f-group"><label class="f-lbl">Region <span class="req">*</span></label>
+            <select class="f-sel" id="n-region"><option value="">—</option><option>Arica y Parinacota</option><option>Tarapaca</option><option>Antofagasta</option><option>Atacama</option><option>Coquimbo</option><option>Valparaiso</option><option>Metropolitana</option><option>O Higgins</option><option>Maule</option><option>Nuble</option><option>Biobio</option><option>La Araucania</option><option>Los Rios</option><option selected>Los Lagos</option><option>Aysen</option><option>Magallanes</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. REPRESENTANTE LEGAL -->
+      <div class="f-sec">
+        <div class="f-sec-title">👤 Representante Legal</div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">Nombre completo <span class="req">*</span></label><input class="f-in" id="n-rep" placeholder="Nombre y apellidos"></div>
+          <div class="f-group"><label class="f-lbl">RUT Rep. Legal <span class="req">*</span></label><input class="f-in" id="n-rep-rut" placeholder="12.345.678-9"></div>
+        </div>
+        <div class="f-group"><label class="f-lbl">Cargo del representante legal</label><input class="f-in" id="n-cargo" placeholder="Ej: Gerente General, Director, Socio Administrador"></div>
+        <div class="f-group"><label class="f-lbl">Segundo representante legal (si aplica)</label><input class="f-in" id="n-rep2" placeholder="Nombre completo — solo si hay dos firmantes del RIOHS"></div>
+        <div class="f-group"><label class="f-lbl">RUT segundo representante legal</label><input class="f-in" id="n-rep2-rut" placeholder="RUT — solo si hay segundo firmante"></div>
+      </div>
+
+      <!-- 4. ACTIVIDAD ECONÓMICA -->
+      <div class="f-sec">
+        <div class="f-sec-title">⚙️ Actividad Economica</div>
+        <div class="f-group"><label class="f-lbl">Rubro principal <span class="req">*</span></label>
+          <select class="f-sel" id="n-rubro">
+            <option value="">— Seleccionar rubro —</option>
+            <option>Construccion</option><option>Comercio al por menor</option><option>Comercio al por mayor</option><option>Transporte y logistica</option><option>Industria manufacturera</option><option>Mineria</option><option>Agricultura y ganaderia</option><option>Pesca y acuicultura</option><option>Silvicultura y forestal</option><option>Servicios de salud</option><option>Educacion</option><option>Hoteleria y turismo</option><option>Gastronomia y restaurantes</option><option>Saneamiento ambiental</option><option>Proteccion contra incendios</option><option>Servicios de seguridad</option><option>Tecnologia y comunicaciones</option><option>Energia y utilities</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="f-group"><label class="f-lbl">Actividad especifica / Sub-rubro <span class="req">*</span></label><input class="f-in" id="n-sub" placeholder="Ej: Mantención de extintores, Cosecha forestal, Faena de engorda..."></div>
+        <div class="f-group"><label class="f-lbl">Descripcion detallada de los procesos productivos <span class="req">*</span></label><textarea class="f-ta" id="n-desc" placeholder="Describa paso a paso qué hace la empresa: qué produce/vende/presta, cómo lo hace, qué equipos usa, dónde trabaja (instalaciones propias, terreno cliente, ambos)..." style="min-height:100px"></textarea></div>
+        <div class="f-group"><label class="f-lbl">Productos, materiales o servicios principales</label><textarea class="f-ta" id="n-productos" placeholder="Ej: Extintores PQS y CO2, arneses de seguridad, servicios de recarga a domicilio..."></textarea></div>
+        <div class="f-group"><label class="f-lbl">Tipo de clientes / donde se realizan los trabajos</label>
+          <select class="f-sel" id="n-lugar-trabajo">
+            <option value="Solo en instalaciones propias">Solo en instalaciones propias</option>
+            <option value="En instalaciones de clientes (terreno)">En instalaciones de clientes (terreno)</option>
+            <option value="Ambos: instalaciones propias y terreno cliente">Ambos: instalaciones propias y terreno cliente</option>
+            <option value="En espacios publicos o via publica">En espacios publicos o via publica</option>
+          </select>
+        </div>
+        <div class="f-group"><label class="f-lbl">Mutualidad <span class="req">*</span></label><select class="f-sel" id="n-mut"><option value="">— Seleccionar —</option><option>ACHS</option><option>IST</option><option>Mutual de Seguridad CChC</option><option>INS (Instituto de Normalizacion Previsional)</option></select></div>
+      </div>
+
+      <!-- 5. TRABAJADORES -->
+      <div class="f-sec">
+        <div class="f-sec-title">👥 Trabajadores <span style="font-size:9px;font-weight:400;color:var(--muted)">(DS 44/2024 exige MIPER por puesto y enfoque de género)</span></div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">N° total trabajadores <span class="req">*</span></label><input class="f-in" id="n-trab" type="number" min="1" placeholder="N total"></div>
+          <div class="f-group"><label class="f-lbl">N° mujeres</label><input class="f-in" id="n-mujeres" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajadoras embarazadas o en lactancia?</label><select class="f-sel" id="n-embarazo"><option value="No">No</option><option value="Si">Si</option><option value="No sabe">No se sabe actualmente</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajadores menores de 18 años?</label><select class="f-sel" id="n-menores"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajadores con discapacidad?</label><select class="f-sel" id="n-discapacidad"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Cargos y puestos de trabajo reales <span class="req">*</span></label><textarea class="f-ta" id="n-cargos" placeholder="Liste cada cargo con N° de personas. Ej:&#10;- Gerente General: 1 persona (hombre)&#10;- Técnico de terreno: 2 personas (2 hombres)&#10;- Administrativo: 1 persona (mujer)&#10;&#10;Esto es esencial para la MIPER y el RIOHS."></textarea></div>
+        <div class="f-group"><label class="f-lbl">¿Hay sindicato activo?</label><select class="f-sel" id="n-sindicato"><option value="No">No</option><option value="Si">Si</option></select></div>
+      </div>
+
+      <!-- 6. JORNADA LABORAL -->
+      <div class="f-sec">
+        <div class="f-sec-title">🕐 Jornada Laboral <span style="font-size:9px;font-weight:400;color:var(--muted)">(CT Art.22)</span></div>
+        <div class="f-group"><label class="f-lbl">Horario de trabajo <span class="req">*</span></label><input class="f-in" id="n-horario" placeholder="Ej: Lunes a Viernes 08:00-18:00 con 1 hora colacion"></div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">Horas semanales</label><input class="f-in" id="n-horas" type="number" placeholder="Ej: 42 (máx. legal Ley 21.561)"></div>
+          <div class="f-group"><label class="f-lbl">Tipo de jornada</label>
+            <select class="f-sel" id="n-jornada">
+              <option value="Ordinaria (lunes a viernes)">Ordinaria (lunes a viernes)</option>
+              <option value="Con turno sabado">Con turno sabado</option>
+              <option value="Turnos rotativos">Turnos rotativos</option>
+              <option value="Turno nocturno">Turno nocturno</option>
+              <option value="Jornada excepcional">Jornada excepcional (DS 745)</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-group"><label class="f-lbl">¿Se realizan horas extraordinarias frecuentemente?</label><select class="f-sel" id="n-horas-extra"><option value="No">No</option><option value="Si, ocasionalmente">Si, ocasionalmente</option><option value="Si, regularmente">Si, regularmente</option></select></div>
+      </div>
+
+      <!-- 7. INSTALACIONES -->
+      <div class="f-sec">
+        <div class="f-sec-title">🏭 Instalaciones</div>
+        <div class="f-grid">
+          <div class="f-group"><label class="f-lbl">Superficie total (m²)</label><input class="f-in" id="n-superficie" type="number" placeholder="Ej: 120"></div>
+          <div class="f-group"><label class="f-lbl">Numero de pisos</label><input class="f-in" id="n-pisos" type="number" placeholder="1" value="1"></div>
+        </div>
+        <div class="f-group"><label class="f-lbl">¿Atienden publico o clientes en las instalaciones?</label><select class="f-sel" id="n-publico"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Maquinaria y equipos principales</label><textarea class="f-ta" id="n-maquinaria" placeholder="Liste los equipos que usan. Ej: Furgón Fiat Doblò, compresor de nitrógeno 300 bar, torno, soldadora MIG, montacargas 3 ton..." style="min-height:70px"></textarea></div>
+      </div>
+
+      <!-- 8B. SUCURSALES ADICIONALES -->
+      <div class="f-sec" id="sec-sucursales">
+        <div class="f-sec-title">🏪 Sucursales / Dependencias adicionales <span style="font-size:9px;font-weight:400;color:var(--muted)">(si la empresa opera en más de un lugar)</span></div>
+        <div class="f-group"><label class="f-lbl">¿Tiene sucursales o dependencias adicionales?</label>
+          <select class="f-sel" id="n-tiene-sucursales" onchange="toggleSucursales()">
+            <option value="No">No, solo una sede</option>
+            <option value="Si">Si, tiene sucursales adicionales</option>
+          </select>
+        </div>
+        <div id="sucursales-container" style="display:none">
+          <div id="sucursales-list"></div>
+          <button class="btn btn-ghost" type="button" onclick="addSucursal()" style="margin-top:4px">+ Agregar sucursal</button>
+        </div>
+      </div>
+
+      <!-- 8. AGENTES DE RIESGO -->
+      <div class="f-sec">
+        <div class="f-sec-title">☣️ Agentes de Riesgo <span style="font-size:9px;font-weight:400;color:var(--muted)">(DS 594/1999 — marque todos los que aplican)</span></div>
+        <div class="f-group"><label class="f-lbl">Sustancias quimicas que manejan</label><textarea class="f-ta" id="n-sustancias" placeholder="Ej: CO₂ líquido, polvo químico seco ABC, nitrógeno comprimido, solventes, cloro, pesticidas... o 'Ninguna'"></textarea></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a ruido sobre 85 dB?</label><select class="f-sel" id="n-ruido"><option value="No se sabe">No se sabe</option><option value="No">No</option><option value="Si, fuentes de ruido moderado">Si, fuentes de ruido moderado</option><option value="Si, maquinaria o equipos ruidosos">Si, maquinaria o equipos ruidosos (probable >85dB)</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay generacion de polvo (silice, madera, metal, otro)?</label><select class="f-sel" id="n-polvo"><option value="No">No</option><option value="Si, polvo de madera o vegetal">Si, polvo de madera o vegetal</option><option value="Si, polvo de silice (tierra, hormigon, ceramica)">Si, polvo de silice (tierra, hormigon, ceramica)</option><option value="Si, polvo metalico">Si, polvo metalico</option><option value="Si, polvo quimico">Si, polvo quimico</option><option value="Si, otro tipo de polvo">Si, otro tipo de polvo</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a temperaturas extremas?</label><select class="f-sel" id="n-temperatura"><option value="No">No, condiciones normales</option><option value="Si, trabajo en frio intenso">Si, trabajo en frio intenso (camaras, exterior invernal)</option><option value="Si, trabajo en calor intenso">Si, trabajo en calor intenso (hornos, exterior verano)</option><option value="Si, ambos segun temporada">Si, ambos segun temporada</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a agentes biologicos?</label><select class="f-sel" id="n-biologico"><option value="No">No</option><option value="Si, contacto con personas (atencion salud/publico)">Si, contacto con personas (atencion salud/publico)</option><option value="Si, contacto con animales">Si, contacto con animales</option><option value="Si, manejo de residuos organicos">Si, manejo de residuos organicos</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a vibraciones (herramientas, maquinas)?</label><select class="f-sel" id="n-vibracion"><option value="No">No</option><option value="Si, herramientas manuales vibrantes">Si, herramientas manuales vibrantes (taladro, amoladora)</option><option value="Si, maquinaria pesada o vehiculos">Si, maquinaria pesada o vehiculos todo terreno</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay exposicion a radiacion?</label><select class="f-sel" id="n-radiacion"><option value="No">No</option><option value="Si, radiacion UV solar (trabajo exterior)">Si, radiacion UV solar (trabajo exterior)</option><option value="Si, soldadura (UV artificial)">Si, soldadura (UV artificial)</option><option value="Si, rayos X u otra radiacion ionizante">Si, rayos X u otra radiacion ionizante</option></select></div>
+      </div>
+
+      <!-- 9. TRABAJOS ESPECIALES -->
+      <div class="f-sec">
+        <div class="f-sec-title">⚠️ Trabajos de Alto Riesgo</div>
+        <div class="f-group"><label class="f-lbl">¿Trabajan en altura (mas de 1,8 m)?</label><select class="f-sel" id="n-altura"><option value="No">No</option><option value="Si, hasta 3m (escaleras)">Si, hasta 3m (escaleras)</option><option value="Si, sobre 3m (andamios, cubierta)">Si, sobre 3m (andamios, cubierta)</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Realizan trabajos en caliente (soldadura, corte, llama)?</label><select class="f-sel" id="n-caliente"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay espacios confinados (tanques, pozos, ductos)?</label><select class="f-sel" id="n-confinado"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Conducen vehiculos de trabajo?</label><select class="f-sel" id="n-vehiculos"><option value="No">No</option><option value="Si, vehiculos livianos (auto, furgon)">Si, vehiculos livianos (auto, furgon)</option><option value="Si, vehiculos pesados (camion, maquinaria)">Si, vehiculos pesados (camion, maquinaria)</option><option value="Si, ambos tipos">Si, ambos tipos</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Manipulan equipos o recipientes a presion (cilindros, calderas)?</label><select class="f-sel" id="n-presion"><option value="No">No</option><option value="Si, cilindros de gas comprimido">Si, cilindros de gas comprimido</option><option value="Si, sistemas hidraulicos o neumaticos">Si, sistemas hidraulicos o neumaticos</option><option value="Si, calderas o autoclaves">Si, calderas o autoclaves</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay trabajo nocturno o en aislamiento?</label><select class="f-sel" id="n-nocturno"><option value="No">No</option><option value="Si, trabajo nocturno">Si, trabajo nocturno</option><option value="Si, trabajo en lugares aislados">Si, trabajo en lugares aislados o sin supervision</option></select></div>
+        <div class="f-group"><label class="f-lbl">Otras tareas peligrosas especificas</label><textarea class="f-ta" id="n-tareas-peligrosas" placeholder="Describa otras tareas criticas que requieran PTS propio. Ej: recarga de extintores con N₂, instalacion de paneles electricos, poda de arboles en altura, fumigacion de recintos..."></textarea></div>
+      </div>
+
+      <!-- 10. EMERGENCIA -->
+      <div class="f-sec">
+        <div class="f-sec-title">🚨 Recursos de Emergencia</div>
+        <div class="f-group"><label class="f-lbl">¿Tienen extintores?</label><select class="f-sel" id="n-extintores"><option value="No">No</option><option value="Si, sin registro de revision">Si, sin registro de revision</option><option value="Si, con registro y revision anual">Si, con registro y revision anual (NCh 934)</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen sistema de alarma o deteccion de incendio?</label><select class="f-sel" id="n-alarma"><option value="No">No</option><option value="Si, detectores de humo">Si, detectores de humo</option><option value="Si, sistema central con alarma">Si, sistema central con alarma</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen botiquin de primeros auxilios?</label><select class="f-sel" id="n-botiquin"><option value="No">No</option><option value="Si, basico sin revision">Si, basico sin revision periodica</option><option value="Si, completo con revision periodica">Si, completo con revision periodica</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Hay alguna persona capacitada en primeros auxilios?</label><select class="f-sel" id="n-primeros-auxilios"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Centro asistencial mas cercano</label><input class="f-in" id="n-hospital" placeholder="Ej: Hospital Base de Osorno, 3 km aprox."></div>
+      </div>
+
+      <!-- 11. CUMPLIMIENTO ACTUAL -->
+      <div class="f-sec">
+        <div class="f-sec-title">📄 Estado de Cumplimiento Preventivo Actual</div>
+        <div class="f-group"><label class="f-lbl">¿Tienen RIOHS vigente?</label><select class="f-sel" id="n-tiene-riohs"><option value="No">No</option><option value="Si, desactualizado">Si, pero desactualizado</option><option value="Si, vigente">Si, vigente y actualizado</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen IPER / Matriz de Riesgos?</label><select class="f-sel" id="n-tiene-iper"><option value="No">No</option><option value="Si, desactualizada">Si, pero desactualizada</option><option value="Si, vigente">Si, vigente</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Realizan capacitaciones con registro?</label><select class="f-sel" id="n-capacitaciones"><option value="No">No</option><option value="Si, ocasionalmente sin programa">Si, ocasionalmente sin programa formal</option><option value="Si, con programa anual">Si, con programa anual documentado</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Tienen registro firmado de entrega de EPP?</label><select class="f-sel" id="n-registro-epp"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="f-group"><label class="f-lbl">Accidentes del trabajo en ultimos 12 meses</label><select class="f-sel" id="n-accidentes"><option value="Ninguno">Ninguno</option><option value="1 a 2 accidentes leves">1-2 accidentes leves</option><option value="3 o mas accidentes">3 o mas accidentes</option><option value="Algun accidente grave o fatal">Algun accidente grave o fatal</option></select></div>
+        <div class="f-group"><label class="f-lbl">¿Han tenido fiscalizaciones DT o SEREMI Salud?</label><select class="f-sel" id="n-fiscalizacion"><option value="No">No / No sabe</option><option value="Si, sin infracciones">Si, sin infracciones</option><option value="Si, con multas o infracciones">Si, con multas o infracciones</option></select></div>
+      </div>
+
+      <!-- 12. NORMATIVA DETECTADA -->
+      <div class="f-sec" id="normas-sec" style="display:none">
+        <div class="f-sec-title">📋 Normativa detectada (Chile 2025)</div>
+        <div id="normas-pills"></div>
+      </div>
+
+      <!-- 13. RIESGOS -->
+      <div class="f-sec">
+        <div class="f-sec-title">⚠️ Riesgos identificados <span style="font-size:9px;font-weight:400;color:var(--muted)">(metodologia P×C DS 44/2024)</span></div>
+        <div id="riesgos-box"></div>
+        <button class="btn btn-ghost" id="btn-add-riesgo" style="margin-top:4px">+ Agregar riesgo</button>
+      </div>
+
+      <div style="height:16px"></div>
+      <button class="btn btn-primary" id="btn-guardar">Guardar empresa</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-ghost" id="btn-cancelar">Cancelar</button>
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- GENERAR -->
+    <div class="page" id="pg-generar">
+      <div class="gen-steps">
+        <div class="gs active" id="gs1"><div class="gs-num">1</div><div class="gs-lbl">Empresa</div></div>
+        <div class="gs" id="gs2"><div class="gs-num">2</div><div class="gs-lbl">Tipo</div></div>
+        <div class="gs" id="gs3"><div class="gs-num">3</div><div class="gs-lbl">IA</div></div>
+        <div class="gs" id="gs4"><div class="gs-num">4</div><div class="gs-lbl">PDF</div></div>
+      </div>
+      <div id="gp1">
+        <div class="f-group"><label class="f-lbl">Empresa</label><select class="f-sel" id="g-emp"><option value="">— Seleccionar —</option></select></div>
+        <div id="g-emp-info" style="display:none" class="alert alert-green"></div>
+        <div style="height:8px"></div>
+        <button class="btn btn-primary" id="btn-gp1" disabled>Continuar</button>
+      </div>
+      <div id="gp2" style="display:none">
+        <div class="tipo-list">
+          <div class="tipo-card" id="tc-riohs"><div class="tipo-ico">📋</div><div style="flex:1"><div class="tipo-name">Reglamento Interno (RIOHS)</div><div class="tipo-desc">Obligatorio · DS 44/2024 · Ley 16.744 · Ley Karin 2024</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-iper"><div class="tipo-ico">⚠️</div><div style="flex:1"><div class="tipo-name">Matriz IPER</div><div class="tipo-desc">Peligros y riesgos con enfoque genero · DS 44/2024</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-pts"><div class="tipo-ico">📝</div><div style="flex:1"><div class="tipo-name">Procedimiento Trabajo Seguro (PTS)</div><div class="tipo-desc">Pasos seguros + EPP + emergencias por tarea critica</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-emergencia"><div class="tipo-ico">🚨</div><div style="flex:1"><div class="tipo-name">Plan de Emergencia</div><div class="tipo-desc">Escenarios especificos del rubro · DS 594 · NCh 934</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-fuf"><div class="tipo-ico">🔍</div><div style="flex:1"><div class="tipo-name">FUF DS 44/2024</div><div class="tipo-desc">Formulario Unico Fiscalizacion · 60 items · DT</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-karin"><div class="tipo-ico">🛡️</div><div style="flex:1"><div class="tipo-name">Protocolo Ley Karin</div><div class="tipo-desc">Prevencion acoso laboral y sexual · Ley 21.643 2024</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-capacitacion"><div class="tipo-ico">📚</div><div style="flex:1"><div class="tipo-name">Programa Capacitacion Anual</div><div class="tipo-desc">Plan formativo 8 hrs minimo · DS 44/2024 Art.16</div></div><div class="tipo-check">✅</div></div>
+          <div class="tipo-card" id="tc-derechosaber"><div class="tipo-ico">📄</div><div style="flex:1"><div class="tipo-name">Derecho a Saber</div><div class="tipo-desc">Informacion riesgos por puesto · DS 44/2024 Art.14</div></div><div class="tipo-check">✅</div></div></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="btn-gp2-back">Atras</button>
+          <button class="btn btn-primary" id="btn-gp2" disabled>Generar con IA</button>
+        </div>
+      </div>
+      <div id="gp3" style="display:none">
+        <div class="ai-box">
+          <div class="ai-head">
+            <div class="ai-pulse live" id="ai-pulse"></div>
+            <div class="ai-lbl" id="ai-lbl">Claude · Generando...</div>
+            <div class="ai-timer" id="ai-tmr">00:00</div>
+          </div>
+          <div class="ai-body doc-content" id="ai-out"><div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div>Analizando normativa Chile 2025...</div></div>
+        </div>
+        <div id="gp3-acts" style="display:none">
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="btn-gp3-back">Cambiar</button>
+            <button class="btn btn-primary" id="btn-gp3" disabled>Ver PDF</button>
+          </div>
+        </div>
+      </div>
+      <div id="gp4" style="display:none">
+        <div class="ai-box">
+          <div class="ai-head">
+            <div class="ai-pulse" style="background:var(--v3)"></div>
+            <div class="ai-lbl">Documento listo</div>
+            <button class="btn btn-ghost btn-sm" id="btn-dl-txt" style="width:auto;padding:5px 10px;font-size:10px">Txt</button>
+          </div>
+          <div class="ai-body doc-content" id="doc-prev" style="max-height:220px"></div>
+        </div>
+        <button class="btn btn-primary" id="btn-pdf" style="margin-bottom:10px">📄 Descargar PDF profesional con firma</button>
+        <div class="firma-box">
+          <div class="firma-av">AB</div>
+          <div class="firma-name">Alan Bascur</div>
+          <div class="firma-role">Ingeniero en Prevencion de Riesgos<br>Prevencionista de Riesgos Profesionales<br>Plus Control SpA · Osorno, Los Lagos</div>
+          <div class="firma-line"></div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:14px">Firma y Timbre</div>
+          <div id="firma-pend">
+            <div class="alert alert-amber" style="text-align:left;font-size:11px;margin-bottom:10px">Pendiente de revision y firma.</div>
+            <button class="btn btn-blue" id="btn-enviar-alan">Enviar a Alan para revision</button>
+          </div>
+          <div id="firma-sent" style="display:none"><div class="firma-ok">✅ Enviado al Panel de Alan</div></div>
+        </div>
+        <div style="margin-bottom:20px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Normativa incluida</div>
+          <div id="normas-chk"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALAN -->
+    <div class="page" id="pg-alan">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:14px 16px">
+        <div class="firma-av" style="width:44px;height:44px;font-size:16px;margin:0;flex-shrink:0">AB</div>
+        <div><div style="font-size:14px;font-weight:700">Alan Bascur</div><div style="font-size:10px;color:var(--muted);line-height:1.4">Ing. Prevencion de Riesgos<br>Plus Control SpA</div></div>
+        <div style="margin-left:auto;text-align:right"><div style="font-size:20px;color:var(--oro2);font-weight:700" id="alan-pend">0</div><div style="font-size:9px;color:var(--muted)">pendientes</div></div>
+      </div>
+      <div class="sec-hd"><div class="sec-title">Documentos para firmar</div></div>
+      <div class="card" id="alan-list"></div>
+      <div class="empty" id="alan-empty" style="display:none"><div class="empty-ico">✅</div>Sin documentos pendientes.</div>
+    </div>
+
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item on" id="tab-dash"><div class="tab-ico">⊞</div><div class="tab-lbl">Inicio</div></div>
+    <div class="tab-item" id="tab-empresas"><div class="tab-ico">🏢</div><div class="tab-lbl">Empresas</div></div>
+    <div class="tab-item" id="tab-nueva"><div class="tab-ico" style="background:var(--v);border-radius:14px;width:40px;height:40px;font-size:22px">＋</div><div class="tab-lbl">Nueva</div></div>
+    <div class="tab-item" id="tab-generar"><div class="tab-ico">⚙</div><div class="tab-lbl">Generar</div></div>
+    <div class="tab-item" id="tab-alan"><div class="tab-ico">✍</div><div class="tab-lbl">Alan</div><div class="tab-badge" id="badge-alan">0</div></div>
+  </div>
+</div>
+<div class="sheet-overlay" id="sheet-overlay"></div>
+<div class="sheet" id="sheet" style="display:none">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheet-title"></div>
+  <div id="sheet-body"></div>
+</div>
+<script src="app.js"></script>
+<script src="condominios.js"></script>
+</body>
+</html>
