@@ -179,6 +179,19 @@
       textareaCampo('Inventario por piso (torre|equipo|piso|cantidad)', 'c-equipos-piso', val('equipos_piso'), 'Ej: C|detector|4|3. Un registro en C|detector|5|3 será inválido') +
       textareaCampo('Plano definitivo: código, ubicación de archivo y estado de validación', 'c-plano-info', val('plano_info'), 'PENDIENTE hasta adjuntar y revisar un plano real') +
       textareaCampo('Zonas de encuentro propuestas por torre y validación técnica', 'c-zonas-info', val('zonas_info'), 'Ej: A: sector patio; B: sector patio; C: sector patio; D: sector patio. PENDIENTE DE VALIDACIÓN') +
+      seccion('C.2 Evidencia de inspección — indispensable para emisión definitiva') +
+      grid([
+        selectCampo('Estado del plano', 'c-plano-estado', [['Pendiente', 'pendiente'], ['Revisado con evidencia', 'revisado']], d.plano_estado),
+        campo('Responsable revisión del plano', 'c-plano-revisor', val('plano_revisor'), 'text', 'Nombre y cargo'),
+        campo('Fecha de revisión de plano', 'c-plano-fecha', val('plano_fecha'), 'date', ''),
+      ]) +
+      textareaCampo('Evidencia y ubicación verificable del plano', 'c-plano-evidencia', val('plano_evidencia'), 'Identificador de plano, archivo, versión y ubicación comprobable. Este campo no adjunta el archivo.') +
+      grid([
+        selectCampo('Estado de zonas de encuentro', 'c-zonas-estado', [['Pendientes de inspección', 'pendiente'], ['Inspeccionadas con evidencia', 'inspeccionadas']], d.zonas_estado),
+        campo('Responsable de inspección de zonas', 'c-zonas-revisor', val('zonas_revisor'), 'text', 'Nombre y cargo'),
+        campo('Fecha inspección de zonas', 'c-zonas-fecha', val('zonas_fecha'), 'date', ''),
+      ]) +
+      textareaCampo('Evidencia de las zonas y rutas', 'c-zonas-evidencia', val('zonas_evidencia'), 'Mediciones, capacidad, distancias a fachadas, riesgos, accesos, rutas y operación de Bomberos. Solo declarar lo verificado.') +
       seccion('D. Instalaciones a representar en el plano') +
       '<div class="cq-checks">' +
         check('c-i-agua', 'Agua potable', ck('i_agua')) +
@@ -273,6 +286,8 @@
       superficie: v('c-superficie'), estac: v('c-estac'), estac_sub: v('c-estac-sub'), estac_sup: v('c-estac-sup'),
       recintos: v('c-recintos'), areas: v('c-areas'),
       equipos_piso: v('c-equipos-piso'), plano_info: v('c-plano-info'), zonas_info: v('c-zonas-info'),
+      plano_estado: v('c-plano-estado','pendiente'), plano_revisor: v('c-plano-revisor'), plano_fecha: v('c-plano-fecha'), plano_evidencia: v('c-plano-evidencia'),
+      zonas_estado: v('c-zonas-estado','pendiente'), zonas_revisor: v('c-zonas-revisor'), zonas_fecha: v('c-zonas-fecha'), zonas_evidencia: v('c-zonas-evidencia'),
       extintores: v('c-extintores'), red_humeda: v('c-red-humeda'), red_seca: v('c-red-seca'),
       grifos: v('c-grifos'), detectores: v('c-detectores'), alarma: v('c-alarma'), pulsadores: v('c-pulsadores'),
       ilum: v('c-ilum'), generador: v('c-generador'), extincion_auto: v('c-extincion-auto'), senaletica: v('c-senaletica'),
@@ -552,6 +567,7 @@
     if (!c) return;
     var pend = contarPendientes(c);
     var hallazgos = auditoriaCondo(c);
+    if (hallazgos.length) alert('Se generará solamente un BORRADOR con ' + hallazgos.length + ' observación(es) técnicas; no puede emitirse como documento definitivo.');
     if (pend > 0 && !confirm('Este condominio tiene ' + pend + ' dato(s) crítico(s) pendiente(s).\n\n' +
       'El plan los marcará como PENDIENTE (no se inventarán). ¿Continuar?')) return;
 
