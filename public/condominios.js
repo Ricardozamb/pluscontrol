@@ -315,7 +315,10 @@
           (c.unidades ? ' · ' + esc(c.unidades) + ' unidades' : '') +
           (c.torres ? ' · ' + esc(c.torres) + ' torres' : '') + '</div>' +
         (p > 0 ? '<div class="cq-warn">' + p + ' dato(s) crítico(s) pendiente(s)</div>'
-               : '<div class="cq-ok">Levantamiento completo</div>') +
+               : '<div class="cq-ok">Datos principales ingresados</div>') +
+        (auditoriaCondo(c).length
+          ? '<div class="cq-warn">' + auditoriaCondo(c).length + ' observación(es) técnicas por resolver</div>'
+          : '<div class="cq-ok">Control estructural sin observaciones (requiere revisión profesional)</div>') +
         (c.ultimo_plan ? '<div class="cq-ok">Plan generado el ' + new Date(c.ultimo_plan.fecha).toLocaleDateString('es-CL') + '</div>' : '') +
         '<div class="cq-card-btns">' +
           '<button class="cq-btn cq-btn-p cq-sm" data-act="gen" data-id="' + c.id + '">Generar plan</button>' +
