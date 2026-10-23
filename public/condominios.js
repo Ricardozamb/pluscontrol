@@ -224,6 +224,7 @@
 
       seccion('F. Organización del condominio') +
       grid([
+        campo('Propietario para primer plan', 'c-propietario', val('propietario'), 'text', 'Nombre de persona propietaria'),
         campo('Administrador', 'c-admin', val('admin'), 'text', 'Nombre'),
         campo('Empresa administradora', 'c-empresa-admin', val('empresa_admin'), 'text', 'Ej: Admilagos'),
       ]) +
@@ -296,6 +297,7 @@
       residentes: v('c-residentes'), ocupadas: v('c-ocupadas'), mov_reducida: v('c-mov-reducida'),
       discapacidad: v('c-discapacidad'), infantes: v('c-infantes'), mayores: v('c-mayores'),
       idioma: v('c-idioma'), conserjeria: v('c-conserjeria'),
+      propietario: v('c-propietario'),
       admin: v('c-admin'), empresa_admin: v('c-empresa-admin'), presidente: v('c-presidente'),
       coordinador: v('c-coordinador'), lideres: v('c-lideres'),
       s_plan: chk('c-s-plan'), s_actualizacion: chk('c-s-actualizacion'), s_simulacro: chk('c-s-simulacro'),
@@ -449,6 +451,7 @@
       d('NO HISPANOPARLANTES', c.idioma, 'No informado'), d('CONSERJERÍA', c.conserjeria, 'No especificado'),
       '',
       '─ ORGANIZACIÓN ─',
+      d('PROPIETARIO (PRIMER PLAN)', c.propietario, '[PENDIENTE DE IDENTIFICACIÓN]'),
       d('ADMINISTRADOR', c.admin), d('EMPRESA ADMINISTRADORA', c.empresa_admin, 'No especificado'),
       d('PRESIDENTE COMITÉ', c.presidente),
       d('COORDINADOR SEGURIDAD', c.coordinador, '[PENDIENTE DE DESIGNACIÓN]'),
