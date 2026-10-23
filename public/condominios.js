@@ -33,15 +33,7 @@
       localStorage.setItem('pc_condominios', JSON.stringify(condos));
       return true;
     } catch (err) {
-      // Cuota excedida: lo más pesado son los planes generados. Se purgan los
-      // textos más antiguos conservando siempre el levantamiento de datos.
-      var conPlan = condos.filter(function (c) { return c.ultimo_plan; })
-        .sort(function (a, b) { return (a.ultimo_plan.fecha || 0) - (b.ultimo_plan.fecha || 0); });
-      while (conPlan.length) {
-        delete conPlan.shift().ultimo_plan;
-        try { localStorage.setItem('pc_condominios', JSON.stringify(condos)); return true; } catch (e2) {}
-      }
-      alert('No hay espacio de almacenamiento en este dispositivo. Exporta un respaldo y libera espacio.');
+      alert('No se pudo guardar. Espacio insuficiente: exporte un respaldo. Nunca se borrarán planes anteriores automáticamente.');
       return false;
     }
   }
@@ -120,12 +112,14 @@
       grid([
         selectCampo('Tipo de condominio', 'c-tipo', [
           ['Tipo A — unidades en terreno común', 'Tipo A'],
-          ['Tipo B — edificios', 'Tipo B'],
+          ['Tipo B — sitios urbanizados de dominio exclusivo', 'Tipo B'],
           ['Mixto', 'Mixto'],
         ], d.tipo),
         selectCampo('Situación del plan', 'c-situacion', [
           ['Actualización (condominio existente)', 'actualizacion'],
           ['Primer plan (condominio nuevo)', 'primer_plan'],
+          ['Primer plan de condominio preexistente: revisar supuesto legal', 'regularizacion'],
+          ['Situación jurídica por determinar', 'pendiente'],
         ], d.situacion),
       ]) +
       grid([
@@ -143,7 +137,7 @@
         campo('Identificación de torres', 'c-torres-id', val('torres_id'), 'text', 'Ej: Torre A, B, C'),
       ]) +
       grid([
-        campo('N° de pisos por torre', 'c-pisos', val('pisos'), 'text', 'Ej: 6'),
+        campo('N° de pisos por torre', 'c-pisos', val('pisos'), 'text', 'Ej: A:5; B:5; C:4; D:4'),
         campo('N° total de unidades', 'c-unidades', val('unidades'), 'text', 'Ej: 210'),
       ]) +
       grid([
@@ -181,6 +175,23 @@
         textareaCampo('Señalización existente', 'c-senaletica', val('senaletica'), 'Estado / cobertura', false),
       ]) +
 
+      seccion('C.1 Validación por pisos, planos y zonas (pendiente de inspección)') +
+      textareaCampo('Inventario por piso (torre|equipo|piso|cantidad)', 'c-equipos-piso', val('equipos_piso'), 'Ej: C|detector|4|3. Un registro en C|detector|5|3 será inválido') +
+      textareaCampo('Plano definitivo: código, ubicación de archivo y estado de validación', 'c-plano-info', val('plano_info'), 'PENDIENTE hasta adjuntar y revisar un plano real') +
+      textareaCampo('Zonas de encuentro propuestas por torre y validación técnica', 'c-zonas-info', val('zonas_info'), 'Ej: A: sector patio; B: sector patio; C: sector patio; D: sector patio. PENDIENTE DE VALIDACIÓN') +
+      seccion('C.2 Evidencia de inspección — indispensable para emisión definitiva') +
+      grid([
+        selectCampo('Estado del plano', 'c-plano-estado', [['Pendiente', 'pendiente'], ['Revisado con evidencia', 'revisado']], d.plano_estado),
+        campo('Responsable revisión del plano', 'c-plano-revisor', val('plano_revisor'), 'text', 'Nombre y cargo'),
+        campo('Fecha de revisión de plano', 'c-plano-fecha', val('plano_fecha'), 'date', ''),
+      ]) +
+      textareaCampo('Evidencia y ubicación verificable del plano', 'c-plano-evidencia', val('plano_evidencia'), 'Identificador de plano, archivo, versión y ubicación comprobable. Este campo no adjunta el archivo.') +
+      grid([
+        selectCampo('Estado de zonas de encuentro', 'c-zonas-estado', [['Pendientes de inspección', 'pendiente'], ['Inspeccionadas con evidencia', 'inspeccionadas']], d.zonas_estado),
+        campo('Responsable de inspección de zonas', 'c-zonas-revisor', val('zonas_revisor'), 'text', 'Nombre y cargo'),
+        campo('Fecha inspección de zonas', 'c-zonas-fecha', val('zonas_fecha'), 'date', ''),
+      ]) +
+      textareaCampo('Evidencia de las zonas y rutas', 'c-zonas-evidencia', val('zonas_evidencia'), 'Mediciones, capacidad, distancias a fachadas, riesgos, accesos, rutas y operación de Bomberos. Solo declarar lo verificado.') +
       seccion('D. Instalaciones a representar en el plano') +
       '<div class="cq-checks">' +
         check('c-i-agua', 'Agua potable', ck('i_agua')) +
@@ -213,6 +224,7 @@
 
       seccion('F. Organización del condominio') +
       grid([
+        campo('Propietario para primer plan', 'c-propietario', val('propietario'), 'text', 'Nombre de persona propietaria'),
         campo('Administrador', 'c-admin', val('admin'), 'text', 'Nombre'),
         campo('Empresa administradora', 'c-empresa-admin', val('empresa_admin'), 'text', 'Ej: Admilagos'),
       ]) +
@@ -274,6 +286,9 @@
       torres: v('c-torres'), torres_id: v('c-torres-id'), pisos: v('c-pisos'), unidades: v('c-unidades'),
       superficie: v('c-superficie'), estac: v('c-estac'), estac_sub: v('c-estac-sub'), estac_sup: v('c-estac-sup'),
       recintos: v('c-recintos'), areas: v('c-areas'),
+      equipos_piso: v('c-equipos-piso'), plano_info: v('c-plano-info'), zonas_info: v('c-zonas-info'),
+      plano_estado: v('c-plano-estado','pendiente'), plano_revisor: v('c-plano-revisor'), plano_fecha: v('c-plano-fecha'), plano_evidencia: v('c-plano-evidencia'),
+      zonas_estado: v('c-zonas-estado','pendiente'), zonas_revisor: v('c-zonas-revisor'), zonas_fecha: v('c-zonas-fecha'), zonas_evidencia: v('c-zonas-evidencia'),
       extintores: v('c-extintores'), red_humeda: v('c-red-humeda'), red_seca: v('c-red-seca'),
       grifos: v('c-grifos'), detectores: v('c-detectores'), alarma: v('c-alarma'), pulsadores: v('c-pulsadores'),
       ilum: v('c-ilum'), generador: v('c-generador'), extincion_auto: v('c-extincion-auto'), senaletica: v('c-senaletica'),
@@ -282,6 +297,7 @@
       residentes: v('c-residentes'), ocupadas: v('c-ocupadas'), mov_reducida: v('c-mov-reducida'),
       discapacidad: v('c-discapacidad'), infantes: v('c-infantes'), mayores: v('c-mayores'),
       idioma: v('c-idioma'), conserjeria: v('c-conserjeria'),
+      propietario: v('c-propietario'),
       admin: v('c-admin'), empresa_admin: v('c-empresa-admin'), presidente: v('c-presidente'),
       coordinador: v('c-coordinador'), lideres: v('c-lideres'),
       s_plan: chk('c-s-plan'), s_actualizacion: chk('c-s-actualizacion'), s_simulacro: chk('c-s-simulacro'),
@@ -316,7 +332,10 @@
           (c.unidades ? ' · ' + esc(c.unidades) + ' unidades' : '') +
           (c.torres ? ' · ' + esc(c.torres) + ' torres' : '') + '</div>' +
         (p > 0 ? '<div class="cq-warn">' + p + ' dato(s) crítico(s) pendiente(s)</div>'
-               : '<div class="cq-ok">Levantamiento completo</div>') +
+               : '<div class="cq-ok">Datos principales ingresados</div>') +
+        (auditoriaCondo(c).length
+          ? '<div class="cq-warn">' + auditoriaCondo(c).length + ' observación(es) técnicas por resolver</div>'
+          : '<div class="cq-ok">Control estructural sin observaciones (requiere revisión profesional)</div>') +
         (c.ultimo_plan ? '<div class="cq-ok">Plan generado el ' + new Date(c.ultimo_plan.fecha).toLocaleDateString('es-CL') + '</div>' : '') +
         '<div class="cq-card-btns">' +
           '<button class="cq-btn cq-btn-p cq-sm" data-act="gen" data-id="' + c.id + '">Generar plan</button>' +
@@ -343,7 +362,7 @@
         else if (act === 'gen') generarPlan(id);
         else if (act === 'ver') {
           var c = condos.find(function (x) { return x.id === id; });
-          if (c && c.ultimo_plan) finalizar(c, c.ultimo_plan.texto, validarDocumento(c.ultimo_plan.texto));
+          if (c && c.ultimo_plan) finalizar(c, c.ultimo_plan.texto, validarDocumento(c.ultimo_plan.texto).concat(auditoriaCondo(c)));
         } else if (act === 'del') {
           if (confirm('¿Eliminar este condominio y su levantamiento?')) {
             condos = condos.filter(function (x) { return x.id !== id; }); saveCondos(); renderLista();
@@ -370,8 +389,8 @@
 '1. No inventes NADA: ni nombres, ni teléfonos, ni cantidades, ni ubicaciones, ni instalaciones, ni referencias legales.\n' +
 '2. Usa EXCLUSIVAMENTE los datos entregados del condominio, en todas las secciones.\n' +
 '3. Si un dato viene como [PENDIENTE DE LEVANTAMIENTO], [NO INFORMADO], [NO PROPORCIONADO], [COMPLETAR / VERIFICAR] o [PENDIENTE DE DESIGNACIÓN], reprodúcelo como pendiente en el documento. NUNCA lo sustituyas por una suposición.\n' +
-'4. El único marcador permitido en el cuerpo es el del plano: "[PLANO A CARGAR POR PLUS CONTROL]".\n' +
-'5. Firmas conforme al Art. 40: (a) "Ingeniero en Prevención de Riesgos — Autor y responsable técnico": Alan Bascur Montenegro. (b) "Presidente del Comité de Administración — Suscripción". (c) "Administrador del Condominio — Suscripción". Si falta un nombre, deja la línea rotulada con el rol; NO inventes. NO uses la palabra "adoptantes".\n' +
+'4. Si falta el plano, marca PLANOS PENDIENTES y considera el documento BORRADOR. No declares zonas de seguridad aprobadas sin inspección. \n' +
+'5. La suscripción depende de si es primer plan, actualización u otro supuesto normativo. Si no está determinado, deja los roles como PENDIENTES; nunca afirmes que ya firmaron. \n' +
 '6. NO afirmes que el profesional se encuentra habilitado, registrado ni inscrito: esa condición se verifica por separado.\n' +
 '7. El incendio debe ser el procedimiento más desarrollado. El uso de extintor es solo primera respuesta cuando las condiciones de seguridad lo permitan; NUNCA instruyas a residentes a enfrentar un incendio desarrollado.\n' +
 '8. Distingue "actualización anual del plan" de "simulacros o ejercicios según los tipos de emergencia". NO afirmes que la ley exige literalmente un simulacro anual.\n' +
@@ -432,6 +451,7 @@
       d('NO HISPANOPARLANTES', c.idioma, 'No informado'), d('CONSERJERÍA', c.conserjeria, 'No especificado'),
       '',
       '─ ORGANIZACIÓN ─',
+      d('PROPIETARIO (PRIMER PLAN)', c.propietario, '[PENDIENTE DE IDENTIFICACIÓN]'),
       d('ADMINISTRADOR', c.admin), d('EMPRESA ADMINISTRADORA', c.empresa_admin, 'No especificado'),
       d('PRESIDENTE COMITÉ', c.presidente),
       d('COORDINADOR SEGURIDAD', c.coordinador, '[PENDIENTE DE DESIGNACIÓN]'),
@@ -507,7 +527,7 @@
 
       fetch('/api/claude', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt, system: SYSTEM_CONDO }), signal: ctrl.signal,
+        body: JSON.stringify({ prompt: prompt, docType: 'condominio' }), signal: ctrl.signal,
       }).then(function (res) {
         if (!res.ok) { clearTimeout(tmt); reintentar('Servidor no disponible (' + res.status + ')', 6000); return; }
         var reader = res.body.getReader(), dec = new TextDecoder(), buf = '';
@@ -549,6 +569,8 @@
     var c = condos.find(function (x) { return x.id === id; });
     if (!c) return;
     var pend = contarPendientes(c);
+    var hallazgos = auditoriaCondo(c);
+    if (hallazgos.length) alert('Se generará solamente un BORRADOR con ' + hallazgos.length + ' observación(es) técnicas; no puede emitirse como documento definitivo.');
     if (pend > 0 && !confirm('Este condominio tiene ' + pend + ' dato(s) crítico(s) pendiente(s).\n\n' +
       'El plan los marcará como PENDIENTE (no se inventarán). ¿Continuar?')) return;
 
@@ -562,7 +584,7 @@
       '<p class="cq-note">Son ' + PARTES.length + ' partes con pausas entre cada una. Puede tardar varios minutos. No cierres la aplicación durante el proceso.</p>' +
       '</div></div>';
 
-    var datos = buildDatosCondo(c);
+    var datos = buildDatosCondo(c) + '\\nPLANOS: '+(c.plano_info||'PENDIENTE')+'\\nZONAS POR TORRE: '+(c.zonas_info||'PENDIENTE')+'\\nEQUIPOS POR PISO: '+(c.equipos_piso||'NO INFORMADO');
     var stream = document.getElementById('cq-stream');
     var bar = document.getElementById('cq-bar');
     var step = document.getElementById('cq-step');
@@ -573,7 +595,7 @@
         var texto = acumulado.join('\n\n');
         c.ultimo_plan = { fecha: Date.now(), texto: texto };
         saveCondos();
-        finalizar(c, texto, validarDocumento(texto));
+        finalizar(c, texto, validarDocumento(texto).concat(auditoriaCondo(c)));
         return;
       }
       var p = PARTES[i];
@@ -618,6 +640,63 @@
   // ── VALIDADOR MECÁNICO (tolerante a tildes) ────────────────────────────────
   function norm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(); }
 
+  // Auditoría estructurada: la presencia de texto NO equivale a una inspección.
+  function auditoriaCondo(c) {
+    var errores = [];
+    var situacion = c.situacion || 'pendiente';
+    if (!['primer_plan', 'actualizacion', 'regularizacion'].includes(situacion))
+      errores.push('CRÍTICO: falta definir el régimen legal del plan.');
+    if (situacion === 'primer_plan' && !String(c.propietario || '').trim())
+      errores.push('CRÍTICO: primer plan sin identificación de la persona propietaria.');
+    if (situacion === 'regularizacion')
+      errores.push('CRÍTICO: primer plan de condominio preexistente sin plan; verificar artículo 33 del reglamento y firmantes según antecedentes.');
+
+    var torres = Object.create(null);
+    var lista = String(c.pisos || '').split(/[;,\n]+/).filter(Boolean);
+    lista.forEach(function (row) {
+      var m = row.trim().match(/^([A-Z0-9_-]+)\s*:\s*(\d+)$/i);
+      if (!m || Number(m[2]) < 1 || Number(m[2]) > 100) {
+        errores.push('CRÍTICO: definición de pisos inválida: ' + row);
+      } else if (torres[m[1].toUpperCase()]) {
+        errores.push('CRÍTICO: torre duplicada en pisos: ' + m[1]);
+      } else torres[m[1].toUpperCase()] = Number(m[2]);
+    });
+    var ids = Object.keys(torres);
+    if (!ids.length) errores.push('CRÍTICO: pisos por torre deben informarse como A:5; B:5; C:4; D:4.');
+    if (c.torres && /^\d+$/.test(String(c.torres)) && Number(c.torres) !== ids.length)
+      errores.push('CRÍTICO: número declarado de torres no coincide con el desglose de pisos.');
+    (c.equipos_piso || '').split(/\n+/).forEach(function(row) {
+      if (!row.trim()) return;
+      var p = row.split('|'), torre=(p[0]||'').trim().toUpperCase();
+      var n = Number((p[2] || '').trim()), cantidad = Number((p[3] || '').trim());
+      if (p.length !== 4 || !p[1].trim() || !Number.isInteger(n) || n < 1 ||
+          !Number.isInteger(cantidad) || cantidad < 1) {
+        errores.push('CRÍTICO: registro de equipo inválido: ' + row);
+      } else if (!torres[torre]) {
+        errores.push('CRÍTICO: equipo en torre no declarada: ' + torre);
+      } else if (n > torres[torre]) {
+        errores.push('CRÍTICO: equipo en piso ' + n + ' inexistente de torre ' +
+          torre + ' (' + torres[torre] + ' pisos).');
+      }
+    });
+
+    if (c.plano_estado !== 'revisado' || !c.plano_revisor || !c.plano_fecha ||
+        !c.plano_info || !c.plano_evidencia)
+      errores.push('CRÍTICO: plano no acreditado (identificador, evidencia, fecha y revisor).');
+    if (c.zonas_estado !== 'inspeccionadas' || !c.zonas_revisor || !c.zonas_fecha ||
+        !c.zonas_evidencia || !c.zonas_info)
+      errores.push('CRÍTICO: zonas de encuentro requieren inspección y evidencia de distancias, capacidad, accesos y riesgos.');
+    var regiones = Object.create(null);
+    String(c.zonas_info || '').split(/[;\n]+/).forEach(function (row) {
+      var m=row.trim().match(/^([A-Z0-9_-]+)\s*:\s*(.+)$/i);
+      if(m) regiones[m[1].toUpperCase()] = true;
+    });
+    ids.forEach(function(id) {
+      if (!regiones[id]) errores.push('CRÍTICO: no hay zona de encuentro registrada para torre ' + id + '.');
+    });
+    return errores;
+  }
+
   function validarDocumento(texto) {
     var errores = [], t = texto || '', T = norm(t);
     // Legal
@@ -633,7 +712,7 @@
     ['CAPITULO 1', 'CAPITULO 2', 'CAPITULO 3', 'CAPITULO 4', 'PASO I', 'PASO II', 'PASO III', 'PASO IV']
       .forEach(function (s) { if (T.indexOf(s) === -1) errores.push('ESTRUCTURA: falta ' + s + '.'); });
     for (var a = 1; a <= 7; a++) if (T.indexOf('ANEXO ' + a) === -1) errores.push('ESTRUCTURA: falta el ANEXO ' + a + '.');
-    if (t.indexOf('[PLANO A CARGAR POR PLUS CONTROL]') === -1) errores.push('ESTRUCTURA: falta el marcador del plano.');
+    if (/\[PLANO A CARGAR POR PLUS CONTROL\]/i.test(t)) errores.push('CRÍTICO: el plano de evacuación todavía no está incorporado.');
     // Firmas
     if (T.indexOf('BASCUR') === -1) errores.push('FIRMAS: falta el autor técnico.');
     if (T.indexOf('PRESIDENTE DEL COMITE') === -1) errores.push('FIRMAS: falta el Presidente del Comité.');
@@ -664,7 +743,7 @@
           '</ul><p>Corrige antes de entregar al cliente. Puedes regenerar desde la lista.</p></div>'
         : '<div class="cq-val cq-val-ok"><strong>Control mecánico: sin observaciones.</strong> La coherencia de los datos reales debe verificarla Alan leyendo el documento.</div>') +
       '<div class="cq-actions">' +
-        '<button class="cq-btn cq-btn-p" id="cq-print">Descargar PDF</button>' +
+        '<button class="cq-btn cq-btn-p" id="cq-print">Exportar borrador PDF no firmado</button>' +
         '<button class="cq-btn" id="cq-copy">Copiar texto</button>' +
         '<button class="cq-btn" id="cq-volver">Volver</button>' +
       '</div><pre class="cq-doc" id="cq-doc"></pre></div>';
@@ -732,8 +811,8 @@
       return '<div class="fbox"><div class="fl"></div><div class="fn">' + (nombre ? esc(nombre) : '&nbsp;') + '</div>' +
         '<div class="fr">' + esc(rol) + '</div>' + (extra ? '<div class="fx">' + esc(extra) + '</div>' : '') + '</div>';
     }
-    var firmas = '<div class="pb"></div><h2>SUSCRIPCIÓN DEL PLAN</h2>' +
-      '<p>Conforme al artículo 40 de la Ley N°21.442, el presente plan es suscrito por:</p>' +
+    var firmas = '<div class="pb"></div><h2>SUSCRIPCIÓN DEL PLAN — PENDIENTE</h2>' +
+      '<p>Espacio destinado a suscripción después de revisión legal y técnica. ESTE BORRADOR NO ESTÁ FIRMADO.</p>' +
       fbox('Alan Bascur Montenegro', 'Ingeniero en Prevención de Riesgos — Autor y responsable técnico', 'RUT 17.658.387-8 · Plus Control SpA') +
       fbox(c.presidente || '', 'Presidente del Comité de Administración — Suscripción', c.nombre || '') +
       fbox(c.admin || '', 'Administrador del Condominio — Suscripción', c.empresa_admin || '') +
@@ -773,7 +852,7 @@
 
     var w = window.open('', '_blank');
     if (!w) { alert('El navegador bloqueó la ventana. Permite ventanas emergentes e intenta nuevamente.'); return; }
-    w.document.write(html); w.document.close();
+    w.document.write(html.replace('<body>', '<body><p style="border:2px solid #922;padding:10px;font:bold 14px Arial;color:#922">BORRADOR NO FIRMADO — PENDIENTE DE VALIDACIÓN TÉCNICA Y PLANOS</p>')); w.document.close();
     setTimeout(function () { try { w.print(); } catch (e) {} }, 500);
   }
 
@@ -868,7 +947,7 @@
     renderLista();
   }
 
-  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); } };
+  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montar);
   else montar();

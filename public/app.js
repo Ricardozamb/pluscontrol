@@ -7,11 +7,8 @@
 // SISTEMA DE AUTENTICACION PLUS CONTROL
 // ══════════════════════════════════════════════
 
-var USUARIOS = {
-  'ricardo': { nombre:'Ricardo Zambrano Luna', cargo:'Administrador', rol:'admin', clave:'pluscontrol2025' },
-  'alan':    { nombre:'Alan Bascur Montenegro', cargo:'Ingeniero en Prevención de Riesgos', rol:'iper', clave:'alanbascur2025' }
-};
-
+// La autenticación pertenece al servidor: no publicar credenciales en el navegador.
+var USUARIOS = {};
 // Permisos por rol
 var PERMISOS = {
   admin:      { verDash:true, verEmpresas:true, nueva:true, generar:true, alan:true, config:true },
@@ -22,83 +19,59 @@ var PERMISOS = {
 
 var currentUser = null;
 
-function getSession() {
+function getSession() { return currentUser; }
+function setSession(user) { currentUser = user; }
+function clearSession() { currentUser = null; }
+
+async function checkLogin() {
   try {
-    var s = sessionStorage.getItem('pc_session');
-    return s ? JSON.parse(s) : null;
-  } catch(e) { return null; }
-}
-
-function setSession(user) {
-  sessionStorage.setItem('pc_session', JSON.stringify(user));
-  currentUser = user;
-}
-
-function clearSession() {
-  sessionStorage.removeItem('pc_session');
-  currentUser = null;
-}
-
-function checkLogin() {
-  var session = getSession();
-  if (session && USUARIOS[session.username]) {
-    currentUser = session;
+    const r = await fetch('/api/auth/me', { credentials:'same-origin', cache:'no-store' });
+    if (!r.ok) throw new Error('No hay sesión');
+    const j = await r.json();
+    setSession(j.user);
     showApp();
-  } else {
-    showLogin();
-  }
+  } catch (_) { clearSession(); showLogin(); }
 }
-
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
 }
-
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'flex';
   aplicarPermisos();
-  // Actualizar saludo
-  var saludo = document.getElementById('saludo-nombre');
-  if(saludo && currentUser) saludo.textContent = currentUser.nombre.split(' ')[0];
+  const saludo = document.getElementById('saludo-nombre');
+  if (saludo && currentUser) saludo.textContent = currentUser.nombre.split(' ')[0];
   renderDash();
 }
-
 function aplicarPermisos() {
   if (!currentUser) return;
-  var perms = PERMISOS[currentUser.rol] || PERMISOS.tecnico;
-  // Ocultar tabs segun permisos
-  var tabNueva = document.getElementById('tab-nueva');
-  var tabGenerar = document.getElementById('tab-generar');
-  var tabAlan = document.getElementById('tab-alan');
-  if(tabNueva) tabNueva.style.display = perms.nueva ? '' : 'none';
-  if(tabGenerar) tabGenerar.style.display = perms.generar ? '' : 'none';
-  if(tabAlan) tabAlan.style.display = perms.alan ? '' : 'none';
-  // Header buttons
-  var hNueva = document.getElementById('hbtn-nueva');
-  var hAlan = document.getElementById('hbtn-alan');
-  if(hNueva) hNueva.style.display = perms.nueva ? '' : 'none';
-  if(hAlan) hAlan.style.display = perms.alan ? '' : 'none';
+  const perms = PERMISOS[currentUser.rol] || PERMISOS.tecnico;
+  for (const [id, allowed] of [
+    ['tab-nueva',perms.nueva],['tab-generar',perms.generar],['tab-alan',perms.alan],
+    ['hbtn-nueva',perms.nueva],['hbtn-alan',perms.alan]
+  ]) { const el=document.getElementById(id); if(el) el.style.display=allowed?'':'none'; }
 }
-
-function doLogin() {
-  var username = (document.getElementById('login-user').value || '').trim().toLowerCase();
-  var pass = (document.getElementById('login-pass').value || '').trim();
-  var errEl = document.getElementById('login-error');
-  var user = USUARIOS[username];
-  if (user && user.clave === pass) {
-    errEl.style.display = 'none';
-    setSession({ username: username, nombre: user.nombre, cargo: user.cargo, rol: user.rol });
-    showApp();
-  } else {
-    errEl.style.display = 'block';
-    document.getElementById('login-pass').value = '';
-  }
+async function doLogin() {
+  const username=(document.getElementById('login-user').value||'').trim().toLowerCase();
+  const password=document.getElementById('login-pass').value||'';
+  const err=document.getElementById('login-error');
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;
+  try {
+    const r=await fetch('/api/auth/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',
+      body:JSON.stringify({username,password})
+    });
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'No se pudo iniciar sesión');
+    setSession(data.user);err.style.display='none';showApp();
+  } catch(e) { err.textContent=e.message;err.style.display='block'; }
+  finally { document.getElementById('login-pass').value=''; btn.disabled=false; }
 }
-
-function doLogout() {
-  clearSession();
-  showLogin();
+async function doLogout() {
+  try { await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}); } catch(_) {}
+  clearSession();showLogin();
 }
 
 // Listeners login
@@ -160,13 +133,22 @@ var TIPO_N = {
 };
 
 // ── ESTADO ──
-var emps = JSON.parse(localStorage.getItem('pc_emps')||'[]');
-var docs = JSON.parse(localStorage.getItem('pc_docs')||'[]');
+function leerListaLocal(clave) {
+  try { var o=JSON.parse(localStorage.getItem(clave)||'[]'); return Array.isArray(o)?o:[]; }
+  catch(e) { console.error('Error al leer '+clave,e);return []; }
+}
+var emps = leerListaLocal('pc_emps');
+var docs = leerListaLocal('pc_docs');
 function saveData(){
-  localStorage.setItem('pc_emps',JSON.stringify(emps));
-  localStorage.setItem('pc_docs',JSON.stringify(docs));
-  // Sincronizar en segundo plano
-  syncToCloud().catch(function(){});
+  try {
+    localStorage.setItem('pc_emps',JSON.stringify(emps));
+    localStorage.setItem('pc_docs',JSON.stringify(docs));
+    syncToCloud().catch(function(){});
+    return true;
+  } catch(e) {
+    alert('No se pudo guardar información: el almacenamiento de este navegador puede estar lleno. Exporte un respaldo antes de cerrar.');
+    return false;
+  }
 }
 
 async function syncToCloud(){
@@ -275,7 +257,7 @@ function renderDash(){
   list.innerHTML=emps.slice(0,5).map(function(e){
     var de=docs.filter(function(d){return d.empresa_id===e.id;});
     var st=de.length?(de.some(function(d){return d.estado==='firmado';})? 'tag-ok':'tag-wait'):'tag-no';
-    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Firmado':'En proceso'):'Sin docs';
+    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Revisado':'En proceso'):'Sin docs';
     return '<div class="card-item" data-id="'+e.id+'"><div class="ci-ico">'+rubroIco(e.rubro)+'</div><div class="ci-body"><div class="ci-title">'+e.razon+'</div><div class="ci-sub">'+e.rubro+' . '+e.trabajadores+' trab.</div></div><div class="ci-right"><span class="tag '+st+'">'+sl+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
@@ -296,7 +278,7 @@ function renderEmps(lista){
   list.innerHTML=data.map(function(e){
     var de=docs.filter(function(d){return d.empresa_id===e.id;});
     var st=de.length?(de.some(function(d){return d.estado==='firmado';})? 'tag-ok':'tag-wait'):'tag-no';
-    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Vigente':'En proceso'):'Sin docs';
+    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Revisado':'En proceso'):'Sin docs';
     return '<div class="card-item" data-id="'+e.id+'"><div class="ci-ico">'+rubroIco(e.rubro)+'</div><div class="ci-body"><div class="ci-title">'+e.razon+'</div><div class="ci-sub">'+e.ciudad+' . '+e.trabajadores+' trab. . '+(e.mutualidad||'-')+'</div></div><div class="ci-right"><span class="tag '+st+'">'+sl+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
@@ -1544,7 +1526,11 @@ function generarPDF(){
   var tipo=TIPO_N[gTipo]||gTipo;
   var docId='PC-'+Date.now().toString(36).toUpperCase();
   var normasList=(gEmp.normativa||NORM['default']).join(' . ');
-  var firmado=docs.find(function(d){return d.empresa_id===gEmp.id&&d.tipo===gTipo&&d.estado==='firmado';});
+  // Solo asociar revisión si el texto coincide exactamente; nunca heredar de otra versión.
+  var firmado=docs.find(function(d){
+    return d.empresa_id===gEmp.id&&d.tipo===gTipo&&d.estado==='firmado'&&
+      d.texto===gTexto&&d.texto&&gTexto;
+  });
 
   // ── Parser markdown → HTML con soporte completo de tablas ──
   function parseMd(txt){
@@ -1583,7 +1569,7 @@ function generarPDF(){
   }
   var cuerpo=parseMd(gTexto||'');
 
-  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Firmado digitalmente el '+firmado.fecha+'</div>':'';
+  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Revisado internamente el '+firmado.fecha+'</div>':'';
 
   var CSS=
     '@page{size:A4;margin:0;}'+
@@ -1756,7 +1742,7 @@ function renderAlan(){
   list.style.display='block';empty.style.display='none';
   list.innerHTML=docs.map(function(d){
     var ico=d.tipo==='riohs'?'📋':d.tipo==='iper'?'⚠️':d.tipo==='pts'?'📝':'🚨';
-    return '<div class="card-item" data-id="'+d.id+'"><div class="ci-ico">'+ico+'</div><div class="ci-body"><div class="ci-title">'+d.empresa_nombre+'</div><div class="ci-sub">'+d.tipo_nombre.split('(')[0].trim()+' . '+d.fecha+'</div></div><div class="ci-right"><span class="tag '+(d.estado==='firmado'?'tag-ok':'tag-wait')+'">'+(d.estado==='firmado'?'✅ Firmado':'⏳ Pendiente')+'</span><span class="ci-arr">></span></div></div>';
+    return '<div class="card-item" data-id="'+d.id+'"><div class="ci-ico">'+ico+'</div><div class="ci-body"><div class="ci-title">'+d.empresa_nombre+'</div><div class="ci-sub">'+d.tipo_nombre.split('(')[0].trim()+' . '+d.fecha+'</div></div><div class="ci-right"><span class="tag '+(d.estado==='firmado'?'tag-ok':'tag-wait')+'">'+(d.estado==='firmado'?'✓ Revisado':'⏳ Pendiente')+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
     el.addEventListener('click',function(){showDocSheet(parseInt(this.dataset.id));});
@@ -1767,8 +1753,8 @@ function showDocSheet(id){
   var e=emps.find(function(x){return x.id===d.empresa_id;});
   document.getElementById('sheet-title').textContent=d.tipo_nombre.split('(')[0].trim();
   var btnFirma=d.estado==='pendiente'
-    ? '<button class="btn btn-primary" id="s-firma">✍ Firmar y aprobar documento</button>'
-    : '<div class="firma-ok" style="justify-content:center;display:flex;width:100%">✅ Firmado el '+d.fecha+'</div>';
+    ? '<button class="btn btn-primary" id="s-firma">✓ Marcar revisión interna (NO es firma)</button>'
+    : '<div class="firma-ok" style="justify-content:center;display:flex;width:100%">✓ Revisado internamente el '+d.fecha+'</div>';
   document.getElementById('sheet-body').innerHTML=
     '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">'+d.empresa_nombre+' . '+d.rubro+'<br>'+d.fecha+'</div>'+
     '<div style="background:var(--bg4);border-radius:10px;padding:14px;max-height:200px;overflow-y:auto;font-size:11px;line-height:1.7;margin-bottom:14px" class="doc-content">'+md2html((d.texto||'').substring(0,1500)+'...')+'</div>'+
@@ -1785,9 +1771,13 @@ function showDocSheet(id){
 }
 function firmar(id){
   var d=docs.find(function(x){return x.id===id;}); if(!d)return;
+  if (!currentUser || currentUser.rol!=='iper') {
+    alert('Solo el revisor técnico puede marcar este documento como revisado.');
+    return;
+  }
   d.estado='firmado';d.fecha=new Date().toLocaleDateString('es-CL');
   saveData();closeSheet();renderAlan();renderDash();
-  setTimeout(function(){alert('Documento firmado y aprobado por Alan Bascur Montenegro.');},200);
+  setTimeout(function(){alert('Documento marcado como revisado internamente. No constituye firma electrónica.');},200);
 }
 
 // ── SHEET ──
