@@ -133,13 +133,22 @@ var TIPO_N = {
 };
 
 // ── ESTADO ──
-var emps = JSON.parse(localStorage.getItem('pc_emps')||'[]');
-var docs = JSON.parse(localStorage.getItem('pc_docs')||'[]');
+function leerListaLocal(clave) {
+  try { var o=JSON.parse(localStorage.getItem(clave)||'[]'); return Array.isArray(o)?o:[]; }
+  catch(e) { console.error('Error al leer '+clave,e);return []; }
+}
+var emps = leerListaLocal('pc_emps');
+var docs = leerListaLocal('pc_docs');
 function saveData(){
-  localStorage.setItem('pc_emps',JSON.stringify(emps));
-  localStorage.setItem('pc_docs',JSON.stringify(docs));
-  // Sincronizar en segundo plano
-  syncToCloud().catch(function(){});
+  try {
+    localStorage.setItem('pc_emps',JSON.stringify(emps));
+    localStorage.setItem('pc_docs',JSON.stringify(docs));
+    syncToCloud().catch(function(){});
+    return true;
+  } catch(e) {
+    alert('No se pudo guardar información: el almacenamiento de este navegador puede estar lleno. Exporte un respaldo antes de cerrar.');
+    return false;
+  }
 }
 
 async function syncToCloud(){
@@ -248,7 +257,7 @@ function renderDash(){
   list.innerHTML=emps.slice(0,5).map(function(e){
     var de=docs.filter(function(d){return d.empresa_id===e.id;});
     var st=de.length?(de.some(function(d){return d.estado==='firmado';})? 'tag-ok':'tag-wait'):'tag-no';
-    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Firmado':'En proceso'):'Sin docs';
+    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Revisado':'En proceso'):'Sin docs';
     return '<div class="card-item" data-id="'+e.id+'"><div class="ci-ico">'+rubroIco(e.rubro)+'</div><div class="ci-body"><div class="ci-title">'+e.razon+'</div><div class="ci-sub">'+e.rubro+' . '+e.trabajadores+' trab.</div></div><div class="ci-right"><span class="tag '+st+'">'+sl+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
@@ -269,7 +278,7 @@ function renderEmps(lista){
   list.innerHTML=data.map(function(e){
     var de=docs.filter(function(d){return d.empresa_id===e.id;});
     var st=de.length?(de.some(function(d){return d.estado==='firmado';})? 'tag-ok':'tag-wait'):'tag-no';
-    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Vigente':'En proceso'):'Sin docs';
+    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Revisado':'En proceso'):'Sin docs';
     return '<div class="card-item" data-id="'+e.id+'"><div class="ci-ico">'+rubroIco(e.rubro)+'</div><div class="ci-body"><div class="ci-title">'+e.razon+'</div><div class="ci-sub">'+e.ciudad+' . '+e.trabajadores+' trab. . '+(e.mutualidad||'-')+'</div></div><div class="ci-right"><span class="tag '+st+'">'+sl+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
@@ -1517,7 +1526,11 @@ function generarPDF(){
   var tipo=TIPO_N[gTipo]||gTipo;
   var docId='PC-'+Date.now().toString(36).toUpperCase();
   var normasList=(gEmp.normativa||NORM['default']).join(' . ');
-  var firmado=docs.find(function(d){return d.empresa_id===gEmp.id&&d.tipo===gTipo&&d.estado==='firmado';});
+  // Solo asociar revisión si el texto coincide exactamente; nunca heredar de otra versión.
+  var firmado=docs.find(function(d){
+    return d.empresa_id===gEmp.id&&d.tipo===gTipo&&d.estado==='firmado'&&
+      d.texto===gTexto&&d.texto&&gTexto;
+  });
 
   // ── Parser markdown → HTML con soporte completo de tablas ──
   function parseMd(txt){
@@ -1729,7 +1742,7 @@ function renderAlan(){
   list.style.display='block';empty.style.display='none';
   list.innerHTML=docs.map(function(d){
     var ico=d.tipo==='riohs'?'📋':d.tipo==='iper'?'⚠️':d.tipo==='pts'?'📝':'🚨';
-    return '<div class="card-item" data-id="'+d.id+'"><div class="ci-ico">'+ico+'</div><div class="ci-body"><div class="ci-title">'+d.empresa_nombre+'</div><div class="ci-sub">'+d.tipo_nombre.split('(')[0].trim()+' . '+d.fecha+'</div></div><div class="ci-right"><span class="tag '+(d.estado==='firmado'?'tag-ok':'tag-wait')+'">'+(d.estado==='firmado'?'✅ Firmado':'⏳ Pendiente')+'</span><span class="ci-arr">></span></div></div>';
+    return '<div class="card-item" data-id="'+d.id+'"><div class="ci-ico">'+ico+'</div><div class="ci-body"><div class="ci-title">'+d.empresa_nombre+'</div><div class="ci-sub">'+d.tipo_nombre.split('(')[0].trim()+' . '+d.fecha+'</div></div><div class="ci-right"><span class="tag '+(d.estado==='firmado'?'tag-ok':'tag-wait')+'">'+(d.estado==='firmado'?'✓ Revisado':'⏳ Pendiente')+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
     el.addEventListener('click',function(){showDocSheet(parseInt(this.dataset.id));});
@@ -1740,8 +1753,8 @@ function showDocSheet(id){
   var e=emps.find(function(x){return x.id===d.empresa_id;});
   document.getElementById('sheet-title').textContent=d.tipo_nombre.split('(')[0].trim();
   var btnFirma=d.estado==='pendiente'
-    ? '<button class="btn btn-primary" id="s-firma">✍ Firmar y aprobar documento</button>'
-    : '<div class="firma-ok" style="justify-content:center;display:flex;width:100%">✅ Firmado el '+d.fecha+'</div>';
+    ? '<button class="btn btn-primary" id="s-firma">✓ Marcar revisión interna (NO es firma)</button>'
+    : '<div class="firma-ok" style="justify-content:center;display:flex;width:100%">✓ Revisado internamente el '+d.fecha+'</div>';
   document.getElementById('sheet-body').innerHTML=
     '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">'+d.empresa_nombre+' . '+d.rubro+'<br>'+d.fecha+'</div>'+
     '<div style="background:var(--bg4);border-radius:10px;padding:14px;max-height:200px;overflow-y:auto;font-size:11px;line-height:1.7;margin-bottom:14px" class="doc-content">'+md2html((d.texto||'').substring(0,1500)+'...')+'</div>'+
@@ -1758,6 +1771,10 @@ function showDocSheet(id){
 }
 function firmar(id){
   var d=docs.find(function(x){return x.id===id;}); if(!d)return;
+  if (!currentUser || currentUser.rol!=='iper') {
+    alert('Solo el revisor técnico puede marcar este documento como revisado.');
+    return;
+  }
   d.estado='firmado';d.fecha=new Date().toLocaleDateString('es-CL');
   saveData();closeSheet();renderAlan();renderDash();
   setTimeout(function(){alert('Documento marcado como revisado internamente. No constituye firma electrónica.');},200);
