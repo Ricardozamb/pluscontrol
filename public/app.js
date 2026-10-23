@@ -7,11 +7,8 @@
 // SISTEMA DE AUTENTICACION PLUS CONTROL
 // ══════════════════════════════════════════════
 
-var USUARIOS = {
-  'ricardo': { nombre:'Ricardo Zambrano Luna', cargo:'Administrador', rol:'admin', clave:'pluscontrol2025' },
-  'alan':    { nombre:'Alan Bascur Montenegro', cargo:'Ingeniero en Prevención de Riesgos', rol:'iper', clave:'alanbascur2025' }
-};
-
+// La autenticación pertenece al servidor: no publicar credenciales en el navegador.
+var USUARIOS = {};
 // Permisos por rol
 var PERMISOS = {
   admin:      { verDash:true, verEmpresas:true, nueva:true, generar:true, alan:true, config:true },
@@ -22,83 +19,59 @@ var PERMISOS = {
 
 var currentUser = null;
 
-function getSession() {
+function getSession() { return currentUser; }
+function setSession(user) { currentUser = user; }
+function clearSession() { currentUser = null; }
+
+async function checkLogin() {
   try {
-    var s = sessionStorage.getItem('pc_session');
-    return s ? JSON.parse(s) : null;
-  } catch(e) { return null; }
-}
-
-function setSession(user) {
-  sessionStorage.setItem('pc_session', JSON.stringify(user));
-  currentUser = user;
-}
-
-function clearSession() {
-  sessionStorage.removeItem('pc_session');
-  currentUser = null;
-}
-
-function checkLogin() {
-  var session = getSession();
-  if (session && USUARIOS[session.username]) {
-    currentUser = session;
+    const r = await fetch('/api/auth/me', { credentials:'same-origin', cache:'no-store' });
+    if (!r.ok) throw new Error('No hay sesión');
+    const j = await r.json();
+    setSession(j.user);
     showApp();
-  } else {
-    showLogin();
-  }
+  } catch (_) { clearSession(); showLogin(); }
 }
-
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
 }
-
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'flex';
   aplicarPermisos();
-  // Actualizar saludo
-  var saludo = document.getElementById('saludo-nombre');
-  if(saludo && currentUser) saludo.textContent = currentUser.nombre.split(' ')[0];
+  const saludo = document.getElementById('saludo-nombre');
+  if (saludo && currentUser) saludo.textContent = currentUser.nombre.split(' ')[0];
   renderDash();
 }
-
 function aplicarPermisos() {
   if (!currentUser) return;
-  var perms = PERMISOS[currentUser.rol] || PERMISOS.tecnico;
-  // Ocultar tabs segun permisos
-  var tabNueva = document.getElementById('tab-nueva');
-  var tabGenerar = document.getElementById('tab-generar');
-  var tabAlan = document.getElementById('tab-alan');
-  if(tabNueva) tabNueva.style.display = perms.nueva ? '' : 'none';
-  if(tabGenerar) tabGenerar.style.display = perms.generar ? '' : 'none';
-  if(tabAlan) tabAlan.style.display = perms.alan ? '' : 'none';
-  // Header buttons
-  var hNueva = document.getElementById('hbtn-nueva');
-  var hAlan = document.getElementById('hbtn-alan');
-  if(hNueva) hNueva.style.display = perms.nueva ? '' : 'none';
-  if(hAlan) hAlan.style.display = perms.alan ? '' : 'none';
+  const perms = PERMISOS[currentUser.rol] || PERMISOS.tecnico;
+  for (const [id, allowed] of [
+    ['tab-nueva',perms.nueva],['tab-generar',perms.generar],['tab-alan',perms.alan],
+    ['hbtn-nueva',perms.nueva],['hbtn-alan',perms.alan]
+  ]) { const el=document.getElementById(id); if(el) el.style.display=allowed?'':'none'; }
 }
-
-function doLogin() {
-  var username = (document.getElementById('login-user').value || '').trim().toLowerCase();
-  var pass = (document.getElementById('login-pass').value || '').trim();
-  var errEl = document.getElementById('login-error');
-  var user = USUARIOS[username];
-  if (user && user.clave === pass) {
-    errEl.style.display = 'none';
-    setSession({ username: username, nombre: user.nombre, cargo: user.cargo, rol: user.rol });
-    showApp();
-  } else {
-    errEl.style.display = 'block';
-    document.getElementById('login-pass').value = '';
-  }
+async function doLogin() {
+  const username=(document.getElementById('login-user').value||'').trim().toLowerCase();
+  const password=document.getElementById('login-pass').value||'';
+  const err=document.getElementById('login-error');
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;
+  try {
+    const r=await fetch('/api/auth/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',
+      body:JSON.stringify({username,password})
+    });
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'No se pudo iniciar sesión');
+    setSession(data.user);err.style.display='none';showApp();
+  } catch(e) { err.textContent=e.message;err.style.display='block'; }
+  finally { document.getElementById('login-pass').value=''; btn.disabled=false; }
 }
-
-function doLogout() {
-  clearSession();
-  showLogin();
+async function doLogout() {
+  try { await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}); } catch(_) {}
+  clearSession();showLogin();
 }
 
 // Listeners login
@@ -1583,7 +1556,7 @@ function generarPDF(){
   }
   var cuerpo=parseMd(gTexto||'');
 
-  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Firmado digitalmente el '+firmado.fecha+'</div>':'';
+  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Revisado internamente el '+firmado.fecha+'</div>':'';
 
   var CSS=
     '@page{size:A4;margin:0;}'+
@@ -1787,7 +1760,7 @@ function firmar(id){
   var d=docs.find(function(x){return x.id===id;}); if(!d)return;
   d.estado='firmado';d.fecha=new Date().toLocaleDateString('es-CL');
   saveData();closeSheet();renderAlan();renderDash();
-  setTimeout(function(){alert('Documento firmado y aprobado por Alan Bascur Montenegro.');},200);
+  setTimeout(function(){alert('Documento marcado como revisado internamente. No constituye firma electrónica.');},200);
 }
 
 // ── SHEET ──
