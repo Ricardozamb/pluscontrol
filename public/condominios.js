@@ -944,7 +944,7 @@
     renderLista();
   }
 
-  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); } };
+  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montar);
   else montar();
