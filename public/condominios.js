@@ -621,29 +621,60 @@
   // ── VALIDADOR MECÁNICO (tolerante a tildes) ────────────────────────────────
   function norm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(); }
 
-  // Auditoría estructurada (no certifica distancias ni reemplaza levantamiento técnico).
+  // Auditoría estructurada: la presencia de texto NO equivale a una inspección.
   function auditoriaCondo(c) {
     var errores = [];
-    if (!['primer_plan','actualizacion','regularizacion'].includes(c.situacion))
-      errores.push('CRÍTICO: no se ha determinado la situación jurídica de suscripción.');
-    if (!c.plano_info || /PENDIENTE|SIN PLANO|NO INFORMADO/i.test(c.plano_info))
-      errores.push('CRÍTICO: falta plano definitivo revisado.');
-    if (!c.zonas_info || /PENDIENTE|POR VALIDAR|PROPUEST/i.test(c.zonas_info))
-      errores.push('CRÍTICO: zonas de encuentro sin validación técnica documentada.');
-    var pisos = {};
-    (c.pisos || '').split(/[;,\\n]+/).forEach(function(row) {
-      var m=row.trim().match(/^([A-Z0-9_-]+)\\s*:\\s*(\\d+)$/i);
-      if(m) pisos[m[1].toUpperCase()] = Number(m[2]);
+    var situacion = c.situacion || 'pendiente';
+    if (!['primer_plan', 'actualizacion', 'regularizacion'].includes(situacion))
+      errores.push('CRÍTICO: falta definir el régimen legal del plan.');
+    if (situacion === 'primer_plan' && !String(c.propietario || '').trim())
+      errores.push('CRÍTICO: primer plan sin identificación de la persona propietaria.');
+    if (situacion === 'regularizacion')
+      errores.push('CRÍTICO: primer plan de condominio preexistente sin plan; verificar artículo 33 del reglamento y firmantes según antecedentes.');
+
+    var torres = Object.create(null);
+    var lista = String(c.pisos || '').split(/[;,\n]+/).filter(Boolean);
+    lista.forEach(function (row) {
+      var m = row.trim().match(/^([A-Z0-9_-]+)\s*:\s*(\d+)$/i);
+      if (!m || Number(m[2]) < 1 || Number(m[2]) > 100) {
+        errores.push('CRÍTICO: definición de pisos inválida: ' + row);
+      } else if (torres[m[1].toUpperCase()]) {
+        errores.push('CRÍTICO: torre duplicada en pisos: ' + m[1]);
+      } else torres[m[1].toUpperCase()] = Number(m[2]);
     });
-    (c.equipos_piso || '').split(/\\n+/).forEach(function(row) {
-      if(!row.trim())return;
-      var p=row.split('|'),torre=(p[0]||'').trim().toUpperCase(), n=Number((p[2]||'').trim());
-      if (p.length !== 4 || !Number.isInteger(n) || n<1 || !Number.isInteger(Number(p[3])) || Number(p[3])<1)
-        errores.push('CRÍTICO: registro de equipo inválido: '+row);
-      else if(!pisos[torre]) errores.push('CRÍTICO: torre no definida para equipo: '+torre);
-      else if(n>pisos[torre]) errores.push('CRÍTICO: equipo en piso '+n+' inexistente de torre '+torre+' ('+pisos[torre]+' pisos).');
+    var ids = Object.keys(torres);
+    if (!ids.length) errores.push('CRÍTICO: pisos por torre deben informarse como A:5; B:5; C:4; D:4.');
+    if (c.torres && /^\d+$/.test(String(c.torres)) && Number(c.torres) !== ids.length)
+      errores.push('CRÍTICO: número declarado de torres no coincide con el desglose de pisos.');
+    (c.equipos_piso || '').split(/\n+/).forEach(function(row) {
+      if (!row.trim()) return;
+      var p = row.split('|'), torre=(p[0]||'').trim().toUpperCase();
+      var n = Number((p[2] || '').trim()), cantidad = Number((p[3] || '').trim());
+      if (p.length !== 4 || !p[1].trim() || !Number.isInteger(n) || n < 1 ||
+          !Number.isInteger(cantidad) || cantidad < 1) {
+        errores.push('CRÍTICO: registro de equipo inválido: ' + row);
+      } else if (!torres[torre]) {
+        errores.push('CRÍTICO: equipo en torre no declarada: ' + torre);
+      } else if (n > torres[torre]) {
+        errores.push('CRÍTICO: equipo en piso ' + n + ' inexistente de torre ' +
+          torre + ' (' + torres[torre] + ' pisos).');
+      }
     });
-    if (!Object.keys(pisos).length) errores.push('CRÍTICO: falta desglose válido de pisos por torre (A:5; B:5; C:4; D:4).');
+
+    if (c.plano_estado !== 'revisado' || !c.plano_revisor || !c.plano_fecha ||
+        !c.plano_info || !c.plano_evidencia)
+      errores.push('CRÍTICO: plano no acreditado (identificador, evidencia, fecha y revisor).');
+    if (c.zonas_estado !== 'inspeccionadas' || !c.zonas_revisor || !c.zonas_fecha ||
+        !c.zonas_evidencia || !c.zonas_info)
+      errores.push('CRÍTICO: zonas de encuentro requieren inspección y evidencia de distancias, capacidad, accesos y riesgos.');
+    var regiones = Object.create(null);
+    String(c.zonas_info || '').split(/[;\n]+/).forEach(function (row) {
+      var m=row.trim().match(/^([A-Z0-9_-]+)\s*:\s*(.+)$/i);
+      if(m) regiones[m[1].toUpperCase()] = true;
+    });
+    ids.forEach(function(id) {
+      if (!regiones[id]) errores.push('CRÍTICO: no hay zona de encuentro registrada para torre ' + id + '.');
+    });
     return errores;
   }
 
