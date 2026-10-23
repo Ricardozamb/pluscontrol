@@ -5,6 +5,73 @@ const https = require('https');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const APIKEY = process.env.ANTHROPIC_API_KEY || '';
+const crypto = require('crypto');
+
+// Las contraseñas no deben estar en public/app.js ni guardarse en el repositorio.
+const CUENTAS = {
+  ricardo: { password: process.env.PC_ADMIN_PASSWORD || '', nombre: 'Ricardo Zambrano Luna', cargo: 'Administrador', rol: 'admin' },
+  alan: { password: process.env.PC_ALAN_PASSWORD || '', nombre: 'Alan Bascur Montenegro', cargo: 'Ingeniero en Prevención de Riesgos', rol: 'iper' }
+};
+const sesiones = new Map();
+const intentos = new Map();
+const cuotas = new Map();
+const activos = new Set();
+const SESSION_MS = 8 * 60 * 60 * 1000;
+const HOUR_LIMIT = Number(process.env.PC_AI_REQUESTS_PER_HOUR || 30);
+app.set('trust proxy', 1);
+
+function sameOrigin(req) {
+  const origin = req.get('origin');
+  if (!origin) return true;
+  try {
+    const o = new URL(origin);
+    const host = req.get('host');
+    const proto = (req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
+    return o.host === host && o.protocol === proto + ':';
+  } catch (e) { return false; }
+}
+function cookies(req) {
+  const result = {};
+  for (const pair of (req.get('cookie') || '').split(';')) {
+    const p = pair.trim().split('=');
+    if (p.length > 1) result[p.shift()] = p.join('=');
+  }
+  return result;
+}
+function userFromRequest(req) {
+  const token = cookies(req).pc_sid, row = token && sesiones.get(token);
+  if (!row) return null;
+  if (row.exp < Date.now()) { sesiones.delete(token); return null; }
+  return row.user;
+}
+function requireAuth(req, res, next) {
+  const user = userFromRequest(req);
+  if (!user) return res.status(401).json({ error: 'Debe iniciar sesión.' });
+  req.usuario = user;
+  next();
+}
+function tooMany(table, key, max, duration) {
+  const now = Date.now();
+  const item = table.get(key);
+  if (!item || item.end < now) { table.set(key, { count: 1, end: now + duration }); return false; }
+  item.count++;
+  return item.count > max;
+}
+function passwordMatches(a, b) {
+  if (!a || !b) return false;
+  const x = crypto.createHash('sha256').update(a).digest();
+  const y = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(x, y);
+}
+const SYSTEM_CONDO = [
+  'Eres asistente técnico de Plus Control SpA para elaborar BORRADORES de planes de emergencia y evacuación de condominios en Chile.',
+  'Fundamento: Ley 21.442 artículo 40 y Reglamento de Copropiedad Inmobiliaria. Distingue las reglas del primer plan y las actualizaciones.',
+  'No inventes nombres, cantidades, ubicaciones, fechas, planos, mantenciones, contactos, firmas, aprobaciones ni normas no verificadas.',
+  'La norma NCh 934 corresponde a clasificación de fuegos; la NCh 2056:2019 corresponde a inspección, mantenimiento y recarga de extintores.',
+  'Los planos y zonas de encuentro no revisados deben quedar expresamente PENDIENTES; una fotografía no acredita seguridad de los sectores.',
+  'Distingue información declarada, verificada y pendiente. No asegures cumplimiento legal sin revisión profesional.',
+  'Entrega contenido técnico en español de Chile acorde con los datos suministrados, sin afirmar que está firmado o aprobado.'
+].join('\\n');
 
 const SYSTEM = `Eres el FISCAL TÉCNICO SENIOR DE PREVENCIÓN DE RIESGOS de Plus Control SpA, con 20 años de experiencia en fiscalización de la Dirección del Trabajo, Seremi de Salud y Mutual de Seguridad en Chile. Plus Control SpA es una empresa de asesoría en prevención de riesgos que genera documentos legales para sus clientes.
 
@@ -84,37 +151,73 @@ FORMATO: ## capítulos, Art.N artículos, tablas markdown. Español chileno form
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// CORS
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.sendStatus(200);
+// Sesiones HttpOnly, SameSite y autenticación real del endpoint que consume créditos.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'same-origin');
+  res.setHeader('X-Frame-Options', 'DENY');
+  if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+app.get('/api/auth/me', (req, res) => {
+  const u = userFromRequest(req);
+  if (!u) return res.status(401).json({ error: 'Sin sesión.' });
+  res.json({ user: u });
+});
+app.post('/api/auth/login', (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  if (tooMany(intentos, ip, 12, 15 * 60 * 1000)) return res.status(429).json({ error: 'Demasiados intentos. Intente más tarde.' });
+  const name = String((req.body || {}).username || '').trim().toLowerCase();
+  const pass = String((req.body || {}).password || '');
+  if (!process.env.PC_ADMIN_PASSWORD || !process.env.PC_ALAN_PASSWORD) {
+    return res.status(503).json({ error: 'Configure PC_ADMIN_PASSWORD y PC_ALAN_PASSWORD en Render.' });
+  }
+  const account = CUENTAS[name];
+  if (!account || !passwordMatches(account.password, pass)) return res.status(401).json({ error: 'Usuario o contraseña incorrectos.' });
+  const user = { username: name, nombre: account.nombre, cargo: account.cargo, rol: account.rol };
+  const token = crypto.randomBytes(32).toString('hex');
+  sesiones.set(token, { user, exp: Date.now() + SESSION_MS });
+  res.cookie('pc_sid', token, { httpOnly: true, sameSite: 'strict', secure: req.secure || req.get('x-forwarded-proto') === 'https', path: '/', maxAge: SESSION_MS });
+  res.json({ user });
+});
+app.post('/api/auth/logout', (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  const token = cookies(req).pc_sid;
+  if (token) sesiones.delete(token);
+  res.clearCookie('pc_sid', { httpOnly: true, sameSite: 'strict', path: '/' });
+  res.json({ ok: true });
 });
 
 // ── Endpoint SSE — envía chunks al cliente en tiempo real ──
 // Esto resuelve el problema de Render Free que corta conexiones largas sin actividad:
 // al enviar datos continuamente, la conexión se mantiene viva.
-app.post('/api/claude', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+app.post('/api/claude', requireAuth, (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  if (req.usuario.rol !== 'admin') return res.status(403).json({ error: 'No autorizado para generar documentos.' });
+  const ip = req.ip || 'unknown';
+  if (tooMany(cuotas, ip, HOUR_LIMIT, 60 * 60 * 1000)) return res.status(429).json({ error: 'Límite horario alcanzado.' });
+  const key = req.usuario.username;
+  if (activos.has(key)) return res.status(429).json({ error: 'Ya hay una generación en curso. Espere a que termine.' });
 
   if (!APIKEY) {
     res.status(500).json({ error: 'API key no configurada en variables de entorno' });
     return;
   }
-  const { prompt, system, maxTokens } = req.body || {};
-  if (!prompt) {
+  const { prompt, docType, maxTokens } = req.body || {};
+  if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 150000) {
     res.status(400).json({ error: 'Prompt vacío' });
     return;
   }
   // SYSTEM alternativo: permite que módulos con marco legal distinto
   // (ej. condominios — Ley 21.442) no hereden el SYSTEM de empresas,
   // que declara normativa laboral (DS 44/2024, Ley Karin) no aplicable.
-  const SYSTEM_USADO = (typeof system === 'string' && system.trim()) ? system : SYSTEM;
+  const SYSTEM_USADO = docType === 'condominio' ? SYSTEM_CONDO : SYSTEM;
   const MAX_TOKENS = (Number.isInteger(maxTokens) && maxTokens > 0 && maxTokens <= 8192) ? maxTokens : 8192;
 
+  activos.add(key);
+  res.on('close', () => activos.delete(key));
+  res.on('finish', () => activos.delete(key));
   // Responder como SSE para mantener la conexión viva en Render Free
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
