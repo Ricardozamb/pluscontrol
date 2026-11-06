@@ -992,6 +992,7 @@
         : '<div class="cq-val cq-val-ok"><strong>Control mecánico: sin observaciones.</strong> La coherencia de los datos reales debe verificarla Alan leyendo el documento.</div>') +
       '<div class="cq-actions">' +
         '<button class="cq-btn cq-btn-p" id="cq-print">Exportar borrador PDF no firmado</button>' +
+        '<button class="cq-btn" id="cq-word">Descargar Word editable (.docx)</button>' +
         '<button class="cq-btn" id="cq-copy">Copiar texto</button>' +
         '<button class="cq-btn" id="cq-volver">Volver</button>' +
       '</div><p class="cq-note">Borrador no firmado para revisión profesional y en terreno.</p><pre class="cq-doc" id="cq-doc"></pre></div>';
@@ -1000,6 +1001,12 @@
     document.getElementById('cq-copy').addEventListener('click', function () {
       if (navigator.clipboard) navigator.clipboard.writeText('BORRADOR NO FIRMADO — PENDIENTE DE VALIDACIÓN\n\n' + texto).then(function () { alert('Texto copiado.'); });
       else alert('Copia manual desde el cuadro de texto.');
+    });
+    document.getElementById('cq-word').addEventListener('click', async function () {
+      this.disabled = true;
+      try { await descargarWord(c, texto, errores); }
+      catch (err) { alert(err.message || 'No se pudo descargar Word.'); }
+      finally { this.disabled = false; }
     });
     document.getElementById('cq-print').addEventListener('click', function () { imprimirPlan(c, texto, errores); });
     var sa = document.getElementById('scroll-area'); if (sa) sa.scrollTop = 0;
@@ -1124,6 +1131,26 @@
       esc(fecha) + '</div></div><div class="pb"></div>' +
       idx + conv.html + firmas + '</body></html>';
 
+  }
+
+  async function descargarWord(c, texto, errores) {
+    var html = htmlPlan(c, texto, errores).split('</head><body>')[1].split('</body></html>')[0]
+      .replace(/class="pb"/g, 'class="page-break"');
+    var response = await fetch('/api/condominios/word', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ html: html })
+    });
+    if (!response.ok) {
+      var result = await response.json().catch(function () { return {}; });
+      throw new Error(result.error || 'No se pudo descargar Word. Vuelve a intentarlo.');
+    }
+    var url = URL.createObjectURL(await response.blob());
+    var enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = 'Borrador - ' + String(c.nombre || 'Plan de emergencia').replace(/[\\/:*?"<>|]/g, '-') + '.docx';
+    enlace.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
   function imprimirPlan(c, texto, errores) {

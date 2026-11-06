@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const https = require('https');
+const HTMLtoDOCX = require('@turbodocx/html-to-docx');
+const sanitizeHtml = require('sanitize-html');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -151,7 +153,8 @@ NUNCA dejes un artículo a medias. Cada artículo mínimo 3 oraciones completas.
 
 FORMATO: ## capítulos, Art.N artículos, tablas markdown. Español chileno formal técnico-legal.`;
 
-app.use(express.json({ limit: '2mb' }));
+const readJson = express.json({ limit: '2mb' });
+app.use((req, res, next) => req.path === '/api/condominios/word' ? next() : readJson(req, res, next));
 
 
 // Sesiones HttpOnly, SameSite y autenticación real del endpoint que consume créditos.
@@ -191,6 +194,46 @@ app.post('/api/auth/logout', (req, res) => {
   if (token) sesiones.delete(token);
   res.clearCookie('pc_sid', { httpOnly: true, sameSite: 'strict', path: '/' });
   res.json({ ok: true });
+});
+
+function wordImageAllowed(src) {
+  if (typeof src !== 'string' || src.length > 550000) return false;
+  const match = src.match(/^data:image\/(jpeg|png);base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match) return false;
+  const bytes = Buffer.from(match[2].slice(0, 16), 'base64');
+  return match[1] === 'png'
+    ? bytes.subarray(0, 8).toString('hex') === '89504e470d0a1a0a'
+    : bytes.subarray(0, 3).toString('hex') === 'ffd8ff';
+}
+
+app.post('/api/condominios/word', requireAuth, express.json({ limit: '4mb' }), async (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  const html = req.body?.html;
+  if (typeof html !== 'string' || !html.trim()) {
+    return res.status(400).json({ error: 'Falta el contenido del borrador.' });
+  }
+  const cleaned = sanitizeHtml(html, {
+    allowedTags: ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'strong', 'em', 'br', 'ul', 'ol', 'li',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td', 'figure', 'figcaption', 'img'],
+    allowedAttributes: { img: ['src', 'alt'], div: ['class'] },
+    allowedClasses: { div: ['page-break'] },
+    allowedSchemes: [],
+    allowedSchemesByTag: { img: ['data'] },
+    allowProtocolRelative: false,
+    exclusiveFilter: ({ tag, attribs }) => tag === 'img' && !wordImageAllowed(attribs.src)
+  });
+  try {
+    const docx = await HTMLtoDOCX(cleaned, null, {
+      title: 'Plan de emergencia y evacuación',
+      font: 'Calibri',
+      fontSize: 22,
+      pageSize: { width: 11906, height: 16838 },
+      table: { row: { cantSplit: true } }
+    });
+    res.type('application/vnd.openxmlformats-officedocument.wordprocessingml.document').send(docx);
+  } catch {
+    res.status(422).json({ error: 'No se pudo convertir el borrador a Word. Revisa los archivos adjuntos.' });
+  }
 });
 
 // ── Endpoint SSE — envía chunks al cliente en tiempo real ──

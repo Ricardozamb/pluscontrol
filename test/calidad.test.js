@@ -73,6 +73,22 @@ test('servidor protege Claude y conserva SSE, UTF-8 y la confirmación de térmi
   const cookie = login.headers.get('set-cookie');
   assert.match(cookie, /HttpOnly; SameSite=Strict/);
   const headers = { Cookie: cookie.split(';')[0] };
+  const wordPath = '/api/condominios/word';
+  assert.equal((await post(wordPath, {})).status, 401);
+  assert.equal((await post(wordPath, {}, headers)).status, 400);
+  assert.equal((await post(wordPath, {}, { ...headers, Origin: 'https://other.example' })).status, 403);
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1ZkAAAAASUVORK5CYII=';
+  const word = await post(wordPath, {
+    html: '<h1>Borrador de evacuación</h1><table><tr><td>Ruta</td></tr></table>' +
+      '<img src="' + png + '"><img src="https://external.invalid/image.png">'
+  }, headers);
+  assert.equal(word.status, 200);
+  assert.match(word.headers.get('content-type'), /wordprocessingml.document/);
+  const docx = Buffer.from(await word.arrayBuffer());
+  assert.equal(docx.subarray(0, 2).toString(), 'PK');
+  assert.ok(docx.includes('word/document.xml'));
+  assert.ok(docx.includes('word/media/'));
+
   let stopReason = 'end_turn';
   let sendStop = true;
   t.mock.method(https, 'request', (options, callback) => {
