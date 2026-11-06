@@ -239,13 +239,20 @@ app.post('/api/condominios/word', requireAuth, express.json({ limit: '4mb' }), a
 // ── Endpoint SSE — envía chunks al cliente en tiempo real ──
 // Esto resuelve el problema de Render Free que corta conexiones largas sin actividad:
 // al enviar datos continuamente, la conexión se mantiene viva.
-app.post('/api/claude', requireAuth, (req, res) => {
+app.post('/api/claude', (req, res, next) => {
+  res.setHeader('X-Request-ID', crypto.randomUUID());
+  res.on('finish', () => {
+    if (res.statusCode >= 400) console.warn('generation rejected', res.getHeader('X-Request-ID'), res.statusCode, res.locals.errorCode || '');
+  });
+  next();
+}, requireAuth, (req, res) => {
   if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
   if (req.usuario.rol !== 'admin') return res.status(403).json({ error: 'No autorizado para generar documentos.' });
-  const ip = req.ip || 'unknown';
-  if (tooMany(cuotas, ip, HOUR_LIMIT, 60 * 60 * 1000)) return res.status(429).json({ error: 'Límite horario alcanzado.' });
   const key = req.usuario.username;
-  if (activos.has(key)) return res.status(429).json({ error: 'Ya hay una generación en curso. Espere a que termine.' });
+  if (activos.has(key)) {
+    res.locals.errorCode = 'GENERATION_IN_PROGRESS';
+    return res.status(429).json({ code: res.locals.errorCode, error: 'Ya hay una generación en curso para tu cuenta. Espera a que termine.' });
+  }
 
   if (!APIKEY) {
     res.status(500).json({ error: 'API key no configurada en variables de entorno' });
@@ -262,9 +269,15 @@ app.post('/api/claude', requireAuth, (req, res) => {
   const SYSTEM_USADO = docType === 'condominio' ? SYSTEM_CONDO : SYSTEM;
   const MAX_TOKENS = (Number.isInteger(maxTokens) && maxTokens > 0 && maxTokens <= 8192) ? maxTokens : 8192;
 
+  if (tooMany(cuotas, key, HOUR_LIMIT, 60 * 60 * 1000)) {
+    const seconds = Math.max(1, Math.ceil((cuotas.get(key).end - Date.now()) / 1000));
+    res.setHeader('Retry-After', String(seconds));
+    res.locals.errorCode = 'PLUSCONTROL_RATE_LIMIT';
+    return res.status(429).json({ code: res.locals.errorCode, error: 'Límite horario de Plus Control alcanzado. Reintenta en ' + Math.ceil(seconds / 60) + ' min.' });
+  }
+
   activos.add(key);
   res.on('close', () => activos.delete(key));
-  res.on('finish', () => activos.delete(key));
   // Responder como SSE para mantener la conexión viva en Render Free
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -305,7 +318,10 @@ app.post('/api/claude', requireAuth, (req, res) => {
     if (!res.destroyed && !res.writableEnded) res.write('data: ' + JSON.stringify(event) + '\n\n');
   }
   function fail(message, status) {
-    send({ error: message, status });
+    if (res.destroyed || res.writableEnded) return;
+    const requestId = res.getHeader('X-Request-ID');
+    console.warn('generation upstream failure', requestId, status || '', message);
+    send({ error: message, status, requestId });
     res.end();
   }
 
@@ -315,7 +331,14 @@ app.post('/api/claude', requireAuth, (req, res) => {
     if (upstream.statusCode !== 200) {
       const status = upstream.statusCode;
       upstream.resume();
-      fail('Claude devolvió HTTP ' + status + '.', status);
+      const motivos = {
+        400: 'Claude rechazó la solicitud (400). Revisa la configuración del modelo.',
+        401: 'Claude rechazó la clave de API (401). Revisa ANTHROPIC_API_KEY en Render.',
+        403: 'La clave de API no tiene permiso en Claude (403).',
+        404: 'Claude no encontró el modelo configurado (404).',
+        429: 'Claude alcanzó su límite de solicitudes (429).'
+      };
+      fail(motivos[status] || 'Claude devolvió HTTP ' + status + '.', status);
       return;
     }
 

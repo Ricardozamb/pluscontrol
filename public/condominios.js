@@ -676,16 +676,19 @@
       fetch('/api/claude', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: prompt, docType: 'condominio' }), signal: ctrl.signal,
-      }).then(function (res) {
+      }).then(async function (res) {
+        var referencia = res.headers.get('X-Request-ID');
+        function errorSolicitud(mensaje, estado) {
+          var error = new Error(mensaje + (referencia ? ' Referencia: ' + referencia : ''));
+          error.estado = estado;
+          return error;
+        }
         if (!res.ok) {
           clearTimeout(tmt);
-          if (res.status === 401 || res.status === 403) {
-            var err = new Error(res.status === 401
-              ? 'La sesión no está activa. Vuelve a iniciar sesión para continuar.'
-              : 'La sesión actual no tiene permiso para generar el plan.');
-            err.estado = res.status;
-            reject(err);
-          } else reintentar('Servidor no disponible (' + res.status + ')', 6000);
+          var detalle = await res.json().catch(function () { return {}; });
+          var mensaje = res.status === 401 ? 'La sesión no está activa. Vuelve a iniciar sesión para continuar.'
+            : detalle.error || 'Plus Control respondió HTTP ' + res.status + '.';
+          reject(errorSolicitud(mensaje, res.status));
           return;
         }
         var reader = res.body.getReader(), dec = new TextDecoder(), buf = '';
@@ -714,9 +717,9 @@
                 }
                 if (o.error) {
                   clearTimeout(tmt);
-                  var esTemporal = [429, 529].includes(o.status) || /RATE_LIMIT|OVERLOADED|429|529|overload/i.test(o.error);
-                  if (esTemporal && !full) reintentar(o.error, 15000 + intentos * 10000);
-                  else reject(new Error(o.error));
+                  var errorClaude = errorSolicitud(o.error, o.status);
+                  errorClaude.proveedor = true;
+                  reject(errorClaude);
                   return;
                 }
               } catch (e) {}
@@ -800,7 +803,7 @@
         step.textContent = 'Parte ' + (i + 1) + ' completada. Preparando la siguiente…';
         setTimeout(function () { hacerParte(i + 1); }, 4000);
       }).catch(function (err) {
-        if (!correccion && err.estado !== 401 && err.estado !== 403) {
+        if (!correccion && !err.estado && !err.proveedor) {
           step.textContent = 'Corrigiendo la parte ' + (i + 1) + ' de ' + PARTES.length + '…';
           setTimeout(function () { hacerParte(i, err.message || 'Respuesta interrumpida.'); }, 4000);
           return;
@@ -811,11 +814,11 @@
           '<p>Parte ' + (i + 1) + ' (' + esc(p.label) + '): ' + esc(err.message || String(err)) + '</p>' +
           '<p class="cq-sub">La corrección automática no se completó. Las ' + i + ' parte(s) verificadas se conservan mientras permanezcas en esta pantalla.</p>' +
           '<div class="cq-actions" style="justify-content:center">' +
-          '<button class="cq-btn cq-btn-p" id="cq-seguir">' + (err.estado === 401 ? 'Volver a iniciar sesión' : 'Reintentar esta parte') + '</button>' +
+          '<button class="cq-btn cq-btn-p" id="cq-seguir">' + (err.estado === 401 && !err.proveedor ? 'Volver a iniciar sesión' : 'Reintentar esta parte') + '</button>' +
           '<button class="cq-btn" id="cq-volver">Volver</button></div></div></div>';
         document.getElementById('cq-volver').addEventListener('click', renderLista);
         document.getElementById('cq-seguir').addEventListener('click', function () {
-          if (err.estado === 401) { clearSession(); showLogin(); return; }
+          if (err.estado === 401 && !err.proveedor) { clearSession(); showLogin(); return; }
           host.innerHTML = '<div class="cq-wrap"><div class="cq-gen">' +
             '<h2>Generando Plan de Emergencia</h2>' +
             '<p class="cq-sub">' + esc(c.nombre) + '</p>' +
