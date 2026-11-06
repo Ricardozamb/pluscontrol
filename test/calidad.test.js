@@ -124,3 +124,36 @@ test('capítulo 4: exige encabezado y contenido y admite numeración romana', ()
     assert.doesNotMatch(validarDocumento(heading + '\n### 4.1 Edificios\nConfiguración física declarada.').join('\n'), advertencia);
   }
 });
+
+test('el inventario distingue concentración PQS de carga y coteja pisos en el texto', () => {
+  const { alertasInventario } = browser.window.PCCondominios;
+  const pisos = 'A:5; B:5; C:4; D:4';
+  const findings = alertasInventario(
+    'Torres A y B: 4 pisos; Torres C y D: 5 pisos. Torres C y D: 3 en piso 1 y 4 en pisos 2, 3, 4 y 5. PQS 6 kg al 90% de carga.',
+    pisos
+  ).join('\n');
+  for (const torre of ['A', 'B', 'C', 'D']) assert.match(findings, new RegExp('torre ' + torre));
+  assert.match(findings, /concentración del agente PQS/);
+  assert.match(alertasInventario('PQS 6 kg, Operativo — 90%', pisos).join(), /EXTINTORES/);
+  assert.equal(alertasInventario('PQS 6 kg, concentración del agente 90%, 75% o 40% según etiqueta. Carga por verificar.', pisos).length, 0);
+});
+
+test('señala subsecciones duplicadas dentro del mismo capítulo', () => {
+  assert.match(validarDocumento('## CAPÍTULO 1\n### 1.2 Finalidad\nTexto\n### 1.2 Identificación\nTexto').join(), /numeración repetida/);
+});
+
+test('el PDF integra foto y planos de la versión y escapa nombres de archivos', () => {
+  const { htmlPlan } = browser.window.PCCondominios;
+  const url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1ZkAAAAASUVORK5CYII=';
+  const plan = { nombre: 'Prueba', foto: { nombre: 'Entrada', url }, planos: [
+    { nombre: 'Torre A <nivel 1>', url },
+    { nombre: 'No permitido', url: 'data:image/svg+xml;base64,PHN2Zz4=' }
+  ] };
+  const content = '## ANEXO 2 — PLANOS\n[LAMINAS DEL LEVANTAMIENTO]\n## ANEXO 3 — CONTACTOS';
+  const html = htmlPlan(plan, content, []);
+  assert.match(html, /class="foto"/);
+  assert.match(html, /ANEXO 2[^]*Torre A &lt;nivel 1&gt;[^]*ANEXO 3/);
+  assert.doesNotMatch(html, /\[LAMINAS DEL LEVANTAMIENTO\]|data:image\/svg/);
+  assert.match(html, /BORRADOR NO FIRMADO/);
+  assert.match(htmlPlan({ nombre: 'Prueba' }, content, []), /pendientes de adjuntar/);
+});

@@ -69,6 +69,9 @@ const SYSTEM_CONDO = [
   'No inventes nombres, cantidades, ubicaciones, fechas, planos, mantenciones, contactos, firmas, aprobaciones ni normas no verificadas.',
   'Fundamenta las reglas de suscripción en el artículo 40 de la Ley 21.442 y el artículo 33 del DS 7 MINVU para el supuesto preexistente sin plan. No inventes referencias técnicas ni atribuyas firma o autoría.',
   'Los planos y zonas de encuentro no revisados deben quedar expresamente PENDIENTES; una fotografía no acredita seguridad de los sectores.',
+  'En extintores PQS distingue masa nominal en kg, concentración del agente según etiqueta y condición de carga. Un porcentaje del PQS es concentración del agente; jamás lo presentes como porcentaje de carga. Si falta etiqueta o inspección, registra el dato como pendiente.',
+  'Reglamento DS 7 MINVU, art. 34: actualizar el plan de evacuación al menos anualmente y contemplar capacitación y simulacros según escenarios. Si se acredita que las condiciones no cambiaron, la vía del informe fundado requiere nueva suscripción y anexar el informe.',
+  'Reglamento DS 7 MINVU, art. 35: entrega material y digital a Carabineros y Bomberos. En el primer plan del art. 40 la realiza la persona propietaria antes del trámite municipal pertinente. En actualizaciones la realiza el comité dentro de 15 días corridos desde la suscripción por presidente y administrador. Registra constancias y deja pendiente el responsable cuando el supuesto requiere cotejo.',
   'Distingue información declarada, verificada y pendiente. No asegures cumplimiento legal sin revisión profesional.',
   'Entrega contenido técnico en español de Chile acorde con los datos suministrados, sin afirmar que está firmado o aprobado.'
 ].join('\n');

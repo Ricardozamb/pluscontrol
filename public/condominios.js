@@ -87,6 +87,31 @@
     } catch (err) { alert('No se pudo leer el respaldo de condominios.'); }
   }
 
+  var FORMATO_IMAGEN = /^data:image\/(?:jpeg|png);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+  function imagenValida(imagen) {
+    return imagen && typeof imagen.nombre === 'string' && typeof imagen.url === 'string' &&
+      imagen.url.length <= 550000 && FORMATO_IMAGEN.test(imagen.url);
+  }
+
+  async function leerImagen(file) {
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 400 * 1024) {
+      throw new Error('Usa imágenes JPG o PNG de hasta 400 KB por archivo.');
+    }
+    var url = await new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(reader.result); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    var imagen = { nombre: file.name, url: url };
+    if (!imagenValida(imagen)) throw new Error('Formato de imagen inválido.');
+    var preview = new Image();
+    preview.src = url;
+    await preview.decode();
+    return imagen;
+  }
+
   // ── HELPERS ────────────────────────────────────────────────────────────────
   function v(id, def) { var el = document.getElementById(id); return el ? (el.value.trim() || def || '') : (def || ''); }
   function chk(id) { var el = document.getElementById(id); return el && el.checked ? 'Sí' : 'No'; }
@@ -173,6 +198,10 @@
         ['Sí — se desarrolla procedimiento de tsunami', 'Sí'],
       ], d.costera) +
 
+      seccion('A.1 Foto de portada') +
+      '<label class="cq-field">Foto de la entrada (JPG o PNG, hasta 400 KB)<input id="c-foto" type="file" accept="image/jpeg,image/png"></label>' +
+      (imagenValida(d.foto) ? check('c-quitar-foto', 'Quitar foto actual: ' + esc(d.foto.nombre), false) : '') +
+
       seccion('B. Configuración física') +
       grid([
         campo('N° de torres / blocks', 'c-torres', val('torres'), 'text', 'Ej: 3'),
@@ -195,7 +224,7 @@
 
       seccion('C. Sistemas de seguridad y emergencia') +
       '<p class="cq-note">Indica cantidad, ubicación y estado si los conoces. Lo que no exista o no sepas, déjalo vacío.</p>' +
-      textareaCampo('Extintores', 'c-extintores', val('extintores'), 'Ej: 24 PQS 6kg, uno por piso en cada torre') +
+      textareaCampo('Extintores: cantidad, agente, masa, concentración y estado verificado', 'c-extintores', val('extintores'), 'Ej.: PQS, 6 kg, concentración del agente 90 % según etiqueta; estado de carga pendiente de inspección. Separa cada grupo con distinta concentración.') +
       grid([
         textareaCampo('Red húmeda', 'c-red-humeda', val('red_humeda'), 'Ubicación / estado', false),
         textareaCampo('Red seca', 'c-red-seca', val('red_seca'), 'Ubicación / estado', false),
@@ -222,13 +251,15 @@
       textareaCampo('Plano definitivo: código, ubicación de archivo y estado de validación', 'c-plano-info', val('plano_info'), 'PENDIENTE hasta adjuntar y revisar un plano real') +
       textareaCampo('Zonas de encuentro propuestas por torre y validación técnica', 'c-zonas-info', val('zonas_info'), 'Ej: A: sector patio; B: sector patio; C: sector patio; D: sector patio. PENDIENTE DE VALIDACIÓN') +
       textareaCampo('Rutas por torre y piso (torre|piso|recorrido|zona)', 'c-rutas', val('rutas'), 'Una ruta por línea. El nombre de zona debe coincidir con el registrado para la torre.') +
+      '<label class="cq-field">Láminas de salidas y evacuación (hasta 4 JPG o PNG de 400 KB cada uno; identifica torre y piso en el nombre)<input id="c-planos" type="file" accept="image/jpeg,image/png" multiple></label>' +
+      (Array.isArray(d.planos) && d.planos.length ? check('c-quitar-planos', 'Quitar las láminas actuales: ' + esc(d.planos.filter(imagenValida).map(function (x) { return x.nombre; }).join(', ')), false) : '') +
       seccion('C.2 Evidencia de inspección — indispensable para emisión definitiva') +
       grid([
         selectCampo('Estado del plano', 'c-plano-estado', [['Pendiente', 'pendiente'], ['Revisado con evidencia', 'revisado']], d.plano_estado),
         campo('Responsable revisión del plano', 'c-plano-revisor', val('plano_revisor'), 'text', 'Nombre y cargo'),
         campo('Fecha de revisión de plano', 'c-plano-fecha', val('plano_fecha'), 'date', ''),
       ]) +
-      textareaCampo('Evidencia y ubicación verificable del plano', 'c-plano-evidencia', val('plano_evidencia'), 'Identificador de plano, archivo, versión y ubicación comprobable. Este campo no adjunta el archivo.') +
+      textareaCampo('Evidencia y ubicación verificable del plano', 'c-plano-evidencia', val('plano_evidencia'), 'Identificador de plano, archivo, versión y ubicación comprobable. Usa el control de láminas para adjuntar las imágenes correspondientes.') +
       grid([
         selectCampo('Estado de zonas de encuentro', 'c-zonas-estado', [['Pendientes de inspección', 'pendiente'], ['Inspeccionadas con evidencia', 'inspeccionadas']], d.zonas_estado),
         campo('Responsable de inspección de zonas', 'c-zonas-revisor', val('zonas_revisor'), 'text', 'Nombre y cargo'),
@@ -310,12 +341,17 @@
       '</div></div>';
 
     document.getElementById('c-btn-cancelar').addEventListener('click', renderLista);
-    document.getElementById('c-btn-guardar').addEventListener('click', function () { guardarCondo(editId); });
+    document.getElementById('c-btn-guardar').addEventListener('click', async function () {
+      this.disabled = true;
+      try { await guardarCondo(editId, this); }
+      catch (err) { alert(err.message || 'No se pudo leer la imagen.'); }
+      finally { this.disabled = false; }
+    });
     var sa = document.getElementById('scroll-area'); if (sa) sa.scrollTop = 0;
   }
 
   // ── GUARDAR ────────────────────────────────────────────────────────────────
-  function guardarCondo(editId) {
+  async function guardarCondo(editId, boton) {
     for (var i = 0; i < REQ_CONDO.length; i++) {
       var el = document.getElementById(REQ_CONDO[i]);
       if (!el || !el.value.trim()) { alert('Completa los campos obligatorios (*): nombre, dirección, comuna y región.'); return; }
@@ -350,6 +386,19 @@
       carabineros: v('c-carabineros'), carabineros_dir: v('c-carabineros-dir'),
       hospital: v('c-hospital'), hospital_dir: v('c-hospital-dir'),
     };
+    var foto = document.getElementById('c-foto').files[0];
+    var planos = Array.from(document.getElementById('c-planos').files);
+    if (planos.length > 4) throw new Error('Selecciona hasta cuatro láminas por condominio.');
+    var quitarFoto = chk('c-quitar-foto') === 'Sí';
+    var quitarPlanos = chk('c-quitar-planos') === 'Sí';
+    obj.foto = foto ? await leerImagen(foto) : (!quitarFoto && previo && previo.foto) || null;
+    obj.planos = planos.length ? await Promise.all(planos.map(leerImagen)) :
+      (!quitarPlanos && previo && previo.planos) || [];
+    if (!boton.isConnected) return;
+    if (planos.length || quitarPlanos) {
+      obj.plano_estado = 'pendiente';
+      obj.plano_revisor = obj.plano_fecha = obj.plano_evidencia = '';
+    }
     // Preserva el plan ya generado al editar (bug corregido de v1).
     if (previo && previo.ultimo_plan) obj.ultimo_plan = previo.ultimo_plan;
     if (previo && previo.planes_anteriores) obj.planes_anteriores = previo.planes_anteriores;
@@ -412,7 +461,7 @@
             var plan = c.ultimo_plan;
             var base = plan.datos || { nombre: c.nombre };
             var avisos = plan.datos ? auditoriaCondo(base) : ['Versión antigua sin copia verificable del levantamiento original.'];
-            finalizar(base, plan.texto, validarDocumento(plan.texto).concat(avisos));
+            finalizar(base, plan.texto, validarDocumento(plan.texto, base).concat(avisos));
           }
         } else if (act === 'del') {
           if (confirm('¿Eliminar este condominio y su levantamiento?')) {
@@ -461,7 +510,7 @@
       d('RECINTOS CRÍTICOS', c.recintos), d('ÁREAS COMUNES', c.areas, 'No especificado'),
       '',
       '─ SISTEMAS DE EMERGENCIA ─',
-      d('EXTINTORES', c.extintores), d('RED HÚMEDA', c.red_humeda, '[NO INFORMADO]'),
+      d('EXTINTORES (masa nominal, concentración del agente y estado de carga son datos distintos)', c.extintores), d('RED HÚMEDA', c.red_humeda, '[NO INFORMADO]'),
       d('RED SECA', c.red_seca, '[NO INFORMADO]'), d('GRIFOS/BOCAS', c.grifos, '[NO INFORMADO]'),
       d('DETECTORES DE HUMO', c.detectores, '[NO INFORMADO]'), d('ALARMA', c.alarma, '[NO INFORMADO]'),
       d('PULSADORES', c.pulsadores, '[NO INFORMADO]'), d('ILUMINACIÓN EMERGENCIA', c.ilum, '[NO INFORMADO]'),
@@ -496,7 +545,7 @@
   var PARTES = [
     { label: 'Capítulos 1 a 3', capitulos: [1, 2, 3], instr:
       'Genera SOLO estas secciones:\n' +
-      '## CAPÍTULO 1 — INTRODUCCIÓN Y MARCO LEGAL (finalidad del plan; identificación del condominio con sus datos reales; obligación del Artículo 40 de la Ley N°21.442; Reglamento de la ley publicado el 09-01-2025; referencia a la norma técnica oficial del MINVU del artículo 4° transitorio; responsables de suscripción).\n' +
+      '## CAPÍTULO 1 — INTRODUCCIÓN Y MARCO LEGAL (finalidad del plan; identificación del condominio con sus datos reales; obligación del Artículo 40 de la Ley N°21.442; Reglamento de la ley publicado el 09-01-2025; referencia a la norma técnica oficial del MINVU del artículo 4° transitorio; describe el régimen declarado sujeto a revisión; omite el bloque de firmas, que agrega la aplicación).\n' +
       '## CAPÍTULO 2 — OBJETIVOS Y ALCANCE (objetivo general, objetivos específicos, alcance territorial y de personas).\n' +
       '## CAPÍTULO 3 — DEFINICIONES (emergencia, evacuación, evacuación parcial, evacuación total, vía de evacuación, zona de seguridad, punto de encuentro, alerta, alarma, amenaza, vulnerabilidad, emergencia controlada).' },
     { label: 'Capítulo 4 — Descripción del condominio', capitulos: [4], instr:
@@ -522,14 +571,14 @@
     { label: 'Evacuación asistida, Paso IV y organismos', instr:
       'Genera SOLO estas secciones:\n' +
       '## PASO III-B — EVACUACIÓN DE PERSONAS QUE REQUIEREN ASISTENCIA (identificación preventiva de necesidades de apoyo; asignación de acompañantes; comunicación; rutas accesibles cuando existan; alternativas cuando una ruta no sea utilizable; prioridad de evacuación según la emergencia; prohibición expresa de maniobras inseguras). No inventes nombres de responsables.\n' +
-      '## PASO IV — IMPLEMENTACIÓN DEL PLAN (responsabilidades; capacitación de residentes; comunicación y difusión; inducción a trabajadores del condominio; inspección de instalaciones; mantención de equipos de emergencia; simulacros o ejercicios según los tipos de emergencia; evaluación posterior; actualización anual del plan).\n' +
-      '## COORDINACIÓN CON ORGANISMOS EXTERNOS (describir entrega material y digital a Bomberos y Carabineros de la comuna luego de revisión y suscripción; incluir registro en blanco para constancia de recepción).' },
+      '## PASO IV — IMPLEMENTACIÓN DEL PLAN (responsabilidades; capacitación de residentes; comunicación y difusión; inducción a trabajadores del condominio; inspección de instalaciones; mantención de equipos de emergencia; simulacros o ejercicios según los tipos de emergencia; evaluación posterior; actualización al menos anual del plan de evacuación, según el artículo 34 del reglamento).\n' +
+      '## COORDINACIÓN CON ORGANISMOS EXTERNOS (describir entrega material y digital a Bomberos y Carabineros de la comuna según el supuesto del artículo 35 del reglamento; incluir registro en blanco para constancia de recepción).' },
     { label: 'Anexos 1 a 7', instr:
       'Genera SOLO los anexos, usando tablas markdown con barras verticales:\n' +
       '## ANEXO 1 — ORGANIZACIÓN Y ENCARGADOS (tabla: Cargo/Rol | Nombre | Contacto | Función. Usa los nombres reales entregados; los que falten van como "[POR DESIGNAR]". NO inventes).\n' +
-      '## ANEXO 2 — PLANOS DE EMERGENCIA Y EVACUACIÓN (escribe exactamente "[PLANO A CARGAR POR PLUS CONTROL]" y a continuación: "El plano deberá representar las vías de evacuación, escaleras, salidas, zonas de seguridad, puntos de encuentro, extintores, red húmeda, red seca, grifos o bocas de incendio, grupo electrógeno, iluminación de emergencia, detectores, alarmas, pulsadores, sistemas de extinción, y las instalaciones de agua potable, alcantarillado, electricidad, gas, calefacción, artefactos a gas y ventilaciones asociadas que existan en el condominio." NO inventes ubicaciones).\n' +
+      '## ANEXO 2 — PLANOS DE EMERGENCIA Y EVACUACIÓN (escribe en una línea independiente exactamente "[LAMINAS DEL LEVANTAMIENTO]" y a continuación: "El plano deberá representar las vías de evacuación, escaleras, salidas, zonas de seguridad, puntos de encuentro, extintores, red húmeda, red seca, grifos o bocas de incendio, grupo electrógeno, iluminación de emergencia, detectores, alarmas, pulsadores, sistemas de extinción, y las instalaciones de agua potable, alcantarillado, electricidad, gas, calefacción, artefactos a gas y ventilaciones asociadas que existan en el condominio." NO inventes ubicaciones).\n' +
       '## ANEXO 3 — DIRECTORIO DE EMERGENCIA (tabla Organismo | Teléfono | Dirección. Nacionales: Bomberos 132, Carabineros 133, SAMU 131. Los datos locales no entregados van como [COMPLETAR / VERIFICAR]. NO inventes números).\n' +
-      '## ANEXO 4 — REGISTRO DE MANTENCIÓN E INSPECCIÓN DE EXTINTORES (tabla: N° | Ubicación | Tipo | Capacidad | Fecha mantención | Próxima mantención | Estado | Observaciones. Si no hay inventario entregado, una fila con "[LEVANTAMIENTO PENDIENTE]" y filas en blanco para completar en terreno).\n' +
+      '## ANEXO 4 — REGISTRO DE MANTENCIÓN E INSPECCIÓN DE EXTINTORES (tabla: N° | Ubicación | Tipo | Masa nominal (kg) | Concentración del agente según etiqueta | Evidencia y fecha de inspección | Estado de carga | Última mantención | Próxima mantención. Solo transcribe filas identificadas individualmente en los datos; deja el registro en blanco cuando solo exista un total agregado).\n' +
       '## ANEXO 5 — REGISTRO DE CAPACITACIÓN (tabla: Fecha | Tema | Relator | N° participantes | Observaciones | Firma).\n' +
       '## ANEXO 6 — REGISTRO DE SIMULACRO O EJERCICIO (tabla: Fecha | Tipo de emergencia | Modalidad | Participantes | Tiempo de evacuación | Dificultades | Acciones correctivas | Responsable | Seguimiento).\n' +
       '## ANEXO 7 — REGISTRO DE ACTUALIZACIÓN DEL PLAN (tabla: Fecha | Motivo | Cambios realizados | Responsable | Firma).' },
@@ -629,7 +678,7 @@
       '\nZonas declaradas, no operativas hasta cotejo: ' + (c.zonas_info || 'PENDIENTE') +
       '\nReferencia de planos (archivo no incorporado): ' + (c.plano_info || 'PENDIENTE') +
       '\nPlanos, recorridos y zonas requieren cotejo documental y en terreno. No des instrucciones operativas locales como definitivas. ' +
-      'No atribuyas autoría o firmas. La aplicación muestra los roles de suscripción por separado.';
+      'No atribuyas autoría o firmas. La aplicación muestra los roles de suscripción por separado. Numera cada subsección una sola vez. No conviertas totales agregados en registros individuales ni supongas equipos operativos sin respaldo.';
     var stream = document.getElementById('cq-stream');
     var bar = document.getElementById('cq-bar');
     var step = document.getElementById('cq-step');
@@ -639,7 +688,7 @@
       if (i >= PARTES.length) {
         var texto = acumulado.join('\n\n');
         generating = false;
-        var errores = validarDocumento(texto).concat(hallazgos);
+        var errores = validarDocumento(texto, c).concat(hallazgos);
         var siguiente = Object.assign({}, c, {
           ultimo_plan: { fecha: Date.now(), texto: texto, datos: datosGuardados },
           planes_anteriores: (c.planes_anteriores || []).concat(c.ultimo_plan || [])
@@ -732,6 +781,10 @@
     if (!ids.length) errores.push('CRÍTICO: pisos por torre deben informarse como A:5; B:5; C:4; D:4.');
     if (c.torres && /^\d+$/.test(String(c.torres)) && Number(c.torres) !== ids.length)
       errores.push('INCONSISTENCIA: número declarado de torres no coincide con el desglose de pisos.');
+    var referencias = [c.detectores, c.alarma, c.pulsadores, c.extintores].filter(Boolean).join('. ');
+    alertasInventario(referencias, c.pisos).forEach(function (hallazgo) {
+      errores.push(hallazgo.startsWith('EXTINTORES:') ? 'INCONSISTENCIA: ' + hallazgo : hallazgo);
+    });
     if (!String(c.equipos_piso || '').trim()) errores.push('CRÍTICO: inventario por piso pendiente.');
     var equipos = new Set();
     String(c.equipos_piso || '').split(/\n+/).forEach(function(row) {
@@ -753,6 +806,8 @@
       }
     });
 
+    if (!Array.isArray(c.planos) || !c.planos.some(imagenValida))
+      errores.push('CRÍTICO: faltan láminas de evacuación adjuntas.');
     if (c.plano_estado !== 'revisado' || !c.plano_revisor || !c.plano_fecha ||
         !c.plano_info || !c.plano_evidencia)
       errores.push('CRÍTICO: plano no acreditado (identificador, evidencia, fecha y revisor).');
@@ -809,7 +864,28 @@
     return requeridos.filter(function (n) { return !encontrados.has(n); });
   }
 
-  function validarDocumento(texto) {
+  function alertasInventario(texto, pisos) {
+    var hallazgos = new Set();
+    var niveles = new Map(Array.from(norm(pisos).matchAll(/(?:^|[;,\n])\s*([A-Z0-9_-]+)\s*:\s*(\d+)/g),
+      function (m) { return [m[1], Number(m[2])]; }));
+    var t = norm(texto).replace(/\s+/g, ' ');
+    var grupos = /TORRES?\s+([A-Z0-9_-]+(?:\s+Y\s+[A-Z0-9_-]+)?)\s*[:,]?\s*(?:DE\s+)?(\d+)\s+PISOS\b|TORRES?\s+([A-Z0-9_-]+(?:\s+Y\s+[A-Z0-9_-]+)?)\s*[:,]?\s*[^.|;:]{0,100}?\b(?:EN\s+)?(?:LOS\s+)?PISOS?\s+(\d+(?:\s*(?:,|Y)\s*\d+)*)/g;
+    for (var m of t.matchAll(grupos)) {
+      var ids = (m[1] || m[3]).split(/\s+Y\s+/);
+      var numero = m[2] ? Number(m[2]) : Math.max(...m[4].match(/\d+/g).map(Number));
+      ids.forEach(function (id) {
+        if (niveles.has(id) && (m[2] ? numero !== niveles.get(id) : numero > niveles.get(id))) {
+          hallazgos.add('INCONSISTENCIA: revisar referencia a piso(s) de torre ' + id +
+            ' frente a los ' + niveles.get(id) + ' pisos declarados.');
+        }
+      });
+    }
+    if (/\b(?:OPERATIV[OA]|ESTADO)\s*[—–:-]\s*\d{1,3}\s*%|\b\d{1,3}\s*%\s*(?:DE\s+)?(?:LA\s+)?CARGA\b|\bCARGA\s+(?:DEL?\s+)?\d{1,3}\s*%/.test(t))
+      hallazgos.add('EXTINTORES: se informó carga como porcentaje. Coteja la concentración del agente PQS con la etiqueta y registra el estado de carga por separado.');
+    return Array.from(hallazgos);
+  }
+
+  function validarDocumento(texto, c) {
     var errores = [], t = texto || '', T = norm(t);
     // Legal
     if (/19\.?537/.test(t)) errores.push('LEGAL: aparece la Ley 19.537 (derogada).');
@@ -843,6 +919,19 @@
       errores.push('RIESGO: el documento promete aprobación de terceros.');
     if (/PUNTO DE ENCUENTRO PROVISORI[OA]|ZONA DE SEGURIDAD PROVISORI[OA]/.test(T))
       errores.push('RIESGO: punto de encuentro provisorio que requiere inspección antes de dar instrucciones.');
+    errores = errores.concat(alertasInventario(t, c && c.pisos));
+    var numeracion = new Set();
+    var contexto = '';
+    t.split('\n').forEach(function (linea) {
+      var h = norm(linea).match(/^\s*#{1,3}\s+(?:(CAPITULO|PASO|ANEXO)\s+(\w+)|(\d+\.\d+)\.?\s)/);
+      if (!h) return;
+      if (h[1]) contexto = h[1] + ' ' + h[2];
+      else if (contexto) {
+        var clave = contexto + ' / ' + h[3];
+        if (numeracion.has(clave)) errores.push('ESTRUCTURA: numeración repetida ' + clave + '.');
+        numeracion.add(clave);
+      }
+    });
     // Truncamiento
     if (t.length < 6000) errores.push('EXTENSIÓN: el documento parece incompleto o truncado.');
     return errores;
@@ -926,11 +1015,20 @@
     return roles;
   }
 
-  function imprimirPlan(c, texto, errores) {
+  function htmlPlan(c, texto, errores) {
     var fecha = c.fecha_elab
       ? new Date(c.fecha_elab + 'T00:00:00').toLocaleDateString('es-CL')
       : 'Fecha de elaboración pendiente';
     var conv = mdToHtml(texto);
+    var laminas = (Array.isArray(c.planos) ? c.planos.filter(imagenValida) : []).map(function (plano, i) {
+      return '<figure class="lamina"><img src="' + esc(plano.url) + '" alt="Lámina de evacuación">' +
+        '<figcaption>Lámina ' + (i + 1) + ' · ' + esc(plano.nombre) + '</figcaption></figure>';
+    }).join('');
+    var anexo = laminas ? '<p>Láminas aportadas al levantamiento. Cotejar vigencia, cobertura y condiciones en terreno.</p>' + laminas
+      : '<p>Láminas de evacuación pendientes de adjuntar.</p>';
+    if (conv.html.includes('<p>[LAMINAS DEL LEVANTAMIENTO]</p>')) {
+      conv.html = conv.html.replace('<p>[LAMINAS DEL LEVANTAMIENTO]</p>', function () { return anexo; });
+    } else if (laminas) conv.html += '<h2>Láminas de evacuación adjuntas</h2>' + anexo;
     var idx = conv.indice.length >= 3
       ? '<h2>ÍNDICE</h2><ol class="idx">' + conv.indice.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><div class="pb"></div>'
       : '';
@@ -945,15 +1043,18 @@
       errores.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
 
 
-    var html = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">' +
+    return '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">' +
       '<title>Plan de Emergencia — ' + esc(c.nombre) + '</title><style>' +
       '@page{size:A4;margin:2.2cm 2cm;}' +
       'body{font-family:Georgia,"Times New Roman",serif;color:#1a1a1a;line-height:1.55;font-size:11pt;margin:0;}' +
-      '.portada{text-align:center;padding-top:7cm;}' +
+      '.portada{text-align:center;padding-top:1.5cm;}' +
+      '.foto{display:block;margin:1cm auto;max-width:100%;max-height:8cm;object-fit:contain;}' +
+      '.lamina{break-inside:avoid;margin:1em 0;} .lamina img{display:block;max-width:100%;max-height:20cm;margin:auto;}' +
+      '.lamina figcaption{font-size:10pt;overflow-wrap:anywhere;}' +
       '.portada h1{font-size:24pt;margin:0 0 .4cm;letter-spacing:.5px;}' +
       '.portada .n{font-size:15pt;font-weight:bold;margin-bottom:.2cm;}' +
       '.portada .d{font-size:11pt;color:#444;}' +
-      '.portada .m{margin-top:3.5cm;font-size:10.5pt;color:#444;line-height:1.9;}' +
+      '.portada .m{margin-top:1cm;font-size:10.5pt;color:#444;line-height:1.9;}' +
       'h2{font-size:13.5pt;color:#7a1f1f;border-bottom:2px solid #7a1f1f;padding-bottom:4px;margin:26px 0 12px;page-break-after:avoid;}' +
       'h3{font-size:12pt;color:#333;margin:18px 0 8px;page-break-after:avoid;}' +
       'p{margin:6px 0;text-align:justify;}' +
@@ -974,17 +1075,22 @@
       '<div class="n">' + esc(c.nombre) + '</div>' +
       '<div class="d">' + esc(c.direccion || '') + (c.comuna ? ', ' + esc(c.comuna) : '') +
       (c.region ? ', Región de ' + esc(c.region) : '') + '</div>' +
+      (imagenValida(c.foto) ? '<img class="foto" src="' + esc(c.foto.url) + '" alt="Entrada del condominio">' : '') +
       '<div class="m">Marco de referencia: artículo 40 de la Ley N°21.442<br>sobre Copropiedad Inmobiliaria<br><br>' +
       'Plus Control SpA — RUT 77.916.708-9<br>Revisión profesional pendiente<br><br>' +
       esc(fecha) + '</div></div><div class="pb"></div>' +
       idx + conv.html + firmas + '</body></html>';
 
+  }
+
+  function imprimirPlan(c, texto, errores) {
     var w = window.open('', '_blank');
     if (!w) { alert('El navegador bloqueó la ventana. Permite ventanas emergentes e intenta nuevamente.'); return; }
     w.opener = null;
-    w.document.write(html);
+    w.document.write(htmlPlan(c, texto, errores));
     w.document.close();
-    setTimeout(function () { try { w.print(); } catch (e) {} }, 500);
+    Promise.allSettled(Array.from(w.document.images, function (img) { return img.decode(); }))
+      .then(function () { if (!w.closed) w.print(); });
   }
 
   // ── ESTILOS (tema oscuro alineado a la app) ────────────────────────────────
@@ -1078,7 +1184,7 @@
     renderLista();
   }
 
-  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo, validarDocumento: validarDocumento, rolesSuscripcion: rolesSuscripcion };
+  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo, validarDocumento: validarDocumento, rolesSuscripcion: rolesSuscripcion, alertasInventario: alertasInventario, htmlPlan: htmlPlan };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montar);
   else montar();
