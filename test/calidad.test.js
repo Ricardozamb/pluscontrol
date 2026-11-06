@@ -210,3 +210,14 @@ test('el expediente distingue referencias declaradas de evidencia pendiente', ()
   assert.match(html, /Versión PC-/);
   assert.match(auditar(c).join(), /PENDIENTE: Acta o registro de inspección/);
 });
+
+test('las rutas simuladas y por verificar no cubren pisos operativos', () => {
+  const input = {
+    pisos: 'A:3', zonas_info: 'A: patio',
+    rutas: 'A|1|Puerta lateral y pasillo exterior|patio\nA|2|SIMULADO: escalera|patio\nA|3|[Salida por verificar]|patio'
+  };
+  const findings = auditar(input).join('\n');
+  assert.match(findings, /torre A contiene rutas simuladas o por verificar/);
+  assert.match(findings, /faltan rutas.*torre A/);
+  assert.doesNotMatch(findings, /ruta sin piso, recorrido o zona concordante/);
+});
