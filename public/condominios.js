@@ -33,25 +33,70 @@
     else storageSnapshot = undefined;
   } catch (e) { storageSnapshot = undefined; }
 
-  function saveCondos(next) {
+  var baseCondos;
+  var revision = 0;
+  var errorAlmacenamiento = false;
+  function cargarCondos() {
+    if (baseCondos) return baseCondos;
+    baseCondos = new Promise(function (resolve, reject) {
+      var abrir = indexedDB.open('pluscontrol-condominios', 1);
+      abrir.onupgradeneeded = function () { abrir.result.createObjectStore('datos'); };
+      abrir.onerror = function () { reject(abrir.error); };
+      abrir.onsuccess = function () {
+        var db = abrir.result;
+        var tx = db.transaction('datos', 'readwrite');
+        var tabla = tx.objectStore('datos');
+        var lectura = tabla.get('condominios');
+        lectura.onsuccess = function () {
+          var registro = lectura.result;
+          if (registro) {
+            condos = registro.rows;
+            revision = registro.revision;
+          } else if (storageSnapshot !== undefined && localStorage.getItem('pc_condominios') === storageSnapshot) {
+            tabla.put({ rows: condos, revision: 0 }, 'condominios');
+          } else tx.abort();
+        };
+        tx.oncomplete = function () { resolve(db); };
+        tx.onabort = function () { db.close(); reject(tx.error || new Error('No se pudo importar el almacenamiento anterior.')); };
+      };
+    });
+    return baseCondos;
+  }
+
+  async function saveCondos(next) {
     try {
-      if (storageSnapshot === undefined || localStorage.getItem('pc_condominios') !== storageSnapshot) {
-        alert('El almacenamiento cambió en otra pestaña o no se puede leer. Recarga y revisa antes de guardar.');
-        return false;
-      }
-      var serialized = JSON.stringify(next);
-      localStorage.setItem('pc_condominios', serialized);
-      storageSnapshot = serialized;
+      var db = await cargarCondos();
+      var versionAnterior = revision;
+      await new Promise(function (resolve, reject) {
+        var tx = db.transaction('datos', 'readwrite');
+        var tabla = tx.objectStore('datos');
+        var lectura = tabla.get('condominios');
+        var conflicto = false;
+        lectura.onsuccess = function () {
+          if (lectura.result.revision !== versionAnterior) {
+            conflicto = true;
+            tx.abort();
+          } else tabla.put({ rows: next, revision: versionAnterior + 1 }, 'condominios');
+        };
+        tx.oncomplete = resolve;
+        tx.onabort = function () {
+          reject(conflicto ? new Error('Otra pestaña guardó cambios. Respalda lo que estás editando antes de recargar.') : tx.error);
+        };
+      });
+      revision = versionAnterior + 1;
       condos = next;
       return true;
     } catch (err) {
-      alert('No se pudo guardar. Espacio insuficiente: exporte un respaldo. Nunca se borrarán planes anteriores automáticamente.');
+      alert('No se pudo guardar. ' + (err && err.name !== 'QuotaExceededError' && err.message
+        ? err.message : 'Respalda el levantamiento antes de salir. Los registros guardados se conservan.'));
       return false;
     }
   }
 
-  function exportarJSON() {
-    var b = new Blob([JSON.stringify({ condominios: condos }, null, 2)], { type: 'application/json' });
+  function exportarJSON() { descargarRespaldo(condos); }
+
+  function descargarRespaldo(rows) {
+    var b = new Blob([JSON.stringify({ condominios: rows }, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(b);
     a.download = 'condominios-pluscontrol-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -82,7 +127,7 @@
       });
       if (!nuevos.length) { alert('El respaldo no contiene condominios nuevos.'); return; }
       if (confirm('¿Restaurar ' + nuevos.length + ' condominio(s)? Los registros con el mismo identificador se conservan.')) {
-        if (saveCondos(condos.concat(nuevos))) renderLista();
+        if (await saveCondos(condos.concat(nuevos))) renderLista();
       }
     } catch (err) { alert('No se pudo leer el respaldo de condominios.'); }
   }
@@ -423,7 +468,8 @@
     if (previo && previo.planes_anteriores) obj.planes_anteriores = previo.planes_anteriores;
 
     var next = previo ? condos.map(function (c) { return c.id === editId ? obj : c; }) : condos.concat(obj);
-    if (saveCondos(next)) renderLista();
+    if (await saveCondos(next)) renderLista();
+    else if (confirm('¿Descargar un respaldo de este levantamiento sin guardar?')) descargarRespaldo([obj]);
   }
 
   // ── LISTA ──────────────────────────────────────────────────────────────────
@@ -462,7 +508,7 @@
         (condos.length ? '<button class="cq-btn" id="cq-export">Exportar respaldo</button>' : '') +
         '<button class="cq-btn" id="cq-importar">Restaurar respaldo</button>' +
         '<input type="file" id="cq-archivo" accept=".json,application/json" hidden>' +
-      '</div>' + filas + '</div>';
+      '</div>' + (errorAlmacenamiento ? '<p class="cq-warn">Almacenamiento no disponible. Exporta los registros visibles antes de cerrar.</p>' : '') + filas + '</div>';
 
     document.getElementById('cq-nuevo').addEventListener('click', function () { renderCuestionario(null); });
     var archivo = document.getElementById('cq-archivo');
@@ -470,7 +516,7 @@
     archivo.addEventListener('change', function () { importarJSON(archivo.files[0]); archivo.value = ''; });
     var ex = document.getElementById('cq-export'); if (ex) ex.addEventListener('click', exportarJSON);
     Array.prototype.forEach.call(host.querySelectorAll('[data-act]'), function (btn) {
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', async function () {
         var id = parseInt(this.dataset.id, 10), act = this.dataset.act;
         if (act === 'edit') renderCuestionario(id);
         else if (act === 'gen') generarPlan(id);
@@ -484,7 +530,7 @@
           }
         } else if (act === 'del') {
           if (confirm('¿Eliminar este condominio y su levantamiento?')) {
-            if (saveCondos(condos.filter(function (x) { return x.id !== id; }))) renderLista();
+            if (await saveCondos(condos.filter(function (x) { return x.id !== id; }))) renderLista();
           }
         }
       });
@@ -705,7 +751,7 @@
     var step = document.getElementById('cq-step');
     var acumulado = [];
 
-    function hacerParte(i, correccion) {
+    async function hacerParte(i, correccion) {
       if (i >= PARTES.length) {
         var texto = acumulado.join('\n\n');
         generating = false;
@@ -716,7 +762,7 @@
           ultimo_plan: { fecha: fechaVersion, texto: texto, datos: datosGuardados },
           planes_anteriores: (c.planes_anteriores || []).concat(c.ultimo_plan || [])
         });
-        if (!condos.includes(c) || !saveCondos(condos.map(function (x) { return x === c ? siguiente : x; }))) {
+        if (!condos.includes(c) || !await saveCondos(condos.map(function (x) { return x === c ? siguiente : x; }))) {
           errores.push('Borrador sin guardar. Copia o exporta el resultado antes de salir.');
         }
         finalizar(datosGuardados, texto, errores);
@@ -1309,13 +1355,18 @@
     }
   }
 
-  function abrirModulo() {
+  async function abrirModulo() {
     // Misma mecánica que goTab: solo clases, nunca estilos inline.
     document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('on'); });
     document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('on'); });
     var pg = document.getElementById('pg-condos'); if (pg) pg.classList.add('on');
     var tb = document.getElementById('tab-condos'); if (tb) tb.classList.add('on');
     var sa = document.getElementById('scroll-area'); if (sa) sa.scrollTop = 0;
+    if (pg) pg.textContent = 'Cargando condominios…';
+    try { await cargarCondos(); }
+    catch (err) {
+      errorAlmacenamiento = true;
+    }
     renderLista();
   }
 
