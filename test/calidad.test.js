@@ -54,6 +54,7 @@ test('los espacios de suscripción dependen del régimen declarado', () => {
 });
 
 test('servidor protege Claude y conserva SSE, UTF-8 y la confirmación de término', async t => {
+  process.env.PC_AI_REQUESTS_PER_HOUR = '3';
   process.env.ANTHROPIC_API_KEY = 'simulated';
   process.env.PC_ADMIN_PASSWORD = 'simulated-admin';
   process.env.PC_ALAN_PASSWORD = 'simulated-other';
@@ -127,6 +128,11 @@ test('servidor protege Claude y conserva SSE, UTF-8 y la confirmación de térmi
   const disconnected = await generate();
   assert.match(disconnected, /no completó/);
   assert.doesNotMatch(disconnected, /"done":true/);
+  const rateLimited = await post('/api/claude', { prompt: 'Prueba', docType: 'condominio' }, headers);
+  assert.equal(rateLimited.status, 429);
+  assert.ok(Number(rateLimited.headers.get('retry-after')) > 0);
+  assert.ok(rateLimited.headers.get('x-request-id'));
+  assert.equal((await rateLimited.json()).code, 'PLUSCONTROL_RATE_LIMIT');
 });
 
 test('capítulo 4: exige encabezado y contenido y admite numeración romana', () => {
