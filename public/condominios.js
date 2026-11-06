@@ -4,7 +4,7 @@
    Base legal: Ley 21.442 Art. 40 + Reglamento MINVU (D.O. 09-01-2025)
 
    CORRECCIONES v2:
-   1. Generación POR PARTES (6 llamadas) — max_tokens del servidor es 8192 y
+   1. Generación POR PARTES (7 llamadas) — max_tokens del servidor es 8192 y
       una sola llamada truncaba el documento a media frase.
    2. docType selecciona el contexto de condominios en el servidor.
    3. Integración por clase "on" igual que goTab — v1 usaba display inline con
@@ -494,11 +494,13 @@
 
   // ── PARTES (evita el corte por max_tokens 8192) ────────────────────────────
   var PARTES = [
-    { label: 'Capítulos 1 a 4', instr:
+    { label: 'Capítulos 1 a 3', capitulos: [1, 2, 3], instr:
       'Genera SOLO estas secciones:\n' +
       '## CAPÍTULO 1 — INTRODUCCIÓN Y MARCO LEGAL (finalidad del plan; identificación del condominio con sus datos reales; obligación del Artículo 40 de la Ley N°21.442; Reglamento de la ley publicado el 09-01-2025; referencia a la norma técnica oficial del MINVU del artículo 4° transitorio; responsables de suscripción).\n' +
       '## CAPÍTULO 2 — OBJETIVOS Y ALCANCE (objetivo general, objetivos específicos, alcance territorial y de personas).\n' +
-      '## CAPÍTULO 3 — DEFINICIONES (emergencia, evacuación, evacuación parcial, evacuación total, vía de evacuación, zona de seguridad, punto de encuentro, alerta, alarma, amenaza, vulnerabilidad, emergencia controlada).\n' +
+      '## CAPÍTULO 3 — DEFINICIONES (emergencia, evacuación, evacuación parcial, evacuación total, vía de evacuación, zona de seguridad, punto de encuentro, alerta, alarma, amenaza, vulnerabilidad, emergencia controlada).' },
+    { label: 'Capítulo 4 — Descripción del condominio', capitulos: [4], instr:
+      'Genera SOLO este capítulo, sin repetir la introducción ni otros capítulos.\n' +
       '## CAPÍTULO 4 — DESCRIPCIÓN DEL CONDOMINIO (configuración física, unidades, población, recintos críticos y sistemas de emergencia existentes; usa una tabla markdown para el resumen de sistemas). Solo datos reales; lo pendiente se declara pendiente.' },
     { label: 'Pasos I y II', instr:
       'Genera SOLO estas secciones:\n' +
@@ -657,6 +659,11 @@
         stream.textContent = parcial.slice(-2500);
         stream.scrollTop = stream.scrollHeight;
       }).then(function (t) {
+        var faltantes = capitulosFaltantes(t, p.capitulos || []);
+        if (faltantes.length) {
+          throw new Error('Claude no entregó contenido para ' +
+            faltantes.map(function (n) { return 'el capítulo ' + n; }).join(', ') + '.');
+        }
         acumulado.push(t.trim());
         // Pausa entre partes: evita gatillar el límite de velocidad de la API.
         step.textContent = 'Parte ' + (i + 1) + ' completada. Preparando la siguiente…';
@@ -783,6 +790,25 @@
     return errores;
   }
 
+  function capitulosFaltantes(texto, requeridos) {
+    var romanos = { I: 1, II: 2, III: 3, IV: 4 };
+    var encontrados = new Set();
+    var actual;
+    norm(texto).split('\n').forEach(function (linea) {
+      var limpia = linea.replace(/[*_]/g, '').trim();
+      var encabezado = limpia.match(/^(?:#{1,6}\s+)?CAPITULO\s+([1-4]|IV|III|II|I)(?=$|[\s.\-–—:])/);
+      if (encabezado) {
+        actual = romanos[encabezado[1]] || Number(encabezado[1]);
+      } else if (/^#{1,2}\s+|^(?:PASO|ANEXO)\s+/.test(limpia)) {
+        actual = undefined;
+      } else if (actual && !/^#/.test(limpia) && /[A-Z]{2,}/.test(limpia) &&
+                 !/^\[.*\]$/.test(limpia)) {
+        encontrados.add(actual);
+      }
+    });
+    return requeridos.filter(function (n) { return !encontrados.has(n); });
+  }
+
   function validarDocumento(texto) {
     var errores = [], t = texto || '', T = norm(t);
     // Legal
@@ -795,7 +821,10 @@
     if (!/ART[IÍ]CULO\s*40|ART\.?\s*40/i.test(t)) errores.push('LEGAL: no se menciona el Artículo 40.');
     if (!/REGLAMENTO/i.test(t)) errores.push('LEGAL: no se menciona el Reglamento de la Ley 21.442.');
     // Estructura
-    ['CAPITULO 1', 'CAPITULO 2', 'CAPITULO 3', 'CAPITULO 4', 'PASO I', 'PASO II', 'PASO III', 'PASO IV']
+    capitulosFaltantes(t, [1, 2, 3, 4]).forEach(function (n) {
+      errores.push('ESTRUCTURA: falta el capítulo ' + n + ' o su contenido.');
+    });
+    ['PASO I', 'PASO II', 'PASO III', 'PASO IV']
       .forEach(function (s) { if (T.indexOf(s) === -1) errores.push('ESTRUCTURA: falta ' + s + '.'); });
     for (var a = 1; a <= 7; a++) if (T.indexOf('ANEXO ' + a) === -1) errores.push('ESTRUCTURA: falta el ANEXO ' + a + '.');
     if (/\[PLANO A CARGAR POR PLUS CONTROL\]/i.test(t)) errores.push('CRÍTICO: el plano de evacuación todavía no está incorporado.');

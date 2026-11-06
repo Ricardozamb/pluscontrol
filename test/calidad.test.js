@@ -112,3 +112,15 @@ test('servidor protege Claude y conserva SSE, UTF-8 y la confirmación de térmi
   assert.match(disconnected, /no completó/);
   assert.doesNotMatch(disconnected, /"done":true/);
 });
+
+test('capítulo 4: exige encabezado y contenido y admite numeración romana', () => {
+  const advertencia = /falta el capítulo 4 o su contenido/;
+  for (const incomplete of [
+    '## CAPÍTULO 3 — DEFINICIONES\nVéase el capítulo 4 para más detalles.',
+    '## CAPÍTULO 4 — DESCRIPCIÓN DEL CONDOMINIO\n[PENDIENTE]\n## PASO I\nOrganización.',
+    '## CAPÍTULO 4 — DESCRIPCIÓN DEL CONDOMINIO\n### 4.1 Edificios'
+  ]) assert.match(validarDocumento(incomplete).join('\n'), advertencia);
+  for (const heading of ['## CAPÍTULO 4 — DESCRIPCIÓN DEL CONDOMINIO', '## **Capítulo IV: Descripción del condominio**']) {
+    assert.doesNotMatch(validarDocumento(heading + '\n### 4.1 Edificios\nConfiguración física declarada.').join('\n'), advertencia);
+  }
+});
