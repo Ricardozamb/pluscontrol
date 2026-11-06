@@ -1295,8 +1295,7 @@ async function callClaude(prompt, intentos, onChunk){
         reader.read().then(function(result){
           if(result.done){
             clearTimeout(tmt);
-            if(fullText) resolve(fullText);
-            else reject(new Error('Sin contenido. Intente nuevamente.'));
+            reject(new Error('La transmisión se cerró antes de completar el documento.'));
             return;
           }
           buf+=decoder.decode(result.value,{stream:true});
@@ -1521,9 +1520,14 @@ document.getElementById('btn-enviar-alan').addEventListener('click',function(){
 // ── PDF PROFESIONAL ──
 function generarPDF(){
   if(!gTexto||!gEmp)return;
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
   var fecha=new Date().toLocaleDateString('es-CL');
   var fechaLarga=new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var tipo=TIPO_N[gTipo]||gTipo;
+  var tipo=escapeHtml(TIPO_N[gTipo]||gTipo);
   var docId='PC-'+Date.now().toString(36).toUpperCase();
   var normasList=(gEmp.normativa||NORM['default']).join(' . ');
   // Solo asociar revisión si el texto coincide exactamente; nunca heredar de otra versión.
@@ -1537,7 +1541,7 @@ function generarPDF(){
     if(!txt)return '';
     var lines=txt.split('\n'),out=[],i=0;
     while(i<lines.length){
-      var line=lines[i];
+      var line=escapeHtml(lines[i]);
       // Tabla markdown: |col|col| seguido de |---|---|
       if(/^\|.+\|/.test(line)&&i+1<lines.length&&/^\|[\s\-:|]+\|/.test(lines[i+1])){
         var headers=line.split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
@@ -1546,7 +1550,7 @@ function generarPDF(){
         headers.forEach(function(h){th+='<th class="th">'+h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</th>';});
         th+='</tr></thead><tbody>';
         while(i<lines.length&&/^\|.+\|/.test(lines[i])){
-          var cells=lines[i].split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
+          var cells=escapeHtml(lines[i]).split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
           th+='<tr>';
           cells.forEach(function(c){th+='<td class="td">'+c.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</td>';});
           th+='</tr>';
@@ -1569,7 +1573,7 @@ function generarPDF(){
   }
   var cuerpo=parseMd(gTexto||'');
 
-  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Revisado internamente el '+firmado.fecha+'</div>':'';
+  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Revisado internamente el '+escapeHtml(firmado.fecha)+'</div>':'';
 
   var CSS=
     '@page{size:A4;margin:0;}'+
@@ -1638,7 +1642,8 @@ function generarPDF(){
     '.nota strong{color:#1a1a1a;}'+
     '.ffooter{margin-top:16pt;padding-top:8pt;border-top:.5pt solid #e0e0e0;display:flex;justify-content:space-between;font-family:Arial,sans-serif;font-size:7.5pt;color:#aaa;}'+
     // Tablas
-    '.tbl{width:100%;border-collapse:collapse;margin:10pt 0 14pt;font-family:Arial,sans-serif;font-size:8.5pt;page-break-inside:avoid;}'+
+    '.tbl{width:100%;border-collapse:collapse;margin:10pt 0 14pt;font-family:Arial,sans-serif;font-size:8.5pt;table-layout:fixed;overflow-wrap:anywhere;}'+
+    'thead{display:table-header-group;} tr{break-inside:avoid;}'+
     '.th{background:#0d0d10;color:#fff;font-weight:700;padding:5pt 7pt;text-align:left;border:1pt solid #333;font-size:8pt;letter-spacing:.02em;}'+
     '.td{padding:4pt 7pt;border:1pt solid #ddd;color:#1a1a1a;vertical-align:top;line-height:1.4;}'+
     'tr:nth-child(even) .td{background:#f8f8f6;}'+
@@ -1649,21 +1654,21 @@ function generarPDF(){
     '<div class="bt"><div class="btlogo">Plus<span>Control</span></div><div class="btsub">Prevención Integral de Riesgos</div></div>'+
     '<div class="bv"></div>'+
     '<div class="pb">'+
-    '<div class="badge">Documento Oficial de Prevencion de Riesgos &nbsp;.&nbsp; Plus Control SpA</div>'+
+    '<div class="badge">Borrador de prevención de riesgos sin firma &nbsp;.&nbsp; Plus Control SpA</div>'+
     '<div class="ptitle">'+tipo+'</div>'+
-    '<div class="psub">Normativa Chilena Vigente '+new Date().getFullYear()+'</div>'+
+    '<div class="psub">Pendiente de validación profesional '+new Date().getFullYear()+'</div>'+
     '<div class="pdiv"></div>'+
     '<div class="pemp">'+
-    '<div class="penombre">'+gEmp.razon+'</div>'+
+    '<div class="penombre">'+escapeHtml(gEmp.razon)+'</div>'+
     '<div class="pedato">'+
-    '<strong>RUT:</strong> '+(gEmp.rut||'-')+'<br>'+
-    '<strong>Rubro:</strong> '+gEmp.rubro+(gEmp.subrubro?' / '+gEmp.subrubro:'')+'<br>'+
-    '<strong>Dirección:</strong> '+(gEmp.direccion||'')+', '+gEmp.ciudad+', Región de '+gEmp.region+'<br>'+
-    '<strong>Representante Legal:</strong> '+(gEmp.rep_nombre||'-')+(gEmp.rep_cargo?' - '+gEmp.rep_cargo:'')+'<br>'+
-    '<strong>N° Trabajadores:</strong> '+gEmp.trabajadores+' &nbsp;|&nbsp; <strong>Mutualidad:</strong> '+(gEmp.mutualidad||'-')+
+    '<strong>RUT:</strong> '+(escapeHtml(gEmp.rut)||'-')+'<br>'+
+    '<strong>Rubro:</strong> '+escapeHtml(gEmp.rubro)+(escapeHtml(gEmp.subrubro)?' / '+escapeHtml(gEmp.subrubro):'')+'<br>'+
+    '<strong>Dirección:</strong> '+(escapeHtml(gEmp.direccion)||'')+', '+escapeHtml(gEmp.ciudad)+', Región de '+escapeHtml(gEmp.region)+'<br>'+
+    '<strong>Representante Legal:</strong> '+(escapeHtml(gEmp.rep_nombre)||'-')+(escapeHtml(gEmp.rep_cargo)?' - '+escapeHtml(gEmp.rep_cargo):'')+'<br>'+
+    '<strong>N° Trabajadores:</strong> '+escapeHtml(gEmp.trabajadores)+' &nbsp;|&nbsp; <strong>Mutualidad:</strong> '+(escapeHtml(gEmp.mutualidad)||'-')+
     '</div></div></div>'+
     '<div class="pfooter">'+
-    '<div class="pfizq">Elaborado por:<br><strong style="color:#1a1a1a">Alan Bascur Montenegro</strong><br>Ingeniero en Prevención de Riesgos<br>Prevencionista de Riesgos Profesionales<br>Plus Control SpA &nbsp;.&nbsp; Osorno, Los Lagos, Chile</div>'+
+    '<div class="pfizq">Revisión técnica pendiente<br>Plus Control SpA &nbsp;.&nbsp; Osorno, Los Lagos, Chile</div>'+
     '<div class="pfder">Fecha: '+fechaLarga+'<br>Codigo: '+docId+'<br>Version: 1.0</div>'+
     '</div>'+
     '<div class="bb"></div>'+
@@ -1671,17 +1676,17 @@ function generarPDF(){
 
   var pagCuerpo=
     '<div class="pag">'+
-    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+'<br>'+gEmp.razon+' &nbsp;.&nbsp; '+fecha+'</div></div>'+
+    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+'<br>'+escapeHtml(gEmp.razon)+' &nbsp;.&nbsp; '+fecha+'</div></div>'+
     '<div>'+cuerpo+'</div>'+
     '<div class="pgft"><span>Plus Control SpA &nbsp;.&nbsp; Prevención Integral de Riesgos &nbsp;.&nbsp; Osorno, Chile</span><span>'+docId+' &nbsp;.&nbsp; '+fecha+'</span></div>'+
     '</div>';
 
   var pagFirma=
     '<div class="fsec">'+
-    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+' &nbsp;.&nbsp; '+gEmp.razon+'</div></div>'+
+    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+' &nbsp;.&nbsp; '+escapeHtml(gEmp.razon)+'</div></div>'+
     '<div class="ftitle">Autorización y Firma del Documento</div>'+
-    '<div class="fsub">Documento elaborado conforme a normativa chilena vigente. Queda sujeto a la aprobación de los firmantes.</div>'+
-    '<div class="fgrid" style="grid-template-columns:'+(gEmp.rep2_nombre?'1fr 1fr 1fr':'1fr 1fr')+';">'+
+    '<div class="fsub">Borrador pendiente de revisión y suscripción.</div>'+
+    '<div class="fgrid" style="grid-template-columns:'+(escapeHtml(gEmp.rep2_nombre)?'1fr 1fr 1fr':'1fr 1fr')+';">'+
     '<div class="fcol">'+
     '<div class="fesp"><div class="fesplbl">Firma y Timbre</div></div>'+
     '<div class="fnombre">Alan Bascur Montenegro</div>'+
@@ -1692,24 +1697,21 @@ function generarPDF(){
     '</div>'+
     '<div class="fcol">'+
     '<div class="fesp"><div class="fesplbl">Firma y Timbre</div></div>'+
-    '<div class="fnombre">'+(gEmp.rep_nombre||'Representante Legal')+'</div>'+
-    '<div class="fcargo">'+(gEmp.rep_cargo||'Representante Legal')+'</div>'+
-    '<div class="frut">RUT: '+(gEmp.rep_rut||'___________________')+'</div>'+
-    '<div class="forg">'+gEmp.razon+'</div>'+
+    '<div class="fnombre">'+(escapeHtml(gEmp.rep_nombre)||'Representante Legal')+'</div>'+
+    '<div class="fcargo">'+(escapeHtml(gEmp.rep_cargo)||'Representante Legal')+'</div>'+
+    '<div class="frut">RUT: '+(escapeHtml(gEmp.rep_rut)||'___________________')+'</div>'+
+    '<div class="forg">'+escapeHtml(gEmp.razon)+'</div>'+
     '</div>'+
-    (gEmp.rep2_nombre?'<div class="fcol"><div class="fesp"><div class="fesplbl">Firma y Timbre</div></div><div class="fnombre">'+gEmp.rep2_nombre+'</div><div class="fcargo">Representante Legal</div><div class="frut">RUT: '+(gEmp.rep2_rut||'___________________')+'</div><div class="forg">'+gEmp.razon+'</div></div>':'')+
+    (escapeHtml(gEmp.rep2_nombre)?'<div class="fcol"><div class="fesp"><div class="fesplbl">Firma y Timbre</div></div><div class="fnombre">'+escapeHtml(gEmp.rep2_nombre)+'</div><div class="fcargo">Representante Legal</div><div class="frut">RUT: '+(escapeHtml(gEmp.rep2_rut)||'___________________')+'</div><div class="forg">'+escapeHtml(gEmp.razon)+'</div></div>':'')+
     '</div>'+
     '<div class="swrap"><div class="sello"><div class="stop">Plus</div><div class="smain">C<span>+</span></div><div class="sbot">Osorno . Chile</div></div></div>'+
     '<div class="nota">'+
-    '<strong>Nota Legal:</strong> Elaborado conforme al <strong>Decreto Supremo N° 44/2024 MINTRAB</strong> (vigente desde 01-feb-2025, reemplaza DS 40/1969 y DS 54/1969), <strong>Ley N° 16.744</strong>, <strong>DS 594/1999 MINSAL</strong>, <strong>Ley 21.643 Ley Karin</strong> (vigente agosto 2024) y normativa especifica del rubro <strong>'+gEmp.rubro+'</strong>. '+
-    'Debe ser entregado gratuitamente a cada trabajador, exhibido en lugares visibles del establecimiento y comunicado a la Dirección del Trabajo conforme al art. 156 del Código del Trabajo. '+
-    'La entidad empleadora <strong>'+gEmp.razon+'</strong> es responsable de su implementación y cumplimiento.<br><br>'+
-    '<strong>Normativa de referencia:</strong> '+normasList+
+    '<strong>Referencias declaradas para revisión:</strong> '+escapeHtml(normasList)+
     '</div>'+
     '<div class="ffooter"><span>Plus Control SpA &nbsp;.&nbsp; Prevención Integral de Riesgos &nbsp;.&nbsp; Osorno, Los Lagos, Chile</span><span>Cod: '+docId+' &nbsp;.&nbsp; '+fecha+'</span></div>'+
     '</div>';
 
-  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+tipo+' - '+gEmp.razon+'</title><style>'+CSS+'</style></head><body>'+portada+pagCuerpo+pagFirma+'<script>window.onload=function(){setTimeout(function(){window.print();},900);}<\/script></body></html>';
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+tipo+' - '+escapeHtml(gEmp.razon)+'</title><style>'+CSS+'</style></head><body>'+portada+pagCuerpo+pagFirma+'<script>window.onload=function(){setTimeout(function(){window.print();},900);}<\/script></body></html>';
 
   // HOOK pc-formato: inyectar índice + hojas de registro si el módulo está cargado
   if(typeof window.PCFormato!=='undefined' && window.PCFormato.inyectarEnPDF){
@@ -1726,6 +1728,7 @@ function generarPDF(){
     a.click();
     return;
   }
+  win.opener = null;
   win.document.write(html);
   win.document.close();
 }

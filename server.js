@@ -67,11 +67,11 @@ const SYSTEM_CONDO = [
   'Eres asistente técnico de Plus Control SpA para elaborar BORRADORES de planes de emergencia y evacuación de condominios en Chile.',
   'Fundamento: Ley 21.442 artículo 40 y Reglamento de Copropiedad Inmobiliaria. Distingue las reglas del primer plan y las actualizaciones.',
   'No inventes nombres, cantidades, ubicaciones, fechas, planos, mantenciones, contactos, firmas, aprobaciones ni normas no verificadas.',
-  'La norma NCh 934 corresponde a clasificación de fuegos; la NCh 2056:2019 corresponde a inspección, mantenimiento y recarga de extintores.',
+  'Fundamenta las reglas de suscripción en el artículo 40 de la Ley 21.442 y el artículo 33 del DS 7 MINVU para el supuesto preexistente sin plan. No inventes referencias técnicas ni atribuyas firma o autoría.',
   'Los planos y zonas de encuentro no revisados deben quedar expresamente PENDIENTES; una fotografía no acredita seguridad de los sectores.',
   'Distingue información declarada, verificada y pendiente. No asegures cumplimiento legal sin revisión profesional.',
   'Entrega contenido técnico en español de Chile acorde con los datos suministrados, sin afirmar que está firmado o aprobado.'
-].join('\\n');
+].join('\n');
 
 const SYSTEM = `Eres el FISCAL TÉCNICO SENIOR DE PREVENCIÓN DE RIESGOS de Plus Control SpA, con 20 años de experiencia en fiscalización de la Dirección del Trabajo, Seremi de Salud y Mutual de Seguridad en Chile. Plus Control SpA es una empresa de asesoría en prevención de riesgos que genera documentos legales para sus clientes.
 
@@ -80,7 +80,7 @@ IDENTIDAD DE PLUS CONTROL (prestador del servicio, no el cliente):
 - Profesional responsable: Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos, RUT 17.658.387-8
 - Domicilio: Lastarrias 602, Osorno, Región de Los Lagos
 
-MISIÓN: Generar documentos 100% conformes a legislación chilena vigente, coherentes internamente, ajustados a los datos REALES de cada empresa cliente.
+MISIÓN: Generar borradores técnicos para revisión profesional, coherentes con los datos declarados. Marca datos faltantes o contradictorios y evita atribuir firmas, inspecciones o cumplimiento sin evidencia.
 
 ═══════════════════════════════════════════════════════
 REGLA N°1 — COHERENCIA DE DATOS
@@ -149,7 +149,7 @@ NUNCA dejes un artículo a medias. Cada artículo mínimo 3 oraciones completas.
 FORMATO: ## capítulos, Art.N artículos, tablas markdown. Español chileno formal técnico-legal.`;
 
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Sesiones HttpOnly, SameSite y autenticación real del endpoint que consume créditos.
 app.use((req, res, next) => {
@@ -159,6 +159,7 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
   next();
 });
+app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/auth/me', (req, res) => {
   const u = userFromRequest(req);
   if (!u) return res.status(401).json({ error: 'Sin sesión.' });
@@ -173,7 +174,7 @@ app.post('/api/auth/login', (req, res) => {
   if (!process.env.PC_ADMIN_PASSWORD || !process.env.PC_ALAN_PASSWORD) {
     return res.status(503).json({ error: 'Configure PC_ADMIN_PASSWORD y PC_ALAN_PASSWORD en Render.' });
   }
-  const account = CUENTAS[name];
+  const account = Object.hasOwn(CUENTAS, name) ? CUENTAS[name] : null;
   if (!account || !passwordMatches(account.password, pass)) return res.status(401).json({ error: 'Usuario o contraseña incorrectos.' });
   const user = { username: name, nombre: account.nombre, cargo: account.cargo, rol: account.rol };
   const token = crypto.randomBytes(32).toString('hex');
@@ -254,92 +255,65 @@ app.post('/api/claude', requireAuth, (req, res) => {
     }
   };
 
-  const req2 = https.request(options, r => {
-    let buffer = '';
+  function send(event) {
+    if (!res.destroyed && !res.writableEnded) res.write('data: ' + JSON.stringify(event) + '\n\n');
+  }
+  function fail(message, status) {
+    send({ error: message, status });
+    res.end();
+  }
 
-    // Si la API no responde 200, el cuerpo NO es SSE: es JSON plano.
-    // Sin este control el flujo se cerraba vacío y el cliente recibía
-    // "Sin contenido" en vez del error real (429 rate limit, 529 overloaded).
-    if (r.statusCode !== 200) {
-      let errBody = '';
-      r.on('data', c => { errBody += c.toString(); });
-      r.on('end', () => {
-        let msg = 'Error API (HTTP ' + r.statusCode + ')';
-        try {
-          const j = JSON.parse(errBody);
-          if (j.error && j.error.message) msg = j.error.message;
-        } catch (e) {}
-        if (r.statusCode === 429) msg = 'RATE_LIMIT: demasiadas solicitudes seguidas. Espere unos segundos.';
-        if (r.statusCode === 529) msg = 'OVERLOADED: servicio saturado. Reintente en unos segundos.';
-        clearInterval(keepAlive);
-        res.write('data: ' + JSON.stringify({ error: msg, status: r.statusCode }) + '\n\n');
-        res.end();
-      });
+  const req2 = https.request(options, upstream => {
+    upstream.setEncoding('utf8');
+    upstream.on('error', () => fail('Se interrumpió la conexión con Claude.'));
+    if (upstream.statusCode !== 200) {
+      const status = upstream.statusCode;
+      upstream.resume();
+      fail('Claude devolvió HTTP ' + status + '.', status);
       return;
     }
 
-    r.on('data', chunk => {
-      buffer += chunk.toString();
+    let buffer = '';
+    let stopReason;
+    let stopped = false;
+    function readLine(line) {
+      if (!line.startsWith('data: ')) return;
+      const event = JSON.parse(line.slice(6));
+      if (event.type === 'content_block_delta' && event.delta?.text) send({ chunk: event.delta.text });
+      if (event.type === 'message_delta') stopReason = event.delta?.stop_reason || stopReason;
+      if (event.type === 'message_stop') stopped = true;
+      if (event.type === 'error') fail('Claude interrumpió la generación: ' + (event.error?.type || 'error'));
+    }
+    function readLines(chunk) {
+      buffer += chunk;
       const lines = buffer.split('\n');
       buffer = lines.pop();
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') continue;
-        try {
-          const obj = JSON.parse(data);
-          if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
-            // Enviar chunk al cliente inmediatamente — mantiene la conexión viva
-            res.write('data: ' + JSON.stringify({ chunk: obj.delta.text }) + '\n\n');
-          }
-          if (obj.type === 'error') {
-            res.write('data: ' + JSON.stringify({ error: (obj.error && obj.error.message) || 'Error API' }) + '\n\n');
-            res.end();
-          }
-        } catch(e) {}
+      try {
+        for (const line of lines) readLine(line);
+      } catch {
+        fail('Claude devolvió un evento ilegible.');
       }
-    });
-
-    r.on('end', () => {
-      // Procesar buffer residual
-      if (buffer.trim()) {
-        const lines = buffer.split('\n');
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          try {
-            const obj = JSON.parse(data);
-            if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
-              res.write('data: ' + JSON.stringify({ chunk: obj.delta.text }) + '\n\n');
-            }
-          } catch(e) {}
-        }
+    }
+    upstream.on('data', readLines);
+    upstream.on('end', () => {
+      readLines('\n');
+      if (res.writableEnded || res.destroyed) return;
+      if (!stopped || !['end_turn', 'stop_sequence'].includes(stopReason)) {
+        fail(stopReason === 'max_tokens' ? 'Claude alcanzó el límite de texto de esta parte.' : 'Claude no completó esta parte.');
+        return;
       }
-      // Señal de fin
-      clearInterval(keepAlive);
-      res.write('data: ' + JSON.stringify({ done: true }) + '\n\n');
-      res.end();
-    });
-
-    r.on('error', err => {
-      clearInterval(keepAlive);
-      res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
+      send({ done: true });
       res.end();
     });
   });
 
-  req2.setTimeout(300000, () => {
-    clearInterval(keepAlive);
+  res.on('close', () => req2.destroy());
+  req2.setTimeout(280000, () => {
+    fail('La generación superó el tiempo de espera.');
     req2.destroy();
-    res.write('data: ' + JSON.stringify({ error: 'La generación tardó más de 5 minutos. Intente nuevamente.' }) + '\n\n');
-    res.end();
   });
-
-  req2.on('error', err => {
-    clearInterval(keepAlive);
-    res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
-    res.end();
+  req2.on('error', () => {
+    if (!res.destroyed && !res.writableEnded) fail('No se pudo conectar con Claude.');
   });
 
   req2.write(payload);
@@ -350,4 +324,5 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => console.log('Plus Control activo en puerto ' + PORT));
+if (require.main === module) app.listen(PORT, () => console.log('Plus Control activo en puerto ' + PORT));
+module.exports = app;

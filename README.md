@@ -42,3 +42,11 @@ Abre esa URL en Safari del iPhone → Compartir → Agregar a pantalla de inicio
 ## Alternativa sin GitHub (más simple)
 Render también acepta deploy directo desde un ZIP.
 En render.com → "New +" → "Web Service" → "Deploy from disk"
+
+### Pruebas de calidad documental
+
+Ejecutar `npm ci --ignore-scripts` y `npm test`. La integración SSE abre un servidor local de prueba y simula las respuestas de Claude sin credenciales ni consumo de API. La regresión de Los Coihues conserva únicamente los datos necesarios para reproducir los hallazgos. Para cotejar también el texto completo del PDF original en local, establecer `PC_COIHUES_TEXT` con la ruta al archivo de texto extraído. El PDF original se conserva fuera de Git.
+
+Los borradores de condominios se guardan en el navegador. Cada nueva versión conserva la anterior y una copia del levantamiento utilizado. La exportación JSON incluye ese historial. La restauración agrega registros que no existen en el dispositivo y conserva los que ya tienen el mismo identificador. Un archivo de respaldo puede contener datos internos del condominio. Conservarlo con acceso restringido.
+
+Los controles de entrada y salida orientan la revisión. Los archivos de plano se cotejan por separado y el PDF de la app se emite como borrador sin firma. La inspección en terreno, la aplicabilidad normativa y la suscripción corresponden a las personas responsables.

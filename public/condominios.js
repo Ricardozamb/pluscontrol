@@ -4,11 +4,9 @@
    Base legal: Ley 21.442 Art. 40 + Reglamento MINVU (D.O. 09-01-2025)
 
    CORRECCIONES v2:
-   1. Generación POR PARTES (5 llamadas) — max_tokens del servidor es 8192 y
+   1. Generación POR PARTES (6 llamadas) — max_tokens del servidor es 8192 y
       una sola llamada truncaba el documento a media frase.
-   2. Envía su PROPIO system prompt — el servidor inyectaba el SYSTEM de
-      empresas (DS 44/2024, Ley Karin) y contaminaba el marco legal.
-      REQUIERE el parche de server.js que acepta { system }.
+   2. docType selecciona el contexto de condominios en el servidor.
    3. Integración por clase "on" igual que goTab — v1 usaba display inline con
       IDs equivocados y dejaba el resto de la app en blanco permanentemente.
    4. Tema oscuro alineado a las variables CSS de la app.
@@ -26,11 +24,25 @@
 
   // ── ALMACENAMIENTO ─────────────────────────────────────────────────────────
   var condos = [];
-  try { condos = JSON.parse(localStorage.getItem('pc_condominios') || '[]'); } catch (e) { condos = []; }
+  var storageSnapshot;
+  var generating = false;
+  try {
+    storageSnapshot = localStorage.getItem('pc_condominios');
+    var saved = JSON.parse(storageSnapshot || '[]');
+    if (Array.isArray(saved)) condos = saved;
+    else storageSnapshot = undefined;
+  } catch (e) { storageSnapshot = undefined; }
 
-  function saveCondos() {
+  function saveCondos(next) {
     try {
-      localStorage.setItem('pc_condominios', JSON.stringify(condos));
+      if (storageSnapshot === undefined || localStorage.getItem('pc_condominios') !== storageSnapshot) {
+        alert('El almacenamiento cambió en otra pestaña o no se puede leer. Recarga y revisa antes de guardar.');
+        return false;
+      }
+      var serialized = JSON.stringify(next);
+      localStorage.setItem('pc_condominios', serialized);
+      storageSnapshot = serialized;
+      condos = next;
       return true;
     } catch (err) {
       alert('No se pudo guardar. Espacio insuficiente: exporte un respaldo. Nunca se borrarán planes anteriores automáticamente.');
@@ -44,6 +56,35 @@
     a.href = URL.createObjectURL(b);
     a.download = 'condominios-pluscontrol-' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  function esPlanGuardado(plan) {
+    return plan && typeof plan.texto === 'string' && Number.isFinite(plan.fecha) &&
+      (!plan.datos || (typeof plan.datos === 'object' && !Array.isArray(plan.datos)));
+  }
+
+  async function importarJSON(file) {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { alert('El respaldo supera el límite de 10 MB.'); return; }
+    try {
+      var data = JSON.parse(await file.text());
+      var rows = data.condominios;
+      if (!Array.isArray(rows) || !rows.every(function (c) {
+        return c && Number.isSafeInteger(c.id) && typeof c.nombre === 'string' &&
+          (!c.ultimo_plan || esPlanGuardado(c.ultimo_plan)) &&
+          (!c.planes_anteriores || (Array.isArray(c.planes_anteriores) && c.planes_anteriores.every(esPlanGuardado)));
+      }) || new Set(rows.map(function (c) { return c.id; })).size !== rows.length) {
+        throw new Error('Formato inválido');
+      }
+      var nuevos = rows.filter(function (c) {
+        return !condos.some(function (actual) { return actual.id === c.id; });
+      });
+      if (!nuevos.length) { alert('El respaldo no contiene condominios nuevos.'); return; }
+      if (confirm('¿Restaurar ' + nuevos.length + ' condominio(s)? Los registros con el mismo identificador se conservan.')) {
+        if (saveCondos(condos.concat(nuevos))) renderLista();
+      }
+    } catch (err) { alert('No se pudo leer el respaldo de condominios.'); }
   }
 
   // ── HELPERS ────────────────────────────────────────────────────────────────
@@ -106,7 +147,7 @@
         campo('Comuna *', 'c-comuna', val('comuna'), 'text', 'Ej: Osorno'),
       ]) +
       grid([
-        campo('Región *', 'c-region', val('region') || 'Los Lagos', 'text', ''),
+        campo('Región *', 'c-region', val('region'), 'text', ''),
         campo('Rol de avalúo', 'c-rol', val('rol'), 'text', 'Si aplica'),
       ]) +
       grid([
@@ -116,10 +157,10 @@
           ['Mixto', 'Mixto'],
         ], d.tipo),
         selectCampo('Situación del plan', 'c-situacion', [
+          ['Situación jurídica por determinar', 'pendiente'],
           ['Actualización (condominio existente)', 'actualizacion'],
           ['Primer plan (condominio nuevo)', 'primer_plan'],
           ['Primer plan de condominio preexistente: revisar supuesto legal', 'regularizacion'],
-          ['Situación jurídica por determinar', 'pendiente'],
         ], d.situacion),
       ]) +
       grid([
@@ -127,7 +168,8 @@
         campo('Actualización anterior', 'c-fecha-ant', val('fecha_ant'), 'date', ''),
       ]) +
       selectCampo('¿Comuna costera? — define si se desarrolla el escenario de tsunami', 'c-costera', [
-        ['No — se excluye el escenario de tsunami', 'No'],
+        ['Exposición a tsunami por verificar', ''],
+        ['No se ha informado exposición', 'No'],
         ['Sí — se desarrolla procedimiento de tsunami', 'Sí'],
       ], d.costera) +
 
@@ -179,6 +221,7 @@
       textareaCampo('Inventario por piso (torre|equipo|piso|cantidad)', 'c-equipos-piso', val('equipos_piso'), 'Ej: C|detector|4|3. Un registro en C|detector|5|3 será inválido') +
       textareaCampo('Plano definitivo: código, ubicación de archivo y estado de validación', 'c-plano-info', val('plano_info'), 'PENDIENTE hasta adjuntar y revisar un plano real') +
       textareaCampo('Zonas de encuentro propuestas por torre y validación técnica', 'c-zonas-info', val('zonas_info'), 'Ej: A: sector patio; B: sector patio; C: sector patio; D: sector patio. PENDIENTE DE VALIDACIÓN') +
+      textareaCampo('Rutas por torre y piso (torre|piso|recorrido|zona)', 'c-rutas', val('rutas'), 'Una ruta por línea. El nombre de zona debe coincidir con el registrado para la torre.') +
       seccion('C.2 Evidencia de inspección — indispensable para emisión definitiva') +
       grid([
         selectCampo('Estado del plano', 'c-plano-estado', [['Pendiente', 'pendiente'], ['Revisado con evidencia', 'revisado']], d.plano_estado),
@@ -282,11 +325,11 @@
       id: editId || Date.now(),
       nombre: v('c-nombre'), rut: v('c-rut'), direccion: v('c-dir'), comuna: v('c-comuna'),
       region: v('c-region'), rol: v('c-rol'), tipo: v('c-tipo'), situacion: v('c-situacion'),
-      fecha_elab: v('c-fecha'), fecha_ant: v('c-fecha-ant'), costera: v('c-costera', 'No'),
+      fecha_elab: v('c-fecha'), fecha_ant: v('c-fecha-ant'), costera: v('c-costera'),
       torres: v('c-torres'), torres_id: v('c-torres-id'), pisos: v('c-pisos'), unidades: v('c-unidades'),
       superficie: v('c-superficie'), estac: v('c-estac'), estac_sub: v('c-estac-sub'), estac_sup: v('c-estac-sup'),
       recintos: v('c-recintos'), areas: v('c-areas'),
-      equipos_piso: v('c-equipos-piso'), plano_info: v('c-plano-info'), zonas_info: v('c-zonas-info'),
+      rutas: v('c-rutas'), equipos_piso: v('c-equipos-piso'), plano_info: v('c-plano-info'), zonas_info: v('c-zonas-info'),
       plano_estado: v('c-plano-estado','pendiente'), plano_revisor: v('c-plano-revisor'), plano_fecha: v('c-plano-fecha'), plano_evidencia: v('c-plano-evidencia'),
       zonas_estado: v('c-zonas-estado','pendiente'), zonas_revisor: v('c-zonas-revisor'), zonas_fecha: v('c-zonas-fecha'), zonas_evidencia: v('c-zonas-evidencia'),
       extintores: v('c-extintores'), red_humeda: v('c-red-humeda'), red_seca: v('c-red-seca'),
@@ -309,12 +352,10 @@
     };
     // Preserva el plan ya generado al editar (bug corregido de v1).
     if (previo && previo.ultimo_plan) obj.ultimo_plan = previo.ultimo_plan;
+    if (previo && previo.planes_anteriores) obj.planes_anteriores = previo.planes_anteriores;
 
-    if (editId) {
-      var idx = condos.findIndex(function (x) { return x.id === editId; });
-      if (idx >= 0) condos[idx] = obj; else condos.push(obj);
-    } else { condos.push(obj); }
-    if (saveCondos()) { renderLista(); setTimeout(function () { alert('Levantamiento guardado.'); }, 120); }
+    var next = previo ? condos.map(function (c) { return c.id === editId ? obj : c; }) : condos.concat(obj);
+    if (saveCondos(next)) renderLista();
   }
 
   // ── LISTA ──────────────────────────────────────────────────────────────────
@@ -351,9 +392,14 @@
       '<div class="cq-actions">' +
         '<button class="cq-btn cq-btn-p" id="cq-nuevo">+ Nuevo condominio</button>' +
         (condos.length ? '<button class="cq-btn" id="cq-export">Exportar respaldo</button>' : '') +
+        '<button class="cq-btn" id="cq-importar">Restaurar respaldo</button>' +
+        '<input type="file" id="cq-archivo" accept=".json,application/json" hidden>' +
       '</div>' + filas + '</div>';
 
     document.getElementById('cq-nuevo').addEventListener('click', function () { renderCuestionario(null); });
+    var archivo = document.getElementById('cq-archivo');
+    document.getElementById('cq-importar').addEventListener('click', function () { archivo.click(); });
+    archivo.addEventListener('change', function () { importarJSON(archivo.files[0]); archivo.value = ''; });
     var ex = document.getElementById('cq-export'); if (ex) ex.addEventListener('click', exportarJSON);
     Array.prototype.forEach.call(host.querySelectorAll('[data-act]'), function (btn) {
       btn.addEventListener('click', function () {
@@ -362,10 +408,15 @@
         else if (act === 'gen') generarPlan(id);
         else if (act === 'ver') {
           var c = condos.find(function (x) { return x.id === id; });
-          if (c && c.ultimo_plan) finalizar(c, c.ultimo_plan.texto, validarDocumento(c.ultimo_plan.texto).concat(auditoriaCondo(c)));
+          if (c && c.ultimo_plan) {
+            var plan = c.ultimo_plan;
+            var base = plan.datos || { nombre: c.nombre };
+            var avisos = plan.datos ? auditoriaCondo(base) : ['Versión antigua sin copia verificable del levantamiento original.'];
+            finalizar(base, plan.texto, validarDocumento(plan.texto).concat(avisos));
+          }
         } else if (act === 'del') {
           if (confirm('¿Eliminar este condominio y su levantamiento?')) {
-            condos = condos.filter(function (x) { return x.id !== id; }); saveCondos(); renderLista();
+            if (saveCondos(condos.filter(function (x) { return x.id !== id; }))) renderLista();
           }
         }
       });
@@ -374,32 +425,6 @@
   }
 
   // ── SYSTEM PROMPT PROPIO (no hereda el de empresas) ────────────────────────
-  var SYSTEM_CONDO =
-'Eres el INGENIERO EN PREVENCIÓN DE RIESGOS SENIOR de Plus Control SpA, especialista en Planes de Emergencia y Evacuación para condominios en Chile.\n\n' +
-'PRESTADOR: Plus Control SpA | RUT 77.916.708-9 | Lastarrias 602, Osorno, Región de Los Lagos. Certificación INCEN vigente en mantención de extintores.\n' +
-'AUTOR TÉCNICO: Alan Bascur Montenegro | Ingeniero en Prevención de Riesgos | RUT 17.658.387-8.\n\n' +
-'═══ MARCO LEGAL — EXACTITUD ABSOLUTA ═══\n' +
-'USA ÚNICAMENTE:\n' +
-'· Ley N°21.442 (Nueva Ley de Copropiedad Inmobiliaria), Artículo 40.\n' +
-'· Reglamento de la Ley N°21.442 (Decreto MINVU, Diario Oficial 09-01-2025).\n' +
-'· Norma técnica oficial del MINVU dictada conforme al artículo 4° transitorio de la Ley N°21.442. NO inventes su número ni su fecha: refiérete a ella exactamente con esa denominación.\n' +
-'· Normas técnicas de apoyo solo cuando corresponda: NCh 934 (extintores portátiles), OGUC.\n' +
-'ESTRICTAMENTE PROHIBIDO citar como fundamento del plan: Ley 19.537 (DEROGADA por la Ley 21.442), DS 44/2024, DS 40/1969, Ley 16.744, Ley Karin (21.643), Código del Trabajo. Son normas LABORALES de empresas y NO rigen una copropiedad. Si alguna aparece en plantillas previas de tu conocimiento, IGNÓRALA.\n\n' +
-'═══ REGLAS ABSOLUTAS ═══\n' +
-'1. No inventes NADA: ni nombres, ni teléfonos, ni cantidades, ni ubicaciones, ni instalaciones, ni referencias legales.\n' +
-'2. Usa EXCLUSIVAMENTE los datos entregados del condominio, en todas las secciones.\n' +
-'3. Si un dato viene como [PENDIENTE DE LEVANTAMIENTO], [NO INFORMADO], [NO PROPORCIONADO], [COMPLETAR / VERIFICAR] o [PENDIENTE DE DESIGNACIÓN], reprodúcelo como pendiente en el documento. NUNCA lo sustituyas por una suposición.\n' +
-'4. Si falta el plano, marca PLANOS PENDIENTES y considera el documento BORRADOR. No declares zonas de seguridad aprobadas sin inspección. \n' +
-'5. La suscripción depende de si es primer plan, actualización u otro supuesto normativo. Si no está determinado, deja los roles como PENDIENTES; nunca afirmes que ya firmaron. \n' +
-'6. NO afirmes que el profesional se encuentra habilitado, registrado ni inscrito: esa condición se verifica por separado.\n' +
-'7. El incendio debe ser el procedimiento más desarrollado. El uso de extintor es solo primera respuesta cuando las condiciones de seguridad lo permitan; NUNCA instruyas a residentes a enfrentar un incendio desarrollado.\n' +
-'8. Distingue "actualización anual del plan" de "simulacros o ejercicios según los tipos de emergencia". NO afirmes que la ley exige literalmente un simulacro anual.\n' +
-'9. NUNCA declares "aprobado por Bomberos/Carabineros" ni "garantiza la inscripción/aprobación". La fórmula correcta es: "Preparado para su presentación y mantención conforme al artículo 40 de la Ley N°21.442, sujeto a la revisión y actuaciones que correspondan a los organismos competentes."\n' +
-'10. Español de Chile, formal, técnico, claro y ejecutable. Sin emojis, sin muletillas, sin lenguaje promocional, sin frases que revelen generación automática. Prefiere obligaciones operacionales concretas antes que "se recomienda".\n' +
-'11. Encabezados de sección SIEMPRE con dos almohadillas y exactamente como se te indique (ej. "## CAPÍTULO 1 — INTRODUCCIÓN Y MARCO LEGAL"). Subsecciones con tres almohadillas.\n' +
-'12. Para tablas usa markdown con barras verticales. No uses tablas para texto corrido.\n' +
-'13. Genera SOLO la parte que se te solicita en cada llamada. No repitas portada ni secciones de otras partes. Sin preámbulos ni cierres del tipo "a continuación" o "espero que sirva".';
-
   // ── DATOS PARA EL PROMPT ───────────────────────────────────────────────────
   function buildDatosCondo(c) {
     function d(label, val2, pend) {
@@ -422,10 +447,10 @@
       d('DIRECCIÓN', c.direccion), d('COMUNA', c.comuna), d('REGIÓN', c.region),
       d('ROL DE AVALÚO', c.rol, '[NO PROPORCIONADO]'),
       d('TIPO', c.tipo, 'No especificado'),
-      'SITUACIÓN: ' + (c.situacion === 'primer_plan' ? 'Primer plan (condominio nuevo)' : 'Actualización (condominio existente)'),
-      d('FECHA DE ELABORACIÓN', c.fecha_elab, new Date().toLocaleDateString('es-CL')),
-      d('ACTUALIZACIÓN ANTERIOR', c.fecha_ant, '[NO APLICA / PRIMERA VERSIÓN]'),
-      'COMUNA COSTERA: ' + (c.costera === 'Sí' ? 'SÍ — desarrolla el procedimiento de tsunami' : 'NO — incluye la frase de exclusión de tsunami'),
+      d('RÉGIMEN DECLARADO', c.situacion, 'PENDIENTE'),
+      d('FECHA DE ELABORACIÓN', c.fecha_elab),
+      d('ACTUALIZACIÓN ANTERIOR', c.fecha_ant, 'SIN ANTECEDENTE REGISTRADO'),
+      d('INDICIO DE EXPOSICIÓN COSTERA', c.costera, 'PENDIENTE'),
       '',
       '─ CONFIGURACIÓN FÍSICA ─',
       d('TORRES/BLOCKS', c.torres), d('IDENTIFICACIÓN TORRES', c.torres_id, 'No especificado'),
@@ -482,12 +507,12 @@
     { label: 'Incendio', instr:
       'Genera SOLO esta sección, muy desarrollada:\n' +
       '## PASO III — PROCEDIMIENTOS POR EMERGENCIA ESPECÍFICA\n' +
-      '### 3.1 INCENDIO (detección; alerta temprana; aviso a conserjería; activación de alarma; llamado a Bomberos 132; evaluación inicial; decisión de evacuación; cierre de puertas cuando sea seguro; prohibición de ascensores cuando corresponda; desplazamiento por vías señalizadas; llegada a zona de seguridad; recuento de personas; apoyo a personas con movilidad reducida; coordinación con Bomberos a su llegada; condiciones de retorno). Estructura en ANTES, DURANTE y DESPUÉS. Incluye el uso de extintor SOLO como primera respuesta cuando las condiciones de seguridad lo permitan, conforme NCh 934, con la secuencia de operación. NO instruyas a residentes a enfrentar un incendio desarrollado.\n' +
+      '### 3.1 INCENDIO (detección; alerta temprana; aviso a conserjería; activación de alarma; llamado a Bomberos 132; evaluación inicial; decisión de evacuación; cierre de puertas cuando sea seguro; prohibición de ascensores cuando corresponda; desplazamiento por vías señalizadas; llegada a zona de seguridad; recuento de personas; apoyo a personas con movilidad reducida; coordinación con Bomberos a su llegada; condiciones de retorno). Estructura en ANTES, DURANTE y DESPUÉS. Incluye el uso de extintor SOLO como primera respuesta cuando las condiciones de seguridad lo permitan, por personal capacitado, con salida segura disponible. NO instruyas a residentes a enfrentar un incendio desarrollado.\n' +
       'No generes las demás subsecciones: se generan aparte.' },
     { label: 'Sismo, gas, inundación', instr:
       'Genera SOLO estas subsecciones (continúan el PASO III ya generado; NO repitas su encabezado principal):\n' +
       '### 3.2 SISMO O TERREMOTO (antes, durante, después).\n' +
-      '### 3.3 TSUNAMI — desarrolla el procedimiento únicamente si la comuna es costera según los datos entregados; si NO lo es, escribe solo el título y la frase: "El riesgo de tsunami no se incorpora como escenario operativo para este condominio debido a su ubicación territorial."\n' +
+      '### 3.3 TSUNAMI — verificar exposición con cartografía oficial y levantamiento antes de excluir el escenario o definir rutas operativas.\n' +
       '### 3.4 FUGA O ESCAPE DE GAS (antes, durante, después).\n' +
       '### 3.5 INUNDACIÓN (antes, durante, después).\n' +
       '### 3.6 OTRAS EMERGENCIAS IDENTIFICADAS.\n' +
@@ -496,7 +521,7 @@
       'Genera SOLO estas secciones:\n' +
       '## PASO III-B — EVACUACIÓN DE PERSONAS QUE REQUIEREN ASISTENCIA (identificación preventiva de necesidades de apoyo; asignación de acompañantes; comunicación; rutas accesibles cuando existan; alternativas cuando una ruta no sea utilizable; prioridad de evacuación según la emergencia; prohibición expresa de maniobras inseguras). No inventes nombres de responsables.\n' +
       '## PASO IV — IMPLEMENTACIÓN DEL PLAN (responsabilidades; capacitación de residentes; comunicación y difusión; inducción a trabajadores del condominio; inspección de instalaciones; mantención de equipos de emergencia; simulacros o ejercicios según los tipos de emergencia; evaluación posterior; actualización anual del plan).\n' +
-      '## COORDINACIÓN CON ORGANISMOS EXTERNOS (procedimiento de entrega del plan en formato material y digital a Bomberos y Carabineros de la comuna; registro de fecha, organismo y receptor; espacio para constancia de recepción; incluye la fórmula: "Preparado para su presentación y mantención conforme al artículo 40 de la Ley N°21.442, sujeto a la revisión y actuaciones que correspondan a los organismos competentes.").' },
+      '## COORDINACIÓN CON ORGANISMOS EXTERNOS (describir entrega material y digital a Bomberos y Carabineros de la comuna luego de revisión y suscripción; incluir registro en blanco para constancia de recepción).' },
     { label: 'Anexos 1 a 7', instr:
       'Genera SOLO los anexos, usando tablas markdown con barras verticales:\n' +
       '## ANEXO 1 — ORGANIZACIÓN Y ENCARGADOS (tabla: Cargo/Rol | Nombre | Contacto | Función. Usa los nombres reales entregados; los que falten van como "[POR DESIGNAR]". NO inventes).\n' +
@@ -535,7 +560,7 @@
           reader.read().then(function (r) {
             if (r.done) {
               clearTimeout(tmt);
-              if (full) resolve(full);
+              if (full) reject(new Error('La transmisión terminó sin confirmar el cierre de la parte.'));
               // Flujo cerrado sin contenido: casi siempre es saturación o
               // límite de velocidad. Se reintenta con espera creciente.
               else reintentar('Respuesta vacía', 10000 + intentos * 8000);
@@ -548,9 +573,15 @@
               try {
                 var o = JSON.parse(lines[i].slice(6));
                 if (o.chunk) { full += o.chunk; if (onChunk) onChunk(o.chunk); }
+                if (o.done) {
+                  clearTimeout(tmt);
+                  if (full.trim()) resolve(full);
+                  else reject(new Error('Claude devolvió una parte vacía.'));
+                  return;
+                }
                 if (o.error) {
                   clearTimeout(tmt);
-                  var esTemporal = /RATE_LIMIT|OVERLOADED|429|529|overload/i.test(o.error);
+                  var esTemporal = [429, 529].includes(o.status) || /RATE_LIMIT|OVERLOADED|429|529|overload/i.test(o.error);
                   if (esTemporal && !full) reintentar(o.error, 15000 + intentos * 10000);
                   else reject(new Error(o.error));
                   return;
@@ -567,12 +598,18 @@
   // ── GENERACIÓN POR PARTES ──────────────────────────────────────────────────
   function generarPlan(id) {
     var c = condos.find(function (x) { return x.id === id; });
-    if (!c) return;
-    var pend = contarPendientes(c);
+    if (!c || generating) return;
     var hallazgos = auditoriaCondo(c);
-    if (hallazgos.length) alert('Se generará solamente un BORRADOR con ' + hallazgos.length + ' observación(es) técnicas; no puede emitirse como documento definitivo.');
-    if (pend > 0 && !confirm('Este condominio tiene ' + pend + ' dato(s) crítico(s) pendiente(s).\n\n' +
-      'El plan los marcará como PENDIENTE (no se inventarán). ¿Continuar?')) return;
+    var bloqueos = hallazgos.filter(function (x) { return x.startsWith('INCONSISTENCIA:'); });
+    if (bloqueos.length) {
+      alert('Corrige el levantamiento antes de generar:\n' + bloqueos.join('\n'));
+      return;
+    }
+    if (!confirm('Se generará un borrador para revisión técnica.\n' + hallazgos.join('\n') + '\n¿Continuar?')) return;
+    generating = true;
+    var datosGuardados = Object.assign({}, c);
+    delete datosGuardados.ultimo_plan;
+    delete datosGuardados.planes_anteriores;
 
     var host = document.getElementById('pg-condos');
     host.innerHTML = '<div class="cq-wrap"><div class="cq-gen">' +
@@ -584,7 +621,13 @@
       '<p class="cq-note">Son ' + PARTES.length + ' partes con pausas entre cada una. Puede tardar varios minutos. No cierres la aplicación durante el proceso.</p>' +
       '</div></div>';
 
-    var datos = buildDatosCondo(c) + '\\nPLANOS: '+(c.plano_info||'PENDIENTE')+'\\nZONAS POR TORRE: '+(c.zonas_info||'PENDIENTE')+'\\nEQUIPOS POR PISO: '+(c.equipos_piso||'NO INFORMADO');
+    var datos = buildDatosCondo(c) + '\nHallazgos de control: ' + hallazgos.join(' | ') +
+      '\nInventario declarado: ' + (c.equipos_piso || 'PENDIENTE') +
+      '\nRutas declaradas, no operativas hasta cotejo: ' + (c.rutas || 'PENDIENTE') +
+      '\nZonas declaradas, no operativas hasta cotejo: ' + (c.zonas_info || 'PENDIENTE') +
+      '\nReferencia de planos (archivo no incorporado): ' + (c.plano_info || 'PENDIENTE') +
+      '\nPlanos, recorridos y zonas requieren cotejo documental y en terreno. No des instrucciones operativas locales como definitivas. ' +
+      'No atribuyas autoría o firmas. La aplicación muestra los roles de suscripción por separado.';
     var stream = document.getElementById('cq-stream');
     var bar = document.getElementById('cq-bar');
     var step = document.getElementById('cq-step');
@@ -593,9 +636,16 @@
     function hacerParte(i) {
       if (i >= PARTES.length) {
         var texto = acumulado.join('\n\n');
-        c.ultimo_plan = { fecha: Date.now(), texto: texto };
-        saveCondos();
-        finalizar(c, texto, validarDocumento(texto).concat(auditoriaCondo(c)));
+        generating = false;
+        var errores = validarDocumento(texto).concat(hallazgos);
+        var siguiente = Object.assign({}, c, {
+          ultimo_plan: { fecha: Date.now(), texto: texto, datos: datosGuardados },
+          planes_anteriores: (c.planes_anteriores || []).concat(c.ultimo_plan || [])
+        });
+        if (!condos.includes(c) || !saveCondos(condos.map(function (x) { return x === c ? siguiente : x; }))) {
+          errores.push('Borrador sin guardar. Copia o exporta el resultado antes de salir.');
+        }
+        finalizar(datosGuardados, texto, errores);
         return;
       }
       var p = PARTES[i];
@@ -612,6 +662,7 @@
         step.textContent = 'Parte ' + (i + 1) + ' completada. Preparando la siguiente…';
         setTimeout(function () { hacerParte(i + 1); }, 4000);
       }).catch(function (err) {
+        generating = false;
         host.innerHTML = '<div class="cq-wrap"><div class="cq-error">' +
           '<h2>Error al generar</h2>' +
           '<p>Parte ' + (i + 1) + ' (' + esc(p.label) + '): ' + esc(err.message || String(err)) + '</p>' +
@@ -627,6 +678,7 @@
             '<p class="cq-step" id="cq-step">Reanudando…</p>' +
             '<div class="cq-progress"><div class="cq-bar" id="cq-bar"></div></div>' +
             '<pre class="cq-stream" id="cq-stream"></pre></div></div>';
+          generating = true;
           stream = document.getElementById('cq-stream');
           bar = document.getElementById('cq-bar');
           step = document.getElementById('cq-step');
@@ -648,35 +700,49 @@
       errores.push('CRÍTICO: falta definir el régimen legal del plan.');
     if (situacion === 'primer_plan' && !String(c.propietario || '').trim())
       errores.push('CRÍTICO: primer plan sin identificación de la persona propietaria.');
-    if (situacion === 'regularizacion')
-      errores.push('CRÍTICO: primer plan de condominio preexistente sin plan; verificar artículo 33 del reglamento y firmantes según antecedentes.');
+    if (situacion === 'regularizacion' && !c.presidente)
+      errores.push('CRÍTICO: falta identificar al presidente del comité según el artículo 33 del reglamento.');
+    if (situacion === 'actualizacion' && (!c.presidente || !c.admin || !c.fecha_ant))
+      errores.push('CRÍTICO: falta identificar firmantes o antecedente de la versión anterior.');
+    if (c.fecha_ant && ['primer_plan', 'regularizacion'].includes(situacion))
+      errores.push('INCONSISTENCIA: un primer plan registra una actualización anterior.');
+    if (c.fecha_ant && c.fecha_elab && c.fecha_ant >= c.fecha_elab)
+      errores.push('INCONSISTENCIA: la fecha anterior debe preceder a la fecha de elaboración.');
+    if (![c.mov_reducida, c.discapacidad, c.infantes, c.mayores].every(function (x) { return /^\d+$/.test(String(x)); }))
+      errores.push('CRÍTICO: falta completar el levantamiento agregado de necesidades de asistencia.');
 
     var torres = Object.create(null);
-    var lista = String(c.pisos || '').split(/[;,\n]+/).filter(Boolean);
+    var lista = String(c.pisos || '').split(/[;,\n]+/).filter(function (row) { return row.trim(); });
     lista.forEach(function (row) {
       var m = row.trim().match(/^([A-Z0-9_-]+)\s*:\s*(\d+)$/i);
       if (!m || Number(m[2]) < 1 || Number(m[2]) > 100) {
-        errores.push('CRÍTICO: definición de pisos inválida: ' + row);
+        errores.push('INCONSISTENCIA: definición de pisos inválida: ' + row);
       } else if (torres[m[1].toUpperCase()]) {
-        errores.push('CRÍTICO: torre duplicada en pisos: ' + m[1]);
+        errores.push('INCONSISTENCIA: torre duplicada en pisos: ' + m[1]);
       } else torres[m[1].toUpperCase()] = Number(m[2]);
     });
     var ids = Object.keys(torres);
     if (!ids.length) errores.push('CRÍTICO: pisos por torre deben informarse como A:5; B:5; C:4; D:4.');
     if (c.torres && /^\d+$/.test(String(c.torres)) && Number(c.torres) !== ids.length)
-      errores.push('CRÍTICO: número declarado de torres no coincide con el desglose de pisos.');
-    (c.equipos_piso || '').split(/\n+/).forEach(function(row) {
+      errores.push('INCONSISTENCIA: número declarado de torres no coincide con el desglose de pisos.');
+    if (!String(c.equipos_piso || '').trim()) errores.push('CRÍTICO: inventario por piso pendiente.');
+    var equipos = new Set();
+    String(c.equipos_piso || '').split(/\n+/).forEach(function(row) {
       if (!row.trim()) return;
       var p = row.split('|'), torre=(p[0]||'').trim().toUpperCase();
       var n = Number((p[2] || '').trim()), cantidad = Number((p[3] || '').trim());
       if (p.length !== 4 || !p[1].trim() || !Number.isInteger(n) || n < 1 ||
           !Number.isInteger(cantidad) || cantidad < 1) {
-        errores.push('CRÍTICO: registro de equipo inválido: ' + row);
+        errores.push('INCONSISTENCIA: registro de equipo inválido: ' + row);
       } else if (!torres[torre]) {
-        errores.push('CRÍTICO: equipo en torre no declarada: ' + torre);
+        errores.push('INCONSISTENCIA: equipo en torre no declarada: ' + torre);
       } else if (n > torres[torre]) {
-        errores.push('CRÍTICO: equipo en piso ' + n + ' inexistente de torre ' +
+        errores.push('INCONSISTENCIA: equipo en piso ' + n + ' inexistente de torre ' +
           torre + ' (' + torres[torre] + ' pisos).');
+      } else {
+        var clave = [torre, norm(p[1].trim()), n].join('|');
+        if (equipos.has(clave)) errores.push('INCONSISTENCIA: equipo duplicado: ' + clave);
+        equipos.add(clave);
       }
     });
 
@@ -689,10 +755,30 @@
     var regiones = Object.create(null);
     String(c.zonas_info || '').split(/[;\n]+/).forEach(function (row) {
       var m=row.trim().match(/^([A-Z0-9_-]+)\s*:\s*(.+)$/i);
-      if(m) regiones[m[1].toUpperCase()] = true;
+      if (!row.trim()) return;
+      if (!m || !torres[m[1].toUpperCase()] || regiones[m[1].toUpperCase()]) {
+        errores.push('INCONSISTENCIA: zona sin torre válida o duplicada: ' + row);
+      } else regiones[m[1].toUpperCase()] = m[2].trim();
     });
     ids.forEach(function(id) {
       if (!regiones[id]) errores.push('CRÍTICO: no hay zona de encuentro registrada para torre ' + id + '.');
+    });
+    var rutas = new Set();
+    String(c.rutas || '').split(/\n+/).filter(function (row) { return row.trim(); }).forEach(function (row) {
+      var p = row.split('|').map(function (x) { return x.trim(); });
+      var torre = norm(p[0]), piso = Number(p[1]);
+      if (p.length !== 4 || !torres[torre] || !/^\d+$/.test(p[1]) || piso < 1 ||
+          piso > torres[torre] || !p[2] || !regiones[torre] || norm(p[3]) !== norm(regiones[torre])) {
+        errores.push('INCONSISTENCIA: ruta sin piso, recorrido o zona concordante: ' + row);
+      } else rutas.add(torre + '|' + piso);
+    });
+    ids.forEach(function (id) {
+      for (var piso = 1; piso <= torres[id]; piso++) {
+        if (!rutas.has(id + '|' + piso)) {
+          errores.push('CRÍTICO: faltan rutas para uno o más pisos de la torre ' + id + '.');
+          break;
+        }
+      }
     });
     return errores;
   }
@@ -714,9 +800,8 @@
     for (var a = 1; a <= 7; a++) if (T.indexOf('ANEXO ' + a) === -1) errores.push('ESTRUCTURA: falta el ANEXO ' + a + '.');
     if (/\[PLANO A CARGAR POR PLUS CONTROL\]/i.test(t)) errores.push('CRÍTICO: el plano de evacuación todavía no está incorporado.');
     // Firmas
-    if (T.indexOf('BASCUR') === -1) errores.push('FIRMAS: falta el autor técnico.');
-    if (T.indexOf('PRESIDENTE DEL COMITE') === -1) errores.push('FIRMAS: falta el Presidente del Comité.');
-    if (T.indexOf('ADMINISTRADOR DEL CONDOMINIO') === -1) errores.push('FIRMAS: falta el Administrador.');
+    if (/FIRMADO POR|SUSCRITO POR\s*:/i.test(t))
+      errores.push('FIRMAS: revisar una posible atribución de firma en el texto generado.');
     if (/ADOPTANTE/i.test(t)) errores.push('FIRMAS: se usa el término "adoptantes" (prohibido).');
     // Emergencias
     if (T.indexOf('INCENDIO') === -1) errores.push('EMERGENCIAS: falta incendio.');
@@ -727,6 +812,8 @@
     // Promesas prohibidas
     if (/APROBADO POR BOMBEROS|APROBADO POR CARABINEROS|GARANTIZA (LA )?(INSCRIPCI[ÓO]N|APROBACI[ÓO]N)/i.test(t))
       errores.push('RIESGO: el documento promete aprobación de terceros.');
+    if (/PUNTO DE ENCUENTRO PROVISORI[OA]|ZONA DE SEGURIDAD PROVISORI[OA]/.test(T))
+      errores.push('RIESGO: punto de encuentro provisorio que requiere inspección antes de dar instrucciones.');
     // Truncamiento
     if (t.length < 6000) errores.push('EXTENSIÓN: el documento parece incompleto o truncado.');
     return errores;
@@ -746,14 +833,14 @@
         '<button class="cq-btn cq-btn-p" id="cq-print">Exportar borrador PDF no firmado</button>' +
         '<button class="cq-btn" id="cq-copy">Copiar texto</button>' +
         '<button class="cq-btn" id="cq-volver">Volver</button>' +
-      '</div><pre class="cq-doc" id="cq-doc"></pre></div>';
+      '</div><p class="cq-note">Borrador no firmado para revisión profesional y en terreno.</p><pre class="cq-doc" id="cq-doc"></pre></div>';
     document.getElementById('cq-doc').textContent = texto;
     document.getElementById('cq-volver').addEventListener('click', renderLista);
     document.getElementById('cq-copy').addEventListener('click', function () {
-      if (navigator.clipboard) navigator.clipboard.writeText(texto).then(function () { alert('Texto copiado.'); });
+      if (navigator.clipboard) navigator.clipboard.writeText('BORRADOR NO FIRMADO — PENDIENTE DE VALIDACIÓN\n\n' + texto).then(function () { alert('Texto copiado.'); });
       else alert('Copia manual desde el cuadro de texto.');
     });
-    document.getElementById('cq-print').addEventListener('click', function () { imprimirPlan(c, texto); });
+    document.getElementById('cq-print').addEventListener('click', function () { imprimirPlan(c, texto, errores); });
     var sa = document.getElementById('scroll-area'); if (sa) sa.scrollTop = 0;
   }
 
@@ -799,10 +886,21 @@
   }
 
   // ── PDF ────────────────────────────────────────────────────────────────────
-  function imprimirPlan(c, texto) {
+  function rolesSuscripcion(c) {
+    var roles = [{ cargo: 'Ingeniero/a en prevención de riesgos', nombre: '' }];
+    if (c.situacion === 'primer_plan') roles.push({ cargo: 'Persona propietaria del condominio', nombre: c.propietario });
+    if (['actualizacion', 'regularizacion'].includes(c.situacion))
+      roles.push({ cargo: 'Presidente del comité de administración', nombre: c.presidente });
+    if (c.situacion === 'actualizacion') roles.push({ cargo: 'Administrador del condominio', nombre: c.admin });
+    if (!['primer_plan', 'actualizacion', 'regularizacion'].includes(c.situacion))
+      roles.push({ cargo: 'Otros firmantes pendientes de determinar', nombre: '' });
+    return roles;
+  }
+
+  function imprimirPlan(c, texto, errores) {
     var fecha = c.fecha_elab
       ? new Date(c.fecha_elab + 'T00:00:00').toLocaleDateString('es-CL')
-      : new Date().toLocaleDateString('es-CL');
+      : 'Fecha de elaboración pendiente';
     var conv = mdToHtml(texto);
     var idx = conv.indice.length >= 3
       ? '<h2>ÍNDICE</h2><ol class="idx">' + conv.indice.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><div class="pb"></div>'
@@ -813,10 +911,10 @@
     }
     var firmas = '<div class="pb"></div><h2>SUSCRIPCIÓN DEL PLAN — PENDIENTE</h2>' +
       '<p>Espacio destinado a suscripción después de revisión legal y técnica. ESTE BORRADOR NO ESTÁ FIRMADO.</p>' +
-      fbox('Alan Bascur Montenegro', 'Ingeniero en Prevención de Riesgos — Autor y responsable técnico', 'RUT 17.658.387-8 · Plus Control SpA') +
-      fbox(c.presidente || '', 'Presidente del Comité de Administración — Suscripción', c.nombre || '') +
-      fbox(c.admin || '', 'Administrador del Condominio — Suscripción', c.empresa_admin || '') +
-      '<p class="legal">Preparado para su presentación y mantención conforme al artículo 40 de la Ley N°21.442, sujeto a la revisión y actuaciones que correspondan a los organismos competentes.</p>';
+      rolesSuscripcion(c).map(function (rol) { return fbox(rol.nombre, rol.cargo); }).join('') +
+      '<h3>Control de calidad del borrador</h3><ul>' +
+      errores.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+
 
     var html = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">' +
       '<title>Plan de Emergencia — ' + esc(c.nombre) + '</title><style>' +
@@ -832,7 +930,9 @@
       'p{margin:6px 0;text-align:justify;}' +
       'ul{margin:6px 0 6px 18px;} li{margin:3px 0;}' +
       'ol.idx{font-size:10.5pt;} ol.idx li{margin:4px 0;}' +
-      'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:9pt;page-break-inside:avoid;}' +
+      'table{width:100%;table-layout:fixed;border-collapse:collapse;margin:10px 0;font-size:9pt;overflow-wrap:anywhere;}' +
+      'thead{display:table-header-group;} tr{break-inside:avoid;} p,li{orphans:3;widows:3;}' +
+      '.estado{border:2px solid #922;padding:10px;font:bold 14px Arial;color:#922;text-align:center;}' +
       'th{background:#f0ecec;border:1px solid #999;padding:5px 6px;text-align:left;font-size:8.5pt;}' +
       'td{border:1px solid #bbb;padding:5px 6px;vertical-align:top;height:18px;}' +
       '.pb{page-break-after:always;}' +
@@ -841,18 +941,20 @@
       '.fn{font-weight:bold;font-size:10.5pt;} .fr{font-size:10pt;} .fx{font-size:9.5pt;color:#555;}' +
       '.legal{margin-top:1.5cm;font-size:9pt;color:#555;font-style:italic;border-top:1px solid #ccc;padding-top:8px;}' +
       '</style></head><body>' +
-      '<div class="portada"><h1>PLAN DE EMERGENCIA<br>Y EVACUACIÓN</h1>' +
+      '<div class="portada"><p class="estado">BORRADOR NO FIRMADO · PENDIENTE DE VALIDACIÓN TÉCNICA Y PLANOS</p><h1>PLAN DE EMERGENCIA<br>Y EVACUACIÓN</h1>' +
       '<div class="n">' + esc(c.nombre) + '</div>' +
       '<div class="d">' + esc(c.direccion || '') + (c.comuna ? ', ' + esc(c.comuna) : '') +
       (c.region ? ', Región de ' + esc(c.region) : '') + '</div>' +
-      '<div class="m">Elaborado conforme al artículo 40 de la Ley N°21.442<br>sobre Copropiedad Inmobiliaria<br><br>' +
-      'Plus Control SpA — RUT 77.916.708-9<br>Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos<br><br>' +
+      '<div class="m">Marco de referencia: artículo 40 de la Ley N°21.442<br>sobre Copropiedad Inmobiliaria<br><br>' +
+      'Plus Control SpA — RUT 77.916.708-9<br>Revisión profesional pendiente<br><br>' +
       esc(fecha) + '</div></div><div class="pb"></div>' +
       idx + conv.html + firmas + '</body></html>';
 
     var w = window.open('', '_blank');
     if (!w) { alert('El navegador bloqueó la ventana. Permite ventanas emergentes e intenta nuevamente.'); return; }
-    w.document.write(html.replace('<body>', '<body><p style="border:2px solid #922;padding:10px;font:bold 14px Arial;color:#922">BORRADOR NO FIRMADO — PENDIENTE DE VALIDACIÓN TÉCNICA Y PLANOS</p>')); w.document.close();
+    w.opener = null;
+    w.document.write(html);
+    w.document.close();
     setTimeout(function () { try { w.print(); } catch (e) {} }, 500);
   }
 
@@ -947,7 +1049,7 @@
     renderLista();
   }
 
-  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo };
+  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo, validarDocumento: validarDocumento, rolesSuscripcion: rolesSuscripcion };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montar);
   else montar();
