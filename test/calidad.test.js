@@ -157,3 +157,17 @@ test('el PDF integra foto y planos de la versión y escapa nombres de archivos',
   assert.match(html, /BORRADOR NO FIRMADO/);
   assert.match(htmlPlan({ nombre: 'Prueba' }, content, []), /pendientes de adjuntar/);
 });
+
+test('verifica secciones por parte antes de aceptarlas', () => {
+  const { validarParte } = browser.window.PCCondominios;
+  const a = '## PASO I — Organización\nDescripción de las responsabilidades.';
+  const b = '## PASO II — Plan general\nProcedimiento y criterios de evacuación.';
+  assert.equal(validarParte(a + '\n' + b, 2, {}).length, 0);
+  assert.match(validarParte(b + '\n' + a, 2, {}).join(), /en orden/);
+  assert.match(validarParte(a + '\n' + b + '\n' + b, 2, {}).join(), /una vez/);
+  assert.match(validarParte(a + '\n## PASO II — Plan general', 2, {}).join(), /Falta contenido/);
+  assert.match(validarParte(a + '\n' + b + '\nPQS al 90% de carga.', 2, {}).join(), /EXTINTORES/);
+  const anexos = Array.from({ length: 7 }, (_, i) => '## ANEXO ' + (i + 1) + ' — Registro\nContenido del registro.').join('\n');
+  assert.match(validarParte(anexos, 6, {}).join(), /inserción de planos/);
+  assert.equal(validarParte(anexos.replace('## ANEXO 3', '[LAMINAS DEL LEVANTAMIENTO]\n## ANEXO 3'), 6, {}).length, 0);
+});

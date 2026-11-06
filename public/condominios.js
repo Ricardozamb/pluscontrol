@@ -543,12 +543,12 @@
 
   // ── PARTES (evita el corte por max_tokens 8192) ────────────────────────────
   var PARTES = [
-    { label: 'Capítulos 1 a 3', capitulos: [1, 2, 3], instr:
+    { label: 'Capítulos 1 a 3', instr:
       'Genera SOLO estas secciones:\n' +
       '## CAPÍTULO 1 — INTRODUCCIÓN Y MARCO LEGAL (finalidad del plan; identificación del condominio con sus datos reales; obligación del Artículo 40 de la Ley N°21.442; Reglamento de la ley publicado el 09-01-2025; referencia a la norma técnica oficial del MINVU del artículo 4° transitorio; describe el régimen declarado sujeto a revisión; omite el bloque de firmas, que agrega la aplicación).\n' +
       '## CAPÍTULO 2 — OBJETIVOS Y ALCANCE (objetivo general, objetivos específicos, alcance territorial y de personas).\n' +
       '## CAPÍTULO 3 — DEFINICIONES (emergencia, evacuación, evacuación parcial, evacuación total, vía de evacuación, zona de seguridad, punto de encuentro, alerta, alarma, amenaza, vulnerabilidad, emergencia controlada).' },
-    { label: 'Capítulo 4 — Descripción del condominio', capitulos: [4], instr:
+    { label: 'Capítulo 4 — Descripción del condominio', instr:
       'Genera SOLO este capítulo, sin repetir la introducción ni otros capítulos.\n' +
       '## CAPÍTULO 4 — DESCRIPCIÓN DEL CONDOMINIO (configuración física, unidades, población, recintos críticos y sistemas de emergencia existentes; usa una tabla markdown para el resumen de sistemas). Solo datos reales; lo pendiente se declara pendiente.' },
     { label: 'Pasos I y II', instr:
@@ -684,7 +684,7 @@
     var step = document.getElementById('cq-step');
     var acumulado = [];
 
-    function hacerParte(i) {
+    function hacerParte(i, correccion) {
       if (i >= PARTES.length) {
         var texto = acumulado.join('\n\n');
         generating = false;
@@ -703,26 +703,29 @@
       step.textContent = 'Parte ' + (i + 1) + ' de ' + PARTES.length + ' — ' + p.label;
       bar.style.width = ((i / PARTES.length) * 100) + '%';
       var parcial = '';
-      callAPI(datos + '\n\n' + p.instr, function (ch) {
+      var indicaciones = correccion ? '\nCorrige estos problemas de la respuesta anterior y devuelve esta parte completa: ' + correccion : '';
+      callAPI(datos + '\n\n' + p.instr + indicaciones, function (ch) {
         parcial += ch;
         stream.textContent = parcial.slice(-2500);
         stream.scrollTop = stream.scrollHeight;
       }).then(function (t) {
-        var faltantes = capitulosFaltantes(t, p.capitulos || []);
-        if (faltantes.length) {
-          throw new Error('Claude no entregó contenido para ' +
-            faltantes.map(function (n) { return 'el capítulo ' + n; }).join(', ') + '.');
-        }
+        var erroresParte = validarParte(t, i, c);
+        if (erroresParte.length) throw new Error(erroresParte.join(' '));
         acumulado.push(t.trim());
         // Pausa entre partes: evita gatillar el límite de velocidad de la API.
         step.textContent = 'Parte ' + (i + 1) + ' completada. Preparando la siguiente…';
         setTimeout(function () { hacerParte(i + 1); }, 4000);
       }).catch(function (err) {
+        if (!correccion) {
+          step.textContent = 'Corrigiendo la parte ' + (i + 1) + ' de ' + PARTES.length + '…';
+          setTimeout(function () { hacerParte(i, err.message || 'Respuesta interrumpida.'); }, 4000);
+          return;
+        }
         generating = false;
         host.innerHTML = '<div class="cq-wrap"><div class="cq-error">' +
           '<h2>Error al generar</h2>' +
           '<p>Parte ' + (i + 1) + ' (' + esc(p.label) + '): ' + esc(err.message || String(err)) + '</p>' +
-          '<p class="cq-sub">Las ' + i + ' parte(s) ya generadas no se perdieron. Puedes continuar desde donde quedó.</p>' +
+          '<p class="cq-sub">La corrección automática no se completó. Las ' + i + ' parte(s) verificadas se conservan mientras permanezcas en esta pantalla.</p>' +
           '<div class="cq-actions" style="justify-content:center">' +
           '<button class="cq-btn cq-btn-p" id="cq-seguir">Reintentar esta parte</button>' +
           '<button class="cq-btn" id="cq-volver">Volver</button></div></div></div>';
@@ -883,6 +886,46 @@
     if (/\b(?:OPERATIV[OA]|ESTADO)\s*[—–:-]\s*\d{1,3}\s*%|\b\d{1,3}\s*%\s*(?:DE\s+)?(?:LA\s+)?CARGA\b|\bCARGA\s+(?:DEL?\s+)?\d{1,3}\s*%/.test(t))
       hallazgos.add('EXTINTORES: se informó carga como porcentaje. Coteja la concentración del agente PQS con la etiqueta y registra el estado de carga por separado.');
     return Array.from(hallazgos);
+  }
+
+  function seccionesDe(texto) {
+    var secciones = [];
+    var actual;
+    norm(texto).split('\n').forEach(function (linea) {
+      var h = linea.replace(/[*_]/g, '').match(/^\s*#{1,4}\s+(CAPITULO\s+[1-4]|PASO\s+(?:III-B|IV|III|II|I)|ANEXO\s+[1-7]|3\.[1-6]|COORDINACION CON ORGANISMOS EXTERNOS)(?=$|[\s.\-–—:(])/);
+      if (h) {
+        actual = { id: h[1].replace(/\s+/g, ' '), contenido: false };
+        secciones.push(actual);
+        return;
+      }
+      if (!actual) return;
+      if (linea.trim() === '[LAMINAS DEL LEVANTAMIENTO]') actual.laminas = true;
+      if (/^\s*#{1,2}\s/.test(linea)) { actual = undefined; return; }
+      if (!/^\s*(?:#|\[)/.test(linea) && /[A-Z]{2,}/.test(linea)) actual.contenido = true;
+    });
+    return secciones;
+  }
+
+  function validarParte(texto, indice, condo) {
+    var esperadas = seccionesDe(PARTES[indice].instr).map(function (s) { return s.id; });
+    var secciones = seccionesDe(texto);
+    var encontradas = secciones.map(function (s) { return s.id; });
+    var errores = [];
+    if (esperadas.join('|') !== encontradas.join('|')) {
+      errores.push('Entrega exactamente estas secciones, en orden y una vez cada una: ' + esperadas.join(', ') + '.');
+    }
+    secciones.forEach(function (s) {
+      if (!s.contenido && s.id !== 'PASO III') errores.push('Falta contenido en ' + s.id + '.');
+    });
+    if (esperadas.includes('ANEXO 2') &&
+        (!secciones.some(function (s) { return s.id === 'ANEXO 2' && s.laminas; }) ||
+         (texto.match(/^\[LAMINAS DEL LEVANTAMIENTO\]$/gm) || []).length !== 1)) {
+      errores.push('Falta la línea de inserción de planos en el anexo 2.');
+    }
+    return errores.concat(validarDocumento(texto, condo).filter(function (e) {
+      return /^(?:INCONSISTENCIA|EXTINTORES|FIRMAS|RIESGO|CRÍTICO):|^ESTRUCTURA: numeración repetida|^LEGAL: aparece/.test(e) ||
+        (esperadas.includes('CAPITULO 1') && e.startsWith('LEGAL: no se menciona'));
+    }));
   }
 
   function validarDocumento(texto, c) {
@@ -1184,7 +1227,7 @@
     renderLista();
   }
 
-  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo, validarDocumento: validarDocumento, rolesSuscripcion: rolesSuscripcion, alertasInventario: alertasInventario, htmlPlan: htmlPlan };
+  window.PCCondominios = { abrir: abrirModulo, lista: function () { return condos.slice(); }, auditar: auditoriaCondo, validarDocumento: validarDocumento, rolesSuscripcion: rolesSuscripcion, alertasInventario: alertasInventario, htmlPlan: htmlPlan, validarParte: validarParte };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montar);
   else montar();
