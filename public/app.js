@@ -7,11 +7,8 @@
 // SISTEMA DE AUTENTICACION PLUS CONTROL
 // ══════════════════════════════════════════════
 
-var USUARIOS = {
-  'ricardo': { nombre:'Ricardo Zambrano Luna', cargo:'Administrador', rol:'admin', clave:'pluscontrol2025' },
-  'alan':    { nombre:'Alan Bascur Montenegro', cargo:'Ingeniero en Prevención de Riesgos', rol:'iper', clave:'alanbascur2025' }
-};
-
+// La autenticación pertenece al servidor: no publicar credenciales en el navegador.
+var USUARIOS = {};
 // Permisos por rol
 var PERMISOS = {
   admin:      { verDash:true, verEmpresas:true, nueva:true, generar:true, alan:true, config:true },
@@ -22,83 +19,59 @@ var PERMISOS = {
 
 var currentUser = null;
 
-function getSession() {
+function getSession() { return currentUser; }
+function setSession(user) { currentUser = user; }
+function clearSession() { currentUser = null; }
+
+async function checkLogin() {
   try {
-    var s = sessionStorage.getItem('pc_session');
-    return s ? JSON.parse(s) : null;
-  } catch(e) { return null; }
-}
-
-function setSession(user) {
-  sessionStorage.setItem('pc_session', JSON.stringify(user));
-  currentUser = user;
-}
-
-function clearSession() {
-  sessionStorage.removeItem('pc_session');
-  currentUser = null;
-}
-
-function checkLogin() {
-  var session = getSession();
-  if (session && USUARIOS[session.username]) {
-    currentUser = session;
+    const r = await fetch('/api/auth/me', { credentials:'same-origin', cache:'no-store' });
+    if (!r.ok) throw new Error('No hay sesión');
+    const j = await r.json();
+    setSession(j.user);
     showApp();
-  } else {
-    showLogin();
-  }
+  } catch (_) { clearSession(); showLogin(); }
 }
-
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
 }
-
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'flex';
   aplicarPermisos();
-  // Actualizar saludo
-  var saludo = document.getElementById('saludo-nombre');
-  if(saludo && currentUser) saludo.textContent = currentUser.nombre.split(' ')[0];
+  const saludo = document.getElementById('saludo-nombre');
+  if (saludo && currentUser) saludo.textContent = currentUser.nombre.split(' ')[0];
   renderDash();
 }
-
 function aplicarPermisos() {
   if (!currentUser) return;
-  var perms = PERMISOS[currentUser.rol] || PERMISOS.tecnico;
-  // Ocultar tabs segun permisos
-  var tabNueva = document.getElementById('tab-nueva');
-  var tabGenerar = document.getElementById('tab-generar');
-  var tabAlan = document.getElementById('tab-alan');
-  if(tabNueva) tabNueva.style.display = perms.nueva ? '' : 'none';
-  if(tabGenerar) tabGenerar.style.display = perms.generar ? '' : 'none';
-  if(tabAlan) tabAlan.style.display = perms.alan ? '' : 'none';
-  // Header buttons
-  var hNueva = document.getElementById('hbtn-nueva');
-  var hAlan = document.getElementById('hbtn-alan');
-  if(hNueva) hNueva.style.display = perms.nueva ? '' : 'none';
-  if(hAlan) hAlan.style.display = perms.alan ? '' : 'none';
+  const perms = PERMISOS[currentUser.rol] || PERMISOS.tecnico;
+  for (const [id, allowed] of [
+    ['tab-nueva',perms.nueva],['tab-generar',perms.generar],['tab-alan',perms.alan],
+    ['hbtn-nueva',perms.nueva],['hbtn-alan',perms.alan]
+  ]) { const el=document.getElementById(id); if(el) el.style.display=allowed?'':'none'; }
 }
-
-function doLogin() {
-  var username = (document.getElementById('login-user').value || '').trim().toLowerCase();
-  var pass = (document.getElementById('login-pass').value || '').trim();
-  var errEl = document.getElementById('login-error');
-  var user = USUARIOS[username];
-  if (user && user.clave === pass) {
-    errEl.style.display = 'none';
-    setSession({ username: username, nombre: user.nombre, cargo: user.cargo, rol: user.rol });
-    showApp();
-  } else {
-    errEl.style.display = 'block';
-    document.getElementById('login-pass').value = '';
-  }
+async function doLogin() {
+  const username=(document.getElementById('login-user').value||'').trim().toLowerCase();
+  const password=document.getElementById('login-pass').value||'';
+  const err=document.getElementById('login-error');
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;
+  try {
+    const r=await fetch('/api/auth/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',
+      body:JSON.stringify({username,password})
+    });
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'No se pudo iniciar sesión');
+    setSession(data.user);err.style.display='none';showApp();
+  } catch(e) { err.textContent=e.message;err.style.display='block'; }
+  finally { document.getElementById('login-pass').value=''; btn.disabled=false; }
 }
-
-function doLogout() {
-  clearSession();
-  showLogin();
+async function doLogout() {
+  try { await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}); } catch(_) {}
+  clearSession();showLogin();
 }
 
 // Listeners login
@@ -160,13 +133,22 @@ var TIPO_N = {
 };
 
 // ── ESTADO ──
-var emps = JSON.parse(localStorage.getItem('pc_emps')||'[]');
-var docs = JSON.parse(localStorage.getItem('pc_docs')||'[]');
+function leerListaLocal(clave) {
+  try { var o=JSON.parse(localStorage.getItem(clave)||'[]'); return Array.isArray(o)?o:[]; }
+  catch(e) { console.error('Error al leer '+clave,e);return []; }
+}
+var emps = leerListaLocal('pc_emps');
+var docs = leerListaLocal('pc_docs');
 function saveData(){
-  localStorage.setItem('pc_emps',JSON.stringify(emps));
-  localStorage.setItem('pc_docs',JSON.stringify(docs));
-  // Sincronizar en segundo plano
-  syncToCloud().catch(function(){});
+  try {
+    localStorage.setItem('pc_emps',JSON.stringify(emps));
+    localStorage.setItem('pc_docs',JSON.stringify(docs));
+    syncToCloud().catch(function(){});
+    return true;
+  } catch(e) {
+    alert('No se pudo guardar información: el almacenamiento de este navegador puede estar lleno. Exporte un respaldo antes de cerrar.');
+    return false;
+  }
 }
 
 async function syncToCloud(){
@@ -275,7 +257,7 @@ function renderDash(){
   list.innerHTML=emps.slice(0,5).map(function(e){
     var de=docs.filter(function(d){return d.empresa_id===e.id;});
     var st=de.length?(de.some(function(d){return d.estado==='firmado';})? 'tag-ok':'tag-wait'):'tag-no';
-    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Firmado':'En proceso'):'Sin docs';
+    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Revisado':'En proceso'):'Sin docs';
     return '<div class="card-item" data-id="'+e.id+'"><div class="ci-ico">'+rubroIco(e.rubro)+'</div><div class="ci-body"><div class="ci-title">'+e.razon+'</div><div class="ci-sub">'+e.rubro+' . '+e.trabajadores+' trab.</div></div><div class="ci-right"><span class="tag '+st+'">'+sl+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
@@ -296,7 +278,7 @@ function renderEmps(lista){
   list.innerHTML=data.map(function(e){
     var de=docs.filter(function(d){return d.empresa_id===e.id;});
     var st=de.length?(de.some(function(d){return d.estado==='firmado';})? 'tag-ok':'tag-wait'):'tag-no';
-    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Vigente':'En proceso'):'Sin docs';
+    var sl=de.length?(de.some(function(d){return d.estado==='firmado';})? 'Revisado':'En proceso'):'Sin docs';
     return '<div class="card-item" data-id="'+e.id+'"><div class="ci-ico">'+rubroIco(e.rubro)+'</div><div class="ci-body"><div class="ci-title">'+e.razon+'</div><div class="ci-sub">'+e.ciudad+' . '+e.trabajadores+' trab. . '+(e.mutualidad||'-')+'</div></div><div class="ci-right"><span class="tag '+st+'">'+sl+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
@@ -1313,8 +1295,7 @@ async function callClaude(prompt, intentos, onChunk){
         reader.read().then(function(result){
           if(result.done){
             clearTimeout(tmt);
-            if(fullText) resolve(fullText);
-            else reject(new Error('Sin contenido. Intente nuevamente.'));
+            reject(new Error('La transmisión se cerró antes de completar el documento.'));
             return;
           }
           buf+=decoder.decode(result.value,{stream:true});
@@ -1539,19 +1520,28 @@ document.getElementById('btn-enviar-alan').addEventListener('click',function(){
 // ── PDF PROFESIONAL ──
 function generarPDF(){
   if(!gTexto||!gEmp)return;
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
   var fecha=new Date().toLocaleDateString('es-CL');
   var fechaLarga=new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var tipo=TIPO_N[gTipo]||gTipo;
+  var tipo=escapeHtml(TIPO_N[gTipo]||gTipo);
   var docId='PC-'+Date.now().toString(36).toUpperCase();
   var normasList=(gEmp.normativa||NORM['default']).join(' . ');
-  var firmado=docs.find(function(d){return d.empresa_id===gEmp.id&&d.tipo===gTipo&&d.estado==='firmado';});
+  // Solo asociar revisión si el texto coincide exactamente; nunca heredar de otra versión.
+  var firmado=docs.find(function(d){
+    return d.empresa_id===gEmp.id&&d.tipo===gTipo&&d.estado==='firmado'&&
+      d.texto===gTexto&&d.texto&&gTexto;
+  });
 
   // ── Parser markdown → HTML con soporte completo de tablas ──
   function parseMd(txt){
     if(!txt)return '';
     var lines=txt.split('\n'),out=[],i=0;
     while(i<lines.length){
-      var line=lines[i];
+      var line=escapeHtml(lines[i]);
       // Tabla markdown: |col|col| seguido de |---|---|
       if(/^\|.+\|/.test(line)&&i+1<lines.length&&/^\|[\s\-:|]+\|/.test(lines[i+1])){
         var headers=line.split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
@@ -1560,7 +1550,7 @@ function generarPDF(){
         headers.forEach(function(h){th+='<th class="th">'+h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</th>';});
         th+='</tr></thead><tbody>';
         while(i<lines.length&&/^\|.+\|/.test(lines[i])){
-          var cells=lines[i].split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
+          var cells=escapeHtml(lines[i]).split('|').filter(function(c,j,a){return j>0&&j<a.length-1;}).map(function(c){return c.trim();});
           th+='<tr>';
           cells.forEach(function(c){th+='<td class="td">'+c.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</td>';});
           th+='</tr>';
@@ -1583,7 +1573,7 @@ function generarPDF(){
   }
   var cuerpo=parseMd(gTexto||'');
 
-  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Firmado digitalmente el '+firmado.fecha+'</div>':'';
+  var firmadoHtml=firmado?'<div style="color:#3d7a35;font-weight:700;font-size:9pt;margin-top:6pt;font-family:Arial,sans-serif">✓ Revisado internamente el '+escapeHtml(firmado.fecha)+'</div>':'';
 
   var CSS=
     '@page{size:A4;margin:0;}'+
@@ -1652,7 +1642,8 @@ function generarPDF(){
     '.nota strong{color:#1a1a1a;}'+
     '.ffooter{margin-top:16pt;padding-top:8pt;border-top:.5pt solid #e0e0e0;display:flex;justify-content:space-between;font-family:Arial,sans-serif;font-size:7.5pt;color:#aaa;}'+
     // Tablas
-    '.tbl{width:100%;border-collapse:collapse;margin:10pt 0 14pt;font-family:Arial,sans-serif;font-size:8.5pt;page-break-inside:avoid;}'+
+    '.tbl{width:100%;border-collapse:collapse;margin:10pt 0 14pt;font-family:Arial,sans-serif;font-size:8.5pt;table-layout:fixed;overflow-wrap:anywhere;}'+
+    'thead{display:table-header-group;} tr{break-inside:avoid;}'+
     '.th{background:#0d0d10;color:#fff;font-weight:700;padding:5pt 7pt;text-align:left;border:1pt solid #333;font-size:8pt;letter-spacing:.02em;}'+
     '.td{padding:4pt 7pt;border:1pt solid #ddd;color:#1a1a1a;vertical-align:top;line-height:1.4;}'+
     'tr:nth-child(even) .td{background:#f8f8f6;}'+
@@ -1663,21 +1654,21 @@ function generarPDF(){
     '<div class="bt"><div class="btlogo">Plus<span>Control</span></div><div class="btsub">Prevención Integral de Riesgos</div></div>'+
     '<div class="bv"></div>'+
     '<div class="pb">'+
-    '<div class="badge">Documento Oficial de Prevencion de Riesgos &nbsp;.&nbsp; Plus Control SpA</div>'+
+    '<div class="badge">Borrador de prevención de riesgos sin firma &nbsp;.&nbsp; Plus Control SpA</div>'+
     '<div class="ptitle">'+tipo+'</div>'+
-    '<div class="psub">Normativa Chilena Vigente '+new Date().getFullYear()+'</div>'+
+    '<div class="psub">Pendiente de validación profesional '+new Date().getFullYear()+'</div>'+
     '<div class="pdiv"></div>'+
     '<div class="pemp">'+
-    '<div class="penombre">'+gEmp.razon+'</div>'+
+    '<div class="penombre">'+escapeHtml(gEmp.razon)+'</div>'+
     '<div class="pedato">'+
-    '<strong>RUT:</strong> '+(gEmp.rut||'-')+'<br>'+
-    '<strong>Rubro:</strong> '+gEmp.rubro+(gEmp.subrubro?' / '+gEmp.subrubro:'')+'<br>'+
-    '<strong>Dirección:</strong> '+(gEmp.direccion||'')+', '+gEmp.ciudad+', Región de '+gEmp.region+'<br>'+
-    '<strong>Representante Legal:</strong> '+(gEmp.rep_nombre||'-')+(gEmp.rep_cargo?' - '+gEmp.rep_cargo:'')+'<br>'+
-    '<strong>N° Trabajadores:</strong> '+gEmp.trabajadores+' &nbsp;|&nbsp; <strong>Mutualidad:</strong> '+(gEmp.mutualidad||'-')+
+    '<strong>RUT:</strong> '+(escapeHtml(gEmp.rut)||'-')+'<br>'+
+    '<strong>Rubro:</strong> '+escapeHtml(gEmp.rubro)+(escapeHtml(gEmp.subrubro)?' / '+escapeHtml(gEmp.subrubro):'')+'<br>'+
+    '<strong>Dirección:</strong> '+(escapeHtml(gEmp.direccion)||'')+', '+escapeHtml(gEmp.ciudad)+', Región de '+escapeHtml(gEmp.region)+'<br>'+
+    '<strong>Representante Legal:</strong> '+(escapeHtml(gEmp.rep_nombre)||'-')+(escapeHtml(gEmp.rep_cargo)?' - '+escapeHtml(gEmp.rep_cargo):'')+'<br>'+
+    '<strong>N° Trabajadores:</strong> '+escapeHtml(gEmp.trabajadores)+' &nbsp;|&nbsp; <strong>Mutualidad:</strong> '+(escapeHtml(gEmp.mutualidad)||'-')+
     '</div></div></div>'+
     '<div class="pfooter">'+
-    '<div class="pfizq">Elaborado por:<br><strong style="color:#1a1a1a">Alan Bascur Montenegro</strong><br>Ingeniero en Prevención de Riesgos<br>Prevencionista de Riesgos Profesionales<br>Plus Control SpA &nbsp;.&nbsp; Osorno, Los Lagos, Chile</div>'+
+    '<div class="pfizq">Revisión técnica pendiente<br>Plus Control SpA &nbsp;.&nbsp; Osorno, Los Lagos, Chile</div>'+
     '<div class="pfder">Fecha: '+fechaLarga+'<br>Codigo: '+docId+'<br>Version: 1.0</div>'+
     '</div>'+
     '<div class="bb"></div>'+
@@ -1685,17 +1676,17 @@ function generarPDF(){
 
   var pagCuerpo=
     '<div class="pag">'+
-    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+'<br>'+gEmp.razon+' &nbsp;.&nbsp; '+fecha+'</div></div>'+
+    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+'<br>'+escapeHtml(gEmp.razon)+' &nbsp;.&nbsp; '+fecha+'</div></div>'+
     '<div>'+cuerpo+'</div>'+
     '<div class="pgft"><span>Plus Control SpA &nbsp;.&nbsp; Prevención Integral de Riesgos &nbsp;.&nbsp; Osorno, Chile</span><span>'+docId+' &nbsp;.&nbsp; '+fecha+'</span></div>'+
     '</div>';
 
   var pagFirma=
     '<div class="fsec">'+
-    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+' &nbsp;.&nbsp; '+gEmp.razon+'</div></div>'+
+    '<div class="pghd"><div class="pglogo">Plus<span>Control</span></div><div class="pgdoc">'+tipo+' &nbsp;.&nbsp; '+escapeHtml(gEmp.razon)+'</div></div>'+
     '<div class="ftitle">Autorización y Firma del Documento</div>'+
-    '<div class="fsub">Documento elaborado conforme a normativa chilena vigente. Queda sujeto a la aprobación de los firmantes.</div>'+
-    '<div class="fgrid" style="grid-template-columns:'+(gEmp.rep2_nombre?'1fr 1fr 1fr':'1fr 1fr')+';">'+
+    '<div class="fsub">Borrador pendiente de revisión y suscripción.</div>'+
+    '<div class="fgrid" style="grid-template-columns:'+(escapeHtml(gEmp.rep2_nombre)?'1fr 1fr 1fr':'1fr 1fr')+';">'+
     '<div class="fcol">'+
     '<div class="fesp"><div class="fesplbl">Firma y Timbre</div></div>'+
     '<div class="fnombre">Alan Bascur Montenegro</div>'+
@@ -1706,24 +1697,21 @@ function generarPDF(){
     '</div>'+
     '<div class="fcol">'+
     '<div class="fesp"><div class="fesplbl">Firma y Timbre</div></div>'+
-    '<div class="fnombre">'+(gEmp.rep_nombre||'Representante Legal')+'</div>'+
-    '<div class="fcargo">'+(gEmp.rep_cargo||'Representante Legal')+'</div>'+
-    '<div class="frut">RUT: '+(gEmp.rep_rut||'___________________')+'</div>'+
-    '<div class="forg">'+gEmp.razon+'</div>'+
+    '<div class="fnombre">'+(escapeHtml(gEmp.rep_nombre)||'Representante Legal')+'</div>'+
+    '<div class="fcargo">'+(escapeHtml(gEmp.rep_cargo)||'Representante Legal')+'</div>'+
+    '<div class="frut">RUT: '+(escapeHtml(gEmp.rep_rut)||'___________________')+'</div>'+
+    '<div class="forg">'+escapeHtml(gEmp.razon)+'</div>'+
     '</div>'+
-    (gEmp.rep2_nombre?'<div class="fcol"><div class="fesp"><div class="fesplbl">Firma y Timbre</div></div><div class="fnombre">'+gEmp.rep2_nombre+'</div><div class="fcargo">Representante Legal</div><div class="frut">RUT: '+(gEmp.rep2_rut||'___________________')+'</div><div class="forg">'+gEmp.razon+'</div></div>':'')+
+    (escapeHtml(gEmp.rep2_nombre)?'<div class="fcol"><div class="fesp"><div class="fesplbl">Firma y Timbre</div></div><div class="fnombre">'+escapeHtml(gEmp.rep2_nombre)+'</div><div class="fcargo">Representante Legal</div><div class="frut">RUT: '+(escapeHtml(gEmp.rep2_rut)||'___________________')+'</div><div class="forg">'+escapeHtml(gEmp.razon)+'</div></div>':'')+
     '</div>'+
     '<div class="swrap"><div class="sello"><div class="stop">Plus</div><div class="smain">C<span>+</span></div><div class="sbot">Osorno . Chile</div></div></div>'+
     '<div class="nota">'+
-    '<strong>Nota Legal:</strong> Elaborado conforme al <strong>Decreto Supremo N° 44/2024 MINTRAB</strong> (vigente desde 01-feb-2025, reemplaza DS 40/1969 y DS 54/1969), <strong>Ley N° 16.744</strong>, <strong>DS 594/1999 MINSAL</strong>, <strong>Ley 21.643 Ley Karin</strong> (vigente agosto 2024) y normativa especifica del rubro <strong>'+gEmp.rubro+'</strong>. '+
-    'Debe ser entregado gratuitamente a cada trabajador, exhibido en lugares visibles del establecimiento y comunicado a la Dirección del Trabajo conforme al art. 156 del Código del Trabajo. '+
-    'La entidad empleadora <strong>'+gEmp.razon+'</strong> es responsable de su implementación y cumplimiento.<br><br>'+
-    '<strong>Normativa de referencia:</strong> '+normasList+
+    '<strong>Referencias declaradas para revisión:</strong> '+escapeHtml(normasList)+
     '</div>'+
     '<div class="ffooter"><span>Plus Control SpA &nbsp;.&nbsp; Prevención Integral de Riesgos &nbsp;.&nbsp; Osorno, Los Lagos, Chile</span><span>Cod: '+docId+' &nbsp;.&nbsp; '+fecha+'</span></div>'+
     '</div>';
 
-  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+tipo+' - '+gEmp.razon+'</title><style>'+CSS+'</style></head><body>'+portada+pagCuerpo+pagFirma+'<script>window.onload=function(){setTimeout(function(){window.print();},900);}<\/script></body></html>';
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+tipo+' - '+escapeHtml(gEmp.razon)+'</title><style>'+CSS+'</style></head><body>'+portada+pagCuerpo+pagFirma+'<script>window.onload=function(){setTimeout(function(){window.print();},900);}<\/script></body></html>';
 
   // HOOK pc-formato: inyectar índice + hojas de registro si el módulo está cargado
   if(typeof window.PCFormato!=='undefined' && window.PCFormato.inyectarEnPDF){
@@ -1740,6 +1728,7 @@ function generarPDF(){
     a.click();
     return;
   }
+  win.opener = null;
   win.document.write(html);
   win.document.close();
 }
@@ -1756,7 +1745,7 @@ function renderAlan(){
   list.style.display='block';empty.style.display='none';
   list.innerHTML=docs.map(function(d){
     var ico=d.tipo==='riohs'?'📋':d.tipo==='iper'?'⚠️':d.tipo==='pts'?'📝':'🚨';
-    return '<div class="card-item" data-id="'+d.id+'"><div class="ci-ico">'+ico+'</div><div class="ci-body"><div class="ci-title">'+d.empresa_nombre+'</div><div class="ci-sub">'+d.tipo_nombre.split('(')[0].trim()+' . '+d.fecha+'</div></div><div class="ci-right"><span class="tag '+(d.estado==='firmado'?'tag-ok':'tag-wait')+'">'+(d.estado==='firmado'?'✅ Firmado':'⏳ Pendiente')+'</span><span class="ci-arr">></span></div></div>';
+    return '<div class="card-item" data-id="'+d.id+'"><div class="ci-ico">'+ico+'</div><div class="ci-body"><div class="ci-title">'+d.empresa_nombre+'</div><div class="ci-sub">'+d.tipo_nombre.split('(')[0].trim()+' . '+d.fecha+'</div></div><div class="ci-right"><span class="tag '+(d.estado==='firmado'?'tag-ok':'tag-wait')+'">'+(d.estado==='firmado'?'✓ Revisado':'⏳ Pendiente')+'</span><span class="ci-arr">></span></div></div>';
   }).join('');
   list.querySelectorAll('.card-item').forEach(function(el){
     el.addEventListener('click',function(){showDocSheet(parseInt(this.dataset.id));});
@@ -1767,8 +1756,8 @@ function showDocSheet(id){
   var e=emps.find(function(x){return x.id===d.empresa_id;});
   document.getElementById('sheet-title').textContent=d.tipo_nombre.split('(')[0].trim();
   var btnFirma=d.estado==='pendiente'
-    ? '<button class="btn btn-primary" id="s-firma">✍ Firmar y aprobar documento</button>'
-    : '<div class="firma-ok" style="justify-content:center;display:flex;width:100%">✅ Firmado el '+d.fecha+'</div>';
+    ? '<button class="btn btn-primary" id="s-firma">✓ Marcar revisión interna (NO es firma)</button>'
+    : '<div class="firma-ok" style="justify-content:center;display:flex;width:100%">✓ Revisado internamente el '+d.fecha+'</div>';
   document.getElementById('sheet-body').innerHTML=
     '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">'+d.empresa_nombre+' . '+d.rubro+'<br>'+d.fecha+'</div>'+
     '<div style="background:var(--bg4);border-radius:10px;padding:14px;max-height:200px;overflow-y:auto;font-size:11px;line-height:1.7;margin-bottom:14px" class="doc-content">'+md2html((d.texto||'').substring(0,1500)+'...')+'</div>'+
@@ -1785,9 +1774,13 @@ function showDocSheet(id){
 }
 function firmar(id){
   var d=docs.find(function(x){return x.id===id;}); if(!d)return;
+  if (!currentUser || currentUser.rol!=='iper') {
+    alert('Solo el revisor técnico puede marcar este documento como revisado.');
+    return;
+  }
   d.estado='firmado';d.fecha=new Date().toLocaleDateString('es-CL');
   saveData();closeSheet();renderAlan();renderDash();
-  setTimeout(function(){alert('Documento firmado y aprobado por Alan Bascur Montenegro.');},200);
+  setTimeout(function(){alert('Documento marcado como revisado internamente. No constituye firma electrónica.');},200);
 }
 
 // ── SHEET ──

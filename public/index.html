@@ -166,12 +166,12 @@ body{background:var(--bg);color:var(--paper);font-family:'Sora',sans-serif;heigh
       </div>
       <div style="margin-bottom:20px;">
         <label style="font-family:'Sora',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#666;display:block;margin-bottom:6px;">Contrasena</label>
-        <input id="login-pass" class="f-in" type="password" placeholder="Ingresa tu contrasena" autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false" style="background:#18181d;" onkeypress="if(event.key==='Enter')doLogin()">
+        <input id="login-pass" class="f-in" type="password" placeholder="Ingresa tu contrasena" autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false" style="background:#18181d;">
       </div>
       <div id="login-error" style="display:none;background:rgba(192,64,64,0.12);border:1px solid rgba(224,96,96,0.25);border-radius:8px;padding:10px 12px;font-family:'Sora',sans-serif;font-size:11px;color:#e06060;margin-bottom:14px;">
         Usuario o contrasena incorrectos.
       </div>
-      <button id="login-btn" class="btn btn-primary" style="width:100%;" onclick="doLogin()">Ingresar</button>
+      <button id="login-btn" class="btn btn-primary" style="width:100%;">Ingresar</button>
     </div>
     <div style="text-align:center;margin-top:20px;font-family:'Sora',sans-serif;font-size:9px;color:#333;letter-spacing:.1em;">PLUS CONTROL SpA &nbsp;·&nbsp; OSORNO, CHILE</div>
   </div>
@@ -209,7 +209,7 @@ body{background:var(--bg);color:var(--paper);font-family:'Sora',sans-serif;heigh
         <div class="kpi"><div class="kpi-lbl">Empresas</div><div class="kpi-val" id="kv1">0</div><div class="kpi-sub">registradas</div></div>
         <div class="kpi"><div class="kpi-lbl">Documentos</div><div class="kpi-val" id="kv2">0</div><div class="kpi-sub">generados</div></div>
         <div class="kpi"><div class="kpi-lbl">Pendientes</div><div class="kpi-val amber" id="kv3">0</div><div class="kpi-sub">sin firma Alan</div></div>
-        <div class="kpi"><div class="kpi-lbl">Firmados</div><div class="kpi-val green" id="kv4">0</div><div class="kpi-sub">validez legal</div></div>
+        <div class="kpi"><div class="kpi-lbl">Revisados</div><div class="kpi-val green" id="kv4">0</div><div class="kpi-sub">revisión interna, sin firma electrónica</div></div>
       </div>
       <div class="sec-hd"><div class="sec-title">Empresas recientes</div><div class="sec-action" id="link-ver-todas">Ver todas</div></div>
       <div class="card" id="dash-list"></div>

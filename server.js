@@ -1,10 +1,82 @@
 const express = require('express');
 const path = require('path');
 const https = require('https');
+const HTMLtoDOCX = require('@turbodocx/html-to-docx');
+const sanitizeHtml = require('sanitize-html');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const APIKEY = process.env.ANTHROPIC_API_KEY || '';
+const crypto = require('crypto');
+
+// Las contraseñas no deben estar en public/app.js ni guardarse en el repositorio.
+const CUENTAS = {
+  ricardo: { password: process.env.PC_ADMIN_PASSWORD || '', nombre: 'Ricardo Zambrano Luna', cargo: 'Administrador', rol: 'admin' },
+  alan: { password: process.env.PC_ALAN_PASSWORD || '', nombre: 'Alan Bascur Montenegro', cargo: 'Ingeniero en Prevención de Riesgos', rol: 'iper' }
+};
+const sesiones = new Map();
+const intentos = new Map();
+const cuotas = new Map();
+const activos = new Set();
+const SESSION_MS = 8 * 60 * 60 * 1000;
+const HOUR_LIMIT = Number(process.env.PC_AI_REQUESTS_PER_HOUR || 30);
+app.set('trust proxy', 1);
+
+function sameOrigin(req) {
+  const origin = req.get('origin');
+  if (!origin) return true;
+  try {
+    const o = new URL(origin);
+    const host = req.get('host');
+    const proto = (req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
+    return o.host === host && o.protocol === proto + ':';
+  } catch (e) { return false; }
+}
+function cookies(req) {
+  const result = {};
+  for (const pair of (req.get('cookie') || '').split(';')) {
+    const p = pair.trim().split('=');
+    if (p.length > 1) result[p.shift()] = p.join('=');
+  }
+  return result;
+}
+function userFromRequest(req) {
+  const token = cookies(req).pc_sid, row = token && sesiones.get(token);
+  if (!row) return null;
+  if (row.exp < Date.now()) { sesiones.delete(token); return null; }
+  return row.user;
+}
+function requireAuth(req, res, next) {
+  const user = userFromRequest(req);
+  if (!user) return res.status(401).json({ error: 'Debe iniciar sesión.' });
+  req.usuario = user;
+  next();
+}
+function tooMany(table, key, max, duration) {
+  const now = Date.now();
+  const item = table.get(key);
+  if (!item || item.end < now) { table.set(key, { count: 1, end: now + duration }); return false; }
+  item.count++;
+  return item.count > max;
+}
+function passwordMatches(a, b) {
+  if (!a || !b) return false;
+  const x = crypto.createHash('sha256').update(a).digest();
+  const y = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(x, y);
+}
+const SYSTEM_CONDO = [
+  'Eres asistente técnico de Plus Control SpA para elaborar BORRADORES de planes de emergencia y evacuación de condominios en Chile.',
+  'Fundamento: Ley 21.442 artículo 40 y Reglamento de Copropiedad Inmobiliaria. Distingue las reglas del primer plan y las actualizaciones.',
+  'No inventes nombres, cantidades, ubicaciones, fechas, planos, mantenciones, contactos, firmas, aprobaciones ni normas no verificadas.',
+  'Fundamenta las reglas de suscripción en el artículo 40 de la Ley 21.442 y el artículo 33 del DS 7 MINVU para el supuesto preexistente sin plan. No inventes referencias técnicas ni atribuyas firma o autoría.',
+  'Los planos y zonas de encuentro no revisados deben quedar expresamente PENDIENTES; una fotografía no acredita seguridad de los sectores.',
+  'En extintores PQS distingue masa nominal en kg, concentración del agente según etiqueta y condición de carga. Un porcentaje del PQS es concentración del agente; jamás lo presentes como porcentaje de carga. Si falta etiqueta o inspección, registra el dato como pendiente.',
+  'Reglamento DS 7 MINVU, art. 34: actualizar el plan de evacuación al menos anualmente y contemplar capacitación y simulacros según escenarios. Si se acredita que las condiciones no cambiaron, la vía del informe fundado requiere nueva suscripción y anexar el informe.',
+  'Reglamento DS 7 MINVU, art. 35: entrega material y digital a Carabineros y Bomberos. En el primer plan del art. 40 la realiza la persona propietaria antes del trámite municipal pertinente. En actualizaciones la realiza el comité dentro de 15 días corridos desde la suscripción por presidente y administrador. Registra constancias y deja pendiente el responsable cuando el supuesto requiere cotejo.',
+  'Distingue información declarada, verificada y pendiente. No asegures cumplimiento legal sin revisión profesional.',
+  'Entrega contenido técnico en español de Chile acorde con los datos suministrados, sin afirmar que está firmado o aprobado.'
+].join('\n');
 
 const SYSTEM = `Eres el FISCAL TÉCNICO SENIOR DE PREVENCIÓN DE RIESGOS de Plus Control SpA, con 20 años de experiencia en fiscalización de la Dirección del Trabajo, Seremi de Salud y Mutual de Seguridad en Chile. Plus Control SpA es una empresa de asesoría en prevención de riesgos que genera documentos legales para sus clientes.
 
@@ -13,7 +85,7 @@ IDENTIDAD DE PLUS CONTROL (prestador del servicio, no el cliente):
 - Profesional responsable: Alan Bascur Montenegro, Ingeniero en Prevención de Riesgos, RUT 17.658.387-8
 - Domicilio: Lastarrias 602, Osorno, Región de Los Lagos
 
-MISIÓN: Generar documentos 100% conformes a legislación chilena vigente, coherentes internamente, ajustados a los datos REALES de cada empresa cliente.
+MISIÓN: Generar borradores técnicos para revisión profesional, coherentes con los datos declarados. Marca datos faltantes o contradictorios y evita atribuir firmas, inspecciones o cumplimiento sin evidencia.
 
 ═══════════════════════════════════════════════════════
 REGLA N°1 — COHERENCIA DE DATOS
@@ -81,40 +153,118 @@ NUNCA dejes un artículo a medias. Cada artículo mínimo 3 oraciones completas.
 
 FORMATO: ## capítulos, Art.N artículos, tablas markdown. Español chileno formal técnico-legal.`;
 
-app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+const readJson = express.json({ limit: '2mb' });
+app.use((req, res, next) => req.path === '/api/condominios/word' ? next() : readJson(req, res, next));
 
-// CORS
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.sendStatus(200);
+
+// Sesiones HttpOnly, SameSite y autenticación real del endpoint que consume créditos.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'same-origin');
+  res.setHeader('X-Frame-Options', 'DENY');
+  if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/api/auth/me', (req, res) => {
+  const u = userFromRequest(req);
+  if (!u) return res.status(401).json({ error: 'Sin sesión.' });
+  res.json({ user: u });
+});
+app.post('/api/auth/login', (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  if (tooMany(intentos, ip, 12, 15 * 60 * 1000)) return res.status(429).json({ error: 'Demasiados intentos. Intente más tarde.' });
+  const name = String((req.body || {}).username || '').trim().toLowerCase();
+  const pass = String((req.body || {}).password || '');
+  if (!process.env.PC_ADMIN_PASSWORD || !process.env.PC_ALAN_PASSWORD) {
+    return res.status(503).json({ error: 'Configure PC_ADMIN_PASSWORD y PC_ALAN_PASSWORD en Render.' });
+  }
+  const account = Object.hasOwn(CUENTAS, name) ? CUENTAS[name] : null;
+  if (!account || !passwordMatches(account.password, pass)) return res.status(401).json({ error: 'Usuario o contraseña incorrectos.' });
+  const user = { username: name, nombre: account.nombre, cargo: account.cargo, rol: account.rol };
+  const token = crypto.randomBytes(32).toString('hex');
+  sesiones.set(token, { user, exp: Date.now() + SESSION_MS });
+  res.cookie('pc_sid', token, { httpOnly: true, sameSite: 'strict', secure: req.secure || req.get('x-forwarded-proto') === 'https', path: '/', maxAge: SESSION_MS });
+  res.json({ user });
+});
+app.post('/api/auth/logout', (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  const token = cookies(req).pc_sid;
+  if (token) sesiones.delete(token);
+  res.clearCookie('pc_sid', { httpOnly: true, sameSite: 'strict', path: '/' });
+  res.json({ ok: true });
+});
+
+function wordImageAllowed(src) {
+  if (typeof src !== 'string' || src.length > 550000) return false;
+  const match = src.match(/^data:image\/(jpeg|png);base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match) return false;
+  const bytes = Buffer.from(match[2].slice(0, 16), 'base64');
+  return match[1] === 'png'
+    ? bytes.subarray(0, 8).toString('hex') === '89504e470d0a1a0a'
+    : bytes.subarray(0, 3).toString('hex') === 'ffd8ff';
+}
+
+app.post('/api/condominios/word', requireAuth, express.json({ limit: '4mb' }), async (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  const html = req.body?.html;
+  if (typeof html !== 'string' || !html.trim()) {
+    return res.status(400).json({ error: 'Falta el contenido del borrador.' });
+  }
+  const cleaned = sanitizeHtml(html, {
+    allowedTags: ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'strong', 'em', 'br', 'ul', 'ol', 'li',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td', 'figure', 'figcaption', 'img'],
+    allowedAttributes: { img: ['src', 'alt'], div: ['class'] },
+    allowedClasses: { div: ['page-break'] },
+    allowedSchemes: [],
+    allowedSchemesByTag: { img: ['data'] },
+    allowProtocolRelative: false,
+    exclusiveFilter: ({ tag, attribs }) => tag === 'img' && !wordImageAllowed(attribs.src)
+  });
+  try {
+    const docx = await HTMLtoDOCX(cleaned, null, {
+      title: 'Plan de emergencia y evacuación',
+      font: 'Calibri',
+      fontSize: 22,
+      pageSize: { width: 11906, height: 16838 },
+      table: { row: { cantSplit: true } }
+    });
+    res.type('application/vnd.openxmlformats-officedocument.wordprocessingml.document').send(docx);
+  } catch {
+    res.status(422).json({ error: 'No se pudo convertir el borrador a Word. Revisa los archivos adjuntos.' });
+  }
 });
 
 // ── Endpoint SSE — envía chunks al cliente en tiempo real ──
 // Esto resuelve el problema de Render Free que corta conexiones largas sin actividad:
 // al enviar datos continuamente, la conexión se mantiene viva.
-app.post('/api/claude', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+app.post('/api/claude', requireAuth, (req, res) => {
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
+  if (req.usuario.rol !== 'admin') return res.status(403).json({ error: 'No autorizado para generar documentos.' });
+  const ip = req.ip || 'unknown';
+  if (tooMany(cuotas, ip, HOUR_LIMIT, 60 * 60 * 1000)) return res.status(429).json({ error: 'Límite horario alcanzado.' });
+  const key = req.usuario.username;
+  if (activos.has(key)) return res.status(429).json({ error: 'Ya hay una generación en curso. Espere a que termine.' });
 
   if (!APIKEY) {
     res.status(500).json({ error: 'API key no configurada en variables de entorno' });
     return;
   }
-  const { prompt, system, maxTokens } = req.body || {};
-  if (!prompt) {
+  const { prompt, docType, maxTokens } = req.body || {};
+  if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 150000) {
     res.status(400).json({ error: 'Prompt vacío' });
     return;
   }
   // SYSTEM alternativo: permite que módulos con marco legal distinto
   // (ej. condominios — Ley 21.442) no hereden el SYSTEM de empresas,
   // que declara normativa laboral (DS 44/2024, Ley Karin) no aplicable.
-  const SYSTEM_USADO = (typeof system === 'string' && system.trim()) ? system : SYSTEM;
+  const SYSTEM_USADO = docType === 'condominio' ? SYSTEM_CONDO : SYSTEM;
   const MAX_TOKENS = (Number.isInteger(maxTokens) && maxTokens > 0 && maxTokens <= 8192) ? maxTokens : 8192;
 
+  activos.add(key);
+  res.on('close', () => activos.delete(key));
+  res.on('finish', () => activos.delete(key));
   // Responder como SSE para mantener la conexión viva en Render Free
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -151,92 +301,65 @@ app.post('/api/claude', (req, res) => {
     }
   };
 
-  const req2 = https.request(options, r => {
-    let buffer = '';
+  function send(event) {
+    if (!res.destroyed && !res.writableEnded) res.write('data: ' + JSON.stringify(event) + '\n\n');
+  }
+  function fail(message, status) {
+    send({ error: message, status });
+    res.end();
+  }
 
-    // Si la API no responde 200, el cuerpo NO es SSE: es JSON plano.
-    // Sin este control el flujo se cerraba vacío y el cliente recibía
-    // "Sin contenido" en vez del error real (429 rate limit, 529 overloaded).
-    if (r.statusCode !== 200) {
-      let errBody = '';
-      r.on('data', c => { errBody += c.toString(); });
-      r.on('end', () => {
-        let msg = 'Error API (HTTP ' + r.statusCode + ')';
-        try {
-          const j = JSON.parse(errBody);
-          if (j.error && j.error.message) msg = j.error.message;
-        } catch (e) {}
-        if (r.statusCode === 429) msg = 'RATE_LIMIT: demasiadas solicitudes seguidas. Espere unos segundos.';
-        if (r.statusCode === 529) msg = 'OVERLOADED: servicio saturado. Reintente en unos segundos.';
-        clearInterval(keepAlive);
-        res.write('data: ' + JSON.stringify({ error: msg, status: r.statusCode }) + '\n\n');
-        res.end();
-      });
+  const req2 = https.request(options, upstream => {
+    upstream.setEncoding('utf8');
+    upstream.on('error', () => fail('Se interrumpió la conexión con Claude.'));
+    if (upstream.statusCode !== 200) {
+      const status = upstream.statusCode;
+      upstream.resume();
+      fail('Claude devolvió HTTP ' + status + '.', status);
       return;
     }
 
-    r.on('data', chunk => {
-      buffer += chunk.toString();
+    let buffer = '';
+    let stopReason;
+    let stopped = false;
+    function readLine(line) {
+      if (!line.startsWith('data: ')) return;
+      const event = JSON.parse(line.slice(6));
+      if (event.type === 'content_block_delta' && event.delta?.text) send({ chunk: event.delta.text });
+      if (event.type === 'message_delta') stopReason = event.delta?.stop_reason || stopReason;
+      if (event.type === 'message_stop') stopped = true;
+      if (event.type === 'error') fail('Claude interrumpió la generación: ' + (event.error?.type || 'error'));
+    }
+    function readLines(chunk) {
+      buffer += chunk;
       const lines = buffer.split('\n');
       buffer = lines.pop();
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') continue;
-        try {
-          const obj = JSON.parse(data);
-          if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
-            // Enviar chunk al cliente inmediatamente — mantiene la conexión viva
-            res.write('data: ' + JSON.stringify({ chunk: obj.delta.text }) + '\n\n');
-          }
-          if (obj.type === 'error') {
-            res.write('data: ' + JSON.stringify({ error: (obj.error && obj.error.message) || 'Error API' }) + '\n\n');
-            res.end();
-          }
-        } catch(e) {}
+      try {
+        for (const line of lines) readLine(line);
+      } catch {
+        fail('Claude devolvió un evento ilegible.');
       }
-    });
-
-    r.on('end', () => {
-      // Procesar buffer residual
-      if (buffer.trim()) {
-        const lines = buffer.split('\n');
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          try {
-            const obj = JSON.parse(data);
-            if (obj.type === 'content_block_delta' && obj.delta && obj.delta.text) {
-              res.write('data: ' + JSON.stringify({ chunk: obj.delta.text }) + '\n\n');
-            }
-          } catch(e) {}
-        }
+    }
+    upstream.on('data', readLines);
+    upstream.on('end', () => {
+      readLines('\n');
+      if (res.writableEnded || res.destroyed) return;
+      if (!stopped || !['end_turn', 'stop_sequence'].includes(stopReason)) {
+        fail(stopReason === 'max_tokens' ? 'Claude alcanzó el límite de texto de esta parte.' : 'Claude no completó esta parte.');
+        return;
       }
-      // Señal de fin
-      clearInterval(keepAlive);
-      res.write('data: ' + JSON.stringify({ done: true }) + '\n\n');
-      res.end();
-    });
-
-    r.on('error', err => {
-      clearInterval(keepAlive);
-      res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
+      send({ done: true });
       res.end();
     });
   });
 
-  req2.setTimeout(300000, () => {
-    clearInterval(keepAlive);
+  res.on('close', () => req2.destroy());
+  req2.setTimeout(280000, () => {
+    fail('La generación superó el tiempo de espera.');
     req2.destroy();
-    res.write('data: ' + JSON.stringify({ error: 'La generación tardó más de 5 minutos. Intente nuevamente.' }) + '\n\n');
-    res.end();
   });
-
-  req2.on('error', err => {
-    clearInterval(keepAlive);
-    res.write('data: ' + JSON.stringify({ error: err.message }) + '\n\n');
-    res.end();
+  req2.on('error', () => {
+    if (!res.destroyed && !res.writableEnded) fail('No se pudo conectar con Claude.');
   });
 
   req2.write(payload);
@@ -247,4 +370,5 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => console.log('Plus Control activo en puerto ' + PORT));
+if (require.main === module) app.listen(PORT, () => console.log('Plus Control activo en puerto ' + PORT));
+module.exports = app;
