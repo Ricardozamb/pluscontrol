@@ -676,7 +676,7 @@
       fetch('/api/claude', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: prompt, docType: 'condominio' }), signal: ctrl.signal,
-      }).then(function (res) {
+      }).then(async function (res) {
         if (!res.ok) {
           clearTimeout(tmt);
           if (res.status === 401 || res.status === 403) {
@@ -685,6 +685,11 @@
               : 'La sesión actual no tiene permiso para generar el plan.');
             err.estado = res.status;
             reject(err);
+          } else if (res.status === 429) {
+            var detalle = await res.json().catch(function () { return {}; });
+            var limite = new Error(detalle.error || 'Se alcanzó un límite de solicitudes. Intenta más tarde.');
+            limite.estado = 429;
+            reject(limite);
           } else reintentar('Servidor no disponible (' + res.status + ')', 6000);
           return;
         }
@@ -715,7 +720,11 @@
                 if (o.error) {
                   clearTimeout(tmt);
                   var esTemporal = [429, 529].includes(o.status) || /RATE_LIMIT|OVERLOADED|429|529|overload/i.test(o.error);
-                  if (esTemporal && !full) reintentar(o.error, 15000 + intentos * 10000);
+                  if (o.status === 429) {
+                    var limiteClaude = new Error('Claude alcanzó su límite de solicitudes. Intenta más tarde.');
+                    limiteClaude.estado = 429;
+                    reject(limiteClaude);
+                  } else if (esTemporal && !full) reintentar(o.error, 15000 + intentos * 10000);
                   else reject(new Error(o.error));
                   return;
                 }
@@ -800,7 +809,7 @@
         step.textContent = 'Parte ' + (i + 1) + ' completada. Preparando la siguiente…';
         setTimeout(function () { hacerParte(i + 1); }, 4000);
       }).catch(function (err) {
-        if (!correccion && err.estado !== 401 && err.estado !== 403) {
+        if (!correccion && ![401, 403, 429].includes(err.estado)) {
           step.textContent = 'Corrigiendo la parte ' + (i + 1) + ' de ' + PARTES.length + '…';
           setTimeout(function () { hacerParte(i, err.message || 'Respuesta interrumpida.'); }, 4000);
           return;

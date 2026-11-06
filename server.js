@@ -242,10 +242,8 @@ app.post('/api/condominios/word', requireAuth, express.json({ limit: '4mb' }), a
 app.post('/api/claude', requireAuth, (req, res) => {
   if (!sameOrigin(req)) return res.status(403).json({ error: 'Origen inválido.' });
   if (req.usuario.rol !== 'admin') return res.status(403).json({ error: 'No autorizado para generar documentos.' });
-  const ip = req.ip || 'unknown';
-  if (tooMany(cuotas, ip, HOUR_LIMIT, 60 * 60 * 1000)) return res.status(429).json({ error: 'Límite horario alcanzado.' });
   const key = req.usuario.username;
-  if (activos.has(key)) return res.status(429).json({ error: 'Ya hay una generación en curso. Espere a que termine.' });
+  if (activos.has(key)) return res.status(429).json({ error: 'Ya hay una generación en curso para tu cuenta. Espera a que termine.' });
 
   if (!APIKEY) {
     res.status(500).json({ error: 'API key no configurada en variables de entorno' });
@@ -262,9 +260,14 @@ app.post('/api/claude', requireAuth, (req, res) => {
   const SYSTEM_USADO = docType === 'condominio' ? SYSTEM_CONDO : SYSTEM;
   const MAX_TOKENS = (Number.isInteger(maxTokens) && maxTokens > 0 && maxTokens <= 8192) ? maxTokens : 8192;
 
+  if (tooMany(cuotas, key, HOUR_LIMIT, 60 * 60 * 1000)) {
+    const seconds = Math.max(1, Math.ceil((cuotas.get(key).end - Date.now()) / 1000));
+    res.setHeader('Retry-After', String(seconds));
+    return res.status(429).json({ error: 'Límite horario de Plus Control alcanzado. Reintenta en ' + Math.ceil(seconds / 60) + ' min.' });
+  }
+
   activos.add(key);
   res.on('close', () => activos.delete(key));
-  res.on('finish', () => activos.delete(key));
   // Responder como SSE para mantener la conexión viva en Render Free
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
