@@ -120,6 +120,14 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x];
     });
   }
+  var EVIDENCIAS = [
+    ['regimen', 'Antecedente que acredita el régimen del plan'],
+    ['inventario', 'Acta o registro de inspección del inventario y mantenciones'],
+    ['asistencia', 'Referencia del catastro de asistencia bajo custodia'],
+    ['designaciones', 'Acta de designaciones y cobertura por turno'],
+    ['revision_tecnica', 'Registro de revisión profesional del plan']
+  ];
+
   var REQ_CONDO = ['c-nombre', 'c-dir', 'c-comuna', 'c-region'];
 
   // ── CONSTRUCTORES DE CAMPOS ────────────────────────────────────────────────
@@ -224,7 +232,9 @@
 
       seccion('C. Sistemas de seguridad y emergencia') +
       '<p class="cq-note">Indica cantidad, ubicación y estado si los conoces. Lo que no exista o no sepas, déjalo vacío.</p>' +
-      textareaCampo('Extintores: cantidad, agente, masa, concentración y estado verificado', 'c-extintores', val('extintores'), 'Ej.: PQS, 6 kg, concentración del agente 90 % según etiqueta; estado de carga pendiente de inspección. Separa cada grupo con distinta concentración.') +
+      textareaCampo('Extintores: cantidad, agente, masa y estado de carga verificado', 'c-extintores', val('extintores'), 'Ej.: 5 extintores PQS de 6 kg en Torre A. Estado de carga pendiente de inspección.') +
+      textareaCampo('Concentración del polvo químico (PQS) según etiqueta o ficha técnica', 'c-pqs-concentracion', val('pqs_concentracion'), 'Una línea por equipo o grupo: identificador | concentración. Ej.: Torre A | 90%; escribe cada grupo en una línea distinta.') +
+      '<p class="cq-note">El porcentaje corresponde a la concentración del agente, no al estado de carga. Si el dato falta, deja el campo vacío o escribe «pendiente» después de la barra vertical.</p>' +
       grid([
         textareaCampo('Red húmeda', 'c-red-humeda', val('red_humeda'), 'Ubicación / estado', false),
         textareaCampo('Red seca', 'c-red-seca', val('red_seca'), 'Ubicación / estado', false),
@@ -308,6 +318,12 @@
       ]) +
       textareaCampo('Líderes de evacuación por torre/piso', 'c-lideres', val('lideres'), 'Deja vacío si aún no se designan') +
 
+      seccion('F.1 Referencias del expediente de revisión') +
+      '<p class="cq-note">Registra identificador, fecha, responsable y ubicación del respaldo. Evita ingresar datos personales del catastro.</p>' +
+      EVIDENCIAS.map(function (item) {
+        return textareaCampo(item[1], 'c-ev-' + item[0], d.evidencias && d.evidencias[item[0]], 'Pendiente hasta contar con respaldo');
+      }).join('') +
+
       seccion('G. Servicios contratados a Plus Control') +
       '<p class="cq-note">Uso interno de gestión. No aparece como publicidad en el documento.</p>' +
       '<div class="cq-checks">' +
@@ -368,7 +384,7 @@
       rutas: v('c-rutas'), equipos_piso: v('c-equipos-piso'), plano_info: v('c-plano-info'), zonas_info: v('c-zonas-info'),
       plano_estado: v('c-plano-estado','pendiente'), plano_revisor: v('c-plano-revisor'), plano_fecha: v('c-plano-fecha'), plano_evidencia: v('c-plano-evidencia'),
       zonas_estado: v('c-zonas-estado','pendiente'), zonas_revisor: v('c-zonas-revisor'), zonas_fecha: v('c-zonas-fecha'), zonas_evidencia: v('c-zonas-evidencia'),
-      extintores: v('c-extintores'), red_humeda: v('c-red-humeda'), red_seca: v('c-red-seca'),
+      extintores: v('c-extintores'), pqs_concentracion: v('c-pqs-concentracion'), red_humeda: v('c-red-humeda'), red_seca: v('c-red-seca'),
       grifos: v('c-grifos'), detectores: v('c-detectores'), alarma: v('c-alarma'), pulsadores: v('c-pulsadores'),
       ilum: v('c-ilum'), generador: v('c-generador'), extincion_auto: v('c-extincion-auto'), senaletica: v('c-senaletica'),
       i_agua: chk('c-i-agua'), i_alcant: chk('c-i-alcant'), i_elec: chk('c-i-elec'), i_gas: chk('c-i-gas'),
@@ -386,6 +402,9 @@
       carabineros: v('c-carabineros'), carabineros_dir: v('c-carabineros-dir'),
       hospital: v('c-hospital'), hospital_dir: v('c-hospital-dir'),
     };
+    obj.evidencias = Object.fromEntries(EVIDENCIAS.map(function (item) {
+      return [item[0], v('c-ev-' + item[0])];
+    }));
     var foto = document.getElementById('c-foto').files[0];
     var planos = Array.from(document.getElementById('c-planos').files);
     if (planos.length > 4) throw new Error('Selecciona hasta cuatro láminas por condominio.');
@@ -510,7 +529,9 @@
       d('RECINTOS CRÍTICOS', c.recintos), d('ÁREAS COMUNES', c.areas, 'No especificado'),
       '',
       '─ SISTEMAS DE EMERGENCIA ─',
-      d('EXTINTORES (masa nominal, concentración del agente y estado de carga son datos distintos)', c.extintores), d('RED HÚMEDA', c.red_humeda, '[NO INFORMADO]'),
+      d('EXTINTORES (masa nominal y estado de carga)', c.extintores),
+      d('CONCENTRACIÓN DEL AGENTE PQS POR EQUIPO O GRUPO SEGÚN ETIQUETA; NO ES CARGA', c.pqs_concentracion, 'PENDIENTE SI APLICA'),
+      d('RED HÚMEDA', c.red_humeda, '[NO INFORMADO]'),
       d('RED SECA', c.red_seca, '[NO INFORMADO]'), d('GRIFOS/BOCAS', c.grifos, '[NO INFORMADO]'),
       d('DETECTORES DE HUMO', c.detectores, '[NO INFORMADO]'), d('ALARMA', c.alarma, '[NO INFORMADO]'),
       d('PULSADORES', c.pulsadores, '[NO INFORMADO]'), d('ILUMINACIÓN EMERGENCIA', c.ilum, '[NO INFORMADO]'),
@@ -689,8 +710,10 @@
         var texto = acumulado.join('\n\n');
         generating = false;
         var errores = validarDocumento(texto, c).concat(hallazgos);
+        var fechaVersion = Date.now();
+        datosGuardados.version_borrador = fechaVersion;
         var siguiente = Object.assign({}, c, {
-          ultimo_plan: { fecha: Date.now(), texto: texto, datos: datosGuardados },
+          ultimo_plan: { fecha: fechaVersion, texto: texto, datos: datosGuardados },
           planes_anteriores: (c.planes_anteriores || []).concat(c.ultimo_plan || [])
         });
         if (!condos.includes(c) || !saveCondos(condos.map(function (x) { return x === c ? siguiente : x; }))) {
@@ -755,6 +778,11 @@
   function auditoriaCondo(c) {
     var errores = [];
     var situacion = c.situacion || 'pendiente';
+    if (!c.fecha_elab) errores.push('PENDIENTE: falta la fecha de elaboración.');
+    EVIDENCIAS.forEach(function (item) {
+      if (!referenciaInformada(c.evidencias && c.evidencias[item[0]]))
+        errores.push('PENDIENTE: ' + item[1] + '.');
+    });
     if (!['primer_plan', 'actualizacion', 'regularizacion'].includes(situacion))
       errores.push('CRÍTICO: falta definir el régimen legal del plan.');
     if (situacion === 'primer_plan' && !String(c.propietario || '').trim())
@@ -784,6 +812,20 @@
     if (!ids.length) errores.push('CRÍTICO: pisos por torre deben informarse como A:5; B:5; C:4; D:4.');
     if (c.torres && /^\d+$/.test(String(c.torres)) && Number(c.torres) !== ids.length)
       errores.push('INCONSISTENCIA: número declarado de torres no coincide con el desglose de pisos.');
+    var pqs = String(c.pqs_concentracion || '').trim();
+    if (!pqs && /\bPQS\b|POLVO QU[IÍ]MICO/i.test(String(c.extintores || ''))) {
+      errores.push('PENDIENTE: registra la concentración del agente PQS por equipo o grupo según etiqueta.');
+    }
+    pqs.split('\n').filter(function (linea) { return linea.trim(); }).forEach(function (linea) {
+      var campos = linea.split('|').map(function (valor) { return valor.trim(); });
+      var porcentaje = campos[1] && campos[1].match(/^(\d{1,3}(?:[.,]\d+)?)\s*%?$/);
+      if (campos.length !== 2 || !campos[0] ||
+          (!/^pendiente$/i.test(campos[1]) && (!porcentaje || Number(porcentaje[1].replace(',', '.')) > 100))) {
+        errores.push('INCONSISTENCIA: concentración PQS inválida. Usa equipo o grupo | porcentaje de 0 a 100, o pendiente.');
+      } else if (/^pendiente$/i.test(campos[1])) {
+        errores.push('PENDIENTE: confirmar la concentración PQS de ' + campos[0] + ' según etiqueta.');
+      }
+    });
     var referencias = [c.detectores, c.alarma, c.pulsadores, c.extintores].filter(Boolean).join('. ');
     alertasInventario(referencias, c.pisos).forEach(function (hallazgo) {
       errores.push(hallazgo.startsWith('EXTINTORES:') ? 'INCONSISTENCIA: ' + hallazgo : hallazgo);
@@ -989,7 +1031,7 @@
         ? '<div class="cq-val cq-val-fail"><strong>Control de calidad: ' + errores.length + ' observación(es)</strong><ul>' +
           errores.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
           '</ul><p>Corrige antes de entregar al cliente. Puedes regenerar desde la lista.</p></div>'
-        : '<div class="cq-val cq-val-ok"><strong>Control mecánico: sin observaciones.</strong> La coherencia de los datos reales debe verificarla Alan leyendo el documento.</div>') +
+        : '<div class="cq-val cq-val-ok"><strong>Control mecánico: sin observaciones.</strong> La revisión profesional y el cotejo en terreno siguen pendientes.</div>') +
       '<div class="cq-actions">' +
         '<button class="cq-btn cq-btn-p" id="cq-print">Exportar borrador PDF no firmado</button>' +
         '<button class="cq-btn" id="cq-word">Descargar Word editable (.docx)</button>' +
@@ -1065,6 +1107,27 @@
     return roles;
   }
 
+  function referenciaInformada(valor) {
+    var texto = norm(valor).trim();
+    return Boolean(texto && !/^(?:\[?PENDIENTE|NO INFORMAD[OA]|POR VERIFICAR)/.test(texto));
+  }
+
+  function expedienteHtml(c) {
+    var filas = EVIDENCIAS.map(function (item) {
+      return [item[1], c.evidencias && c.evidencias[item[0]]];
+    });
+    filas.push(['Plano: código y versión', c.plano_info], ['Plano: referencia de revisión', c.plano_evidencia],
+      ['Rutas y zonas: evidencia de inspección', c.zonas_evidencia],
+      ['Concentración PQS según etiqueta', c.pqs_concentracion]);
+    return '<h2>REGISTRO DE ANTECEDENTES Y EVIDENCIAS</h2>' +
+      '<p>Referencias declaradas en el levantamiento de esta versión. Cotejar cada respaldo con su original antes de suscribir.</p>' +
+      '<table><thead><tr><th>Antecedente</th><th>Referencia declarada</th></tr></thead><tbody>' +
+      filas.map(function (fila) {
+        return '<tr><td>' + esc(fila[0]) + '</td><td>' +
+          (referenciaInformada(fila[1]) ? esc(fila[1]).replace(/\n/g, '<br>') : 'Pendiente') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
   function htmlPlan(c, texto, errores) {
     var fecha = c.fecha_elab
       ? new Date(c.fecha_elab + 'T00:00:00').toLocaleDateString('es-CL')
@@ -1079,6 +1142,7 @@
     if (conv.html.includes('<p>[LAMINAS DEL LEVANTAMIENTO]</p>')) {
       conv.html = conv.html.replace('<p>[LAMINAS DEL LEVANTAMIENTO]</p>', function () { return anexo; });
     } else if (laminas) conv.html += '<h2>Láminas de evacuación adjuntas</h2>' + anexo;
+    conv.indice.push('REGISTRO DE ANTECEDENTES Y EVIDENCIAS', 'SUSCRIPCIÓN DEL PLAN');
     var idx = conv.indice.length >= 3
       ? '<h2>ÍNDICE</h2><ol class="idx">' + conv.indice.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><div class="pb"></div>'
       : '';
@@ -1128,8 +1192,9 @@
       (imagenValida(c.foto) ? '<img class="foto" src="' + esc(c.foto.url) + '" alt="Entrada del condominio">' : '') +
       '<div class="m">Marco de referencia: artículo 40 de la Ley N°21.442<br>sobre Copropiedad Inmobiliaria<br><br>' +
       'Plus Control SpA — RUT 77.916.708-9<br>Revisión profesional pendiente<br><br>' +
-      esc(fecha) + '</div></div><div class="pb"></div>' +
-      idx + conv.html + firmas + '</body></html>';
+      esc(fecha) + (Number.isFinite(c.version_borrador) ? '<br>Versión PC-' + c.version_borrador.toString(36).toUpperCase() : '') +
+      '</div></div><div class="pb"></div>' +
+      idx + conv.html + expedienteHtml(c) + firmas + '</body></html>';
 
   }
 

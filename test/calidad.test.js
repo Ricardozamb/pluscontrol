@@ -187,3 +187,26 @@ test('verifica secciones por parte antes de aceptarlas', () => {
   assert.match(validarParte(anexos, 6, {}).join(), /inserción de planos/);
   assert.equal(validarParte(anexos.replace('## ANEXO 3', '[LAMINAS DEL LEVANTAMIENTO]\n## ANEXO 3'), 6, {}).length, 0);
 });
+
+test('la concentración PQS se valida por grupo sin inferir el estado de carga', () => {
+  const base = { extintores: 'PQS de 6 kg, carga por verificar' };
+  assert.match(auditar(base).join(), /registra la concentración/);
+  const resultados = auditar({ ...base, pqs_concentracion: 'Torre A | 90%\nTorre B | 75,5%\nTorre C | 40\nTorre D | pendiente' }).join();
+  assert.doesNotMatch(resultados, /concentración PQS inválida/);
+  assert.match(resultados, /concentración PQS de Torre D/);
+  assert.match(auditar({ ...base, pqs_concentracion: 'Torre A | 120%' }).join(), /concentración PQS inválida/);
+});
+
+test('el expediente distingue referencias declaradas de evidencia pendiente', () => {
+  const c = {
+    nombre: 'Ejemplo', version_borrador: 12345,
+    pqs_concentracion: 'Torre A | 90%\nTorre B | 75%',
+    evidencias: { regimen: 'Acta <2026>', inventario: 'Pendiente de inspección' }
+  };
+  const html = browser.window.PCCondominios.htmlPlan(c, '', []);
+  assert.match(html, /REGISTRO DE ANTECEDENTES Y EVIDENCIAS/);
+  assert.match(html, /Acta &lt;2026&gt;/);
+  assert.match(html, /Torre A \| 90%<br>Torre B \| 75%/);
+  assert.match(html, /Versión PC-/);
+  assert.match(auditar(c).join(), /PENDIENTE: Acta o registro de inspección/);
+});
