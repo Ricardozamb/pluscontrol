@@ -65,7 +65,9 @@ async function doLogin() {
     });
     const data=await r.json();
     if(!r.ok) throw new Error(data.error||'No se pudo iniciar sesión');
-    setSession(data.user);err.style.display='none';showApp();
+    const session = await fetch('/api/auth/me', { credentials:'same-origin', cache:'no-store' });
+    if (!session.ok) throw new Error('El navegador no conservó la sesión. Abre Plus Control directamente y comprueba que las cookies estén permitidas.');
+    setSession((await session.json()).user);err.style.display='none';showApp();
   } catch(e) { err.textContent=e.message;err.style.display='block'; }
   finally { document.getElementById('login-pass').value=''; btn.disabled=false; }
 }
