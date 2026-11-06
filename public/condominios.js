@@ -463,6 +463,11 @@
       obj.plano_estado = 'pendiente';
       obj.plano_revisor = obj.plano_fecha = obj.plano_evidencia = '';
     }
+    if (previo && previo.zonas_estado === 'inspeccionadas' &&
+        (previo.rutas !== obj.rutas || previo.zonas_info !== obj.zonas_info)) {
+      obj.zonas_estado = 'pendiente';
+      obj.zonas_revisor = obj.zonas_fecha = obj.zonas_evidencia = '';
+    }
     // Preserva el plan ya generado al editar (bug corregido de v1).
     if (previo && previo.ultimo_plan) obj.ultimo_plan = previo.ultimo_plan;
     if (previo && previo.planes_anteriores) obj.planes_anteriores = previo.planes_anteriores;
@@ -754,7 +759,7 @@
       '\nRutas declaradas, no operativas hasta cotejo: ' + (c.rutas || 'PENDIENTE') +
       '\nZonas declaradas, no operativas hasta cotejo: ' + (c.zonas_info || 'PENDIENTE') +
       '\nReferencia de planos (archivo no incorporado): ' + (c.plano_info || 'PENDIENTE') +
-      '\nPlanos, recorridos y zonas requieren cotejo documental y en terreno. No des instrucciones operativas locales como definitivas. ' +
+      '\nPlanos, recorridos y zonas requieren cotejo documental y en terreno. Las rutas marcadas SIMULADO o por verificar solo pueden figurar como datos de prueba o pendientes; conserva esa etiqueta. No des instrucciones operativas locales como definitivas. ' +
       'No atribuyas autoría o firmas. La aplicación muestra los roles de suscripción por separado. Numera cada subsección una sola vez. No conviertas totales agregados en registros individuales ni supongas equipos operativos sin respaldo.';
     var stream = document.getElementById('cq-stream');
     var bar = document.getElementById('cq-bar');
@@ -928,13 +933,19 @@
       if (!regiones[id]) errores.push('CRÍTICO: no hay zona de encuentro registrada para torre ' + id + '.');
     });
     var rutas = new Set();
+    var rutasPendientes = new Set();
     String(c.rutas || '').split(/\n+/).filter(function (row) { return row.trim(); }).forEach(function (row) {
       var p = row.split('|').map(function (x) { return x.trim(); });
       var torre = norm(p[0]), piso = Number(p[1]);
       if (p.length !== 4 || !torres[torre] || !/^\d+$/.test(p[1]) || piso < 1 ||
           piso > torres[torre] || !p[2] || !regiones[torre] || norm(p[3]) !== norm(regiones[torre])) {
         errores.push('INCONSISTENCIA: ruta sin piso, recorrido o zona concordante: ' + row);
+      } else if (/^\s*\[|\bSIMULAD[OA]\b|POR VERIFICAR|PENDIENTE/.test(norm(p[2]))) {
+        rutasPendientes.add(torre);
       } else rutas.add(torre + '|' + piso);
+    });
+    rutasPendientes.forEach(function (id) {
+      errores.push('PENDIENTE: la torre ' + id + ' contiene rutas simuladas o por verificar. No usar para evacuar.');
     });
     ids.forEach(function (id) {
       for (var piso = 1; piso <= torres[id]; piso++) {
